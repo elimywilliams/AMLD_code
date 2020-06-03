@@ -7,26 +7,8 @@ Created on Mon Apr  6 14:51:23 2020
 @author: emilywilliams
 """
 
-# /Users/emilywilliams/Documents/mixedmods
 import pandas as pd
 
-#xDir =  "/Users/emilywilliams/Documents/mixedmods/"
-#outFolder = "/Users/emilywilliams/Documents/mixedmods/"
-#xCar = 'ColLi'
-#xFilename = 'col_redo.csv'
-
-#fileloc = "/Users/emilywilliams/Desktop//COL_drive1.txt"
-#outFolder = "/Users/emilywilliams/Desktop/COl_Results/"
-
-#infile = pd.read_csv(r"/Users/emilywilliams/Desktop//COL_drive1.txt")
-#infile.to_csv(r"/Users/emilywilliams/Desktop//COL_drive1.csv",index=None)
-#fileloc = "/Users/emilywilliams/Desktop//COL_drive1.csv"
-
-
-#xDir = "/Users/emilywilliams/Desktop/"
-#xDate = "04012020"
-#xCar = "COLLi"
-#xFilename= "COL_drive1.csv"
 
 def haversine(lat1, lon1, lat2, lon2, radius=6371): # 6372.8 = earth radius in kilometers
     from math import radians, sin, cos, sqrt, asin
@@ -42,7 +24,8 @@ def haversine(lat1, lon1, lat2, lon2, radius=6371): # 6372.8 = earth radius in k
 
 def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
     from datetime import datetime
-    import os
+    #import os
+    import gzip
     try:
         
         #xOutDir = xDir 
@@ -82,14 +65,13 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
         if not bFirst:
             fOut = open(fnOut, 'a')
             fLog = open(fnLog, 'a')
-            print('hi')
+            #print('hi')
         
         #read all lines
         xCntObs = -1
         xCntGoodValues = 0
         for row in f:
             #print(row)
-            woo = row
             bGood = True
             if xCntObs < 0:
                 bGood = False
@@ -98,7 +80,7 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
                 lstS = row.split(",")
                 dtime = lstS[0]
                 dateob = datetime(int(dtime[6:10]),int(dtime[0:2]),int(dtime[3:5]),int(dtime[11:13]),int(dtime[14:16]),int(dtime[17:19]),int(float(dtime[19:23])*1000000))
-                epoch = dateob.strftime('%s.%f')
+                #epoch = dateob.strftime('%s.%f')
                 dtime = int(dateob.strftime('%Y%m%d%H%M%S'))
   
                 # change this once we have QA/QC stuff
@@ -161,14 +143,13 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
     
 ## POTENTIALLY GOOD ONE    
 def IdentifyPeaks( xCar, xDate, xDir, xFilename):
-    import contextily as ctx
-    import os, sys, datetime, time, math, csv, numpy,gzip
-    from math import radians, sin, cos, sqrt, asin
-    import geopandas as gpd
-    import pandas as pd #
-    from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
-    import matplotlib.pyplot as plt
-    from datetime import datetime
+    #import contextily as ctx
+    import csv, numpy
+    #import os, sys, datetime, time, math, csv, numpy,gzip
+    #from math import radians, sin, cos, sqrt, asin
+    #from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
+    #import matplotlib.pyplot as plt
+    #from datetime import datetime
     
     try:
 
@@ -290,10 +271,10 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename):
                         break
 
                 xCH4Mean = numpy.percentile(aCH4[botBound:topBound],50)
-                xCH4SD = numpy.std(aCH4[botBound:topBound])
+               # xCH4SD = numpy.std(aCH4[botBound:topBound])
             else:
                 xCH4Mean = numpy.percentile(aCH4[0:(count-2)],50)
-                xCH4SD = numpy.std(aCH4[0:(count-2)])
+                #xCH4SD = numpy.std(aCH4[0:(count-2)])
             xThreshold = xCH4Mean + (xCH4Mean * 0.1)
             
             if (aCH4[i] > xThreshold):
@@ -376,382 +357,7 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename):
 
         
         
-#def IdentifyPeaks( xCar, xDate, xDir, xFilename):
-#    try:
-#
-#        xABThreshold = 0.1                 # above baseline threshold above the mean value
-#        xDistThreshold = 160.0                 # find the maximum CH4 reading of observations within street segments of this grouping distance in meters
-#        xSDF = 4                    # multiplier times standard deviation for floating baseline added to mean
-#        xB = 1020       # the number of records that constitutes the floating baseline time -- 7200 = 1 hour (assuming average of 0.5 seconds per record)
-#        #xB = 300 #five min?
-#        xTimeThreshold = 5.0
-#        
-#        fn = xDir + "/" + xFilename      #set raw text file to read in
-#        #fn = fileloc
-#        fnOut = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"       #set CSV format output for observed peaks for a given car, day, city
-#        fnShape = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".shp"
-#        fnLog = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".log"       #set CSV output for observed peaks for a given car, day, city
-#
-#        fLog = open(fnLog, 'w')
-#
-#        #field column indices for various variables
-#        #fDate = 0; fTime = 1; fEpochTime = 2; fNanoSeconds = 3; fLat = 4; fLon = 5; fVelocity = 6; fU = 7; fV = 8; fW = 9; fBCH4 = 10; fTCH4 = 12
-#        
-#        fDateTime = 0; 
-#        #fTime = 16; 
-#        fEpochTime = 3;  fLat = 13; fLon = 14; fBCH4 = 4; fTCH4 =4
-#        #fNanoSeconds = 18;
-#        #fVelocity = 6;
-#        
-#        #read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
-#        x1 = []; x2 = []; x3 = []; x4 = []; x5 = []; x6 = []; x7 = []; x8 = []
-#        
-#        
-#    
-#        count = -1
-#        with open(fn, 'r') as f:
-#            t = csv.reader(f)
-#            for row in t:
-#                if count < 0:
-#                    count += 1
-#                    continue
-#                #epoch = float(row[fEpochTime]+"."+row[fNanoSeconds][0])
-#                #print(row[fLat])
-#                dtime = row[fDateTime]
-#                dateob = datetime(int(dtime[6:10]),int(dtime[0:2]),int(dtime[3:5]),int(dtime[11:13]),int(dtime[14:16]),int(dtime[17:19]),int(float(dtime[19:23])*1000000))
-#                epoch = dateob.strftime('%s.%f')
-#                dtime = int(dateob.strftime('%Y%m%d%H%M%S'))
-#  
-#                
-#                #epoch = float(row[fEpochTime])
-#                woo = row
-#                #print(row[1])
-#
-#                x1.append(float(epoch)); x2.append(float(dtime));
-#                x3.append(float(row[fLat]));
-#                x4.append(float(row[fLon])); 
-#                x5.append(float(row[fBCH4]));
-#                x6.append(float(row[fTCH4]))
-#                x7.append(0.0); x8.append(0.0)
-#                
-#                count += 1
-#        print ("Number of observations processed: " + str(count))
-#
-#        #convert lists to numpy arrays
-#        aEpochTime = numpy.array(x1); aDateTime = numpy.array(x2); aLat = numpy.array(x3); aLon = numpy.array(x4); aCH4 = numpy.array(x5); aTCH4 = numpy.array(x6)
-#        aMean = numpy.array(x7); aThreshold = numpy.array(x8)
-#
-#        xLatMean = numpy.mean(aLat)
-#        xLonMean = numpy.mean(aLon)
-#        
-#        fLog.write ( "Day CH4_mean = " + str(numpy.mean(aCH4)) + ", Day CH4_SD = " + str(numpy.std(aCH4)) + "\n")
-#        fLog.write( "Center lon/lat = " + str(xLonMean) + ", " + str(xLatMean) + "\n")
-#        
-#        lstCH4_AB = []
-#
-#        #generate list of the index for observations that were above the threshold
-#        for i in range(0,count-2):
-#            if ((count-2)>xB):
-#                topBound = min((i+xB), (count-2))
-#                botBound = max((i-xB), 0)
-#
-#                for t in range(min((i+xB), (count-2)), i, -1):
-#                    if aEpochTime[t] < (aEpochTime[i]+(xB/2)):
-#                        topBound = t
-#                        break
-#                for b in range(max((i-xB), 0), i):
-#                    if aEpochTime[b] > (aEpochTime[i]-(xB/2)):
-#                        botBound = b
-#                        break
-#
-#                xCH4Mean = numpy.percentile(aCH4[botBound:topBound],50)
-#                xCH4SD = numpy.std(aCH4[botBound:topBound])
-#            else:
-#                xCH4Mean = numpy.percentile(aCH4[0:(count-2)],50)
-#                xCH4SD = numpy.std(aCH4[0:(count-2)])
-#            xThreshold = xCH4Mean + (xCH4Mean * 0.1)
-#            
-#            if (aCH4[i] > xThreshold):
-#                lstCH4_AB.append(i)
-#                aMean[i] = xCH4Mean    #insert mean + SD as upper quartile CH4 value into the array to later retreive into the peak calculation
-#                aThreshold[i] = xThreshold
-#
-#        # now group the above baseline threshold observations into groups based on distance threshold
-#        lstCH4_ABP = []
-#        xDistPeak = 0.0
-#        xCH4Peak = 0.0
-#        xTime = 0.0
-#        cntPeak = 0
-#        cnt = 0
-#        sID = ""
-#        sPeriod5Min = ""
-#        prevIndex = 0
-#        for i in lstCH4_AB:   
-#            if (cnt == 0):
-#                xLon1 = aLon[i]; xLat1 = aLat[i]
-#            else:
-#                # calculate distance between points
-#                xDist = haversine(xLat1, xLon1, aLat[i], aLon[i])
-#                xDistPeak += xDist
-#                xCH4Peak += (xDist * (aCH4[i] - aMean[i]))
-#                xLon1 = aLon[i]; xLat1 = aLat[i]
-#                if (sID == ""):
-#                    xTime = aEpochTime[i]
-#                    sID = str(xCar) + "_" + str(xTime)
-#                    sPeriod5Min = str(int((aEpochTime[i] - 1350000000) / (30 * 1))) # 30 sec
-#                if ((aEpochTime[i]-aEpochTime[prevIndex]) > xTimeThreshold):       #initial start of a observed peak
-#                    cntPeak += 1
-#                    xTime = aEpochTime[i]
-#                    xDistPeak = 0.0
-#                    xCH4Peak = 0.0
-#                    sID = str(xCar) + "_" + str(xTime)
-#                    sPeriod5Min = str(int((aEpochTime[i] - 1350000000) / (30 * 1))) # 30 sec
-#                    #print str(i) +", " + str(xDist) + "," + str(cntPeak) +"," + str(xDistPeak)         
-#                lstCH4_ABP.append([sID, xTime, aEpochTime[i], aDateTime[i], aCH4[i], aLon[i], aLat[i], aMean[i] ,aThreshold[i], xDistPeak, xCH4Peak, aTCH4[i], sPeriod5Min])
-#            cnt += 1
-#            prevIndex = i
-#    
-#        # Finding peak_id larger than 160.0 m
-#        tmpsidlist = []
-#        for r in lstCH4_ABP:
-#            if (float(r[9])>160.0) and (r[0] not in tmpsidlist):
-#                tmpsidlist.append(r[0])
-#        cntPeak-=len(tmpsidlist)
-#
-#        fLog.write ( "Number of peaks found: " + str(cntPeak) + "\n")
-#        print (xCar + "\t" + xDate + "\t" + xFilename + "\t" + str(count) + "\t" + str(len(lstCH4_ABP)))
-#        #### calculate attribute for the area under the curve -- PPM
-#        
-#        #write out the observed peaks to a csv to be read into a GIS
-#        fOut = open(fnOut, 'w')
-#        s = "PEAK_NUM,EPOCHSTART,EPOCH,DATETIME,CH4,LON,LAT,CH4_BASELINE,CH4_THRESHOLD,PEAK_DIST_M,PEAK_CH4,TCH4,PERIOD5MIN\n"
-#        fOut.write(s)
-#
-#        truecount = 0
-#        for r in lstCH4_ABP:
-#            if r[0] not in tmpsidlist:
-#                s = ''
-#                for rr in r:
-#                    s += str(rr) + ','
-#                s = s[:-1]
-#                s += '\n'
-#                fOut.write(s)
-#                truecount += 1
-#        fOut.close()
-#        fLog.close()
-#
-#        if truecount > 0:
-#            #arcpy.MakeXYEventLayer_management(fnOut,"LON","LAT",xCar + "L","GEOGCS['GCS_WGS_1984',DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]];-400 -400 1000000000;-100000 10000;-100000 10000;8.98315284119522E-09;0.001;0.001;IsHighPrecision","#")
-#            #arcpy.FeatureToPoint_management(xCar + "L",fnShape,"CENTROID")
-#            #arcpy.Delete_management(xCar+"L")
-#            return True
-#    except ValueError:
-#            print ("Error in Identify Peaks")
-#            return False
-            
-        
-#def IdentifyPeaks( xCar, xDate, xDir, xFilename):
-#    try:
-#
-#        xABThreshold = 0.1                 # above baseline threshold above the mean value
-#        xDistThreshold = 160.0                 # find the maximum CH4 reading of observations within street segments of this grouping distance in meters
-#        xSDF = 4                    # multiplier times standard deviation for floating baseline added to mean
-#        xB = 1020       # the number of records that constitutes the floating baseline time -- 7200 = 1 hour (assuming average of 0.5 seconds per record)
-#        #xB = 300 #five min?
-#        xTimeThreshold = 5.0
-#        
-#        fn = xDir + "/" + xFilename      #set raw text file to read in
-#        fn = fileloc
-#        fnOut = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"       #set CSV format output for observed peaks for a given car, day, city
-#        fnShape = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".shp"
-#        fnLog = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".log"       #set CSV output for observed peaks for a given car, day, city
-#
-#        fLog = open(fnLog, 'w')
-#
-#        #field column indices for various variables
-#        #fDate = 0; fTime = 1; fEpochTime = 2; fNanoSeconds = 3; fLat = 4; fLon = 5; fVelocity = 6; fU = 7; fV = 8; fW = 9; fBCH4 = 10; fTCH4 = 12
-#        
-#        fDateTime = 4; 
-#        #fTime = 16; 
-#        fEpochTime = 3;  fLat = 5; fLon = 6; fBCH4 = 7; fTCH4 =7
-#        #fNanoSeconds = 18;
-#        #fVelocity = 6;
-#        
-#        #read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
-#        x1 = []; 
-#        x2 = []; 
-#        x3 = []; 
-#        x4 = []; 
-#        x5 = []; 
-#        x6 = []; 
-#        x7 = []; 
-#        x8 = [];
-#        x9 = []; #inlet number
-#        x10 = []; #pressure
-#        x11 = []; #temp
-#        
-#    
-#    
-#        count = -1
-#        with open(fn, 'r') as f:
-#            
-#            t = f.readlines()
-#            #t = csv.reader(f)
-#            for row in t:
-#                if count < 0:
-#                    count += 1
-#                    continue
-#                #epoch = float(row[fEpochTime]+"."+row[fNanoSeconds][0])
-#                #print(row[fLat])
-#                
-#                #epoch = float(row[fEpochTime])
-#               # print(row[0:1])
-#                #date = (row[6:10] + row[0:2]+row[3:5])
-#                time = str((row[10:19].replace(":","")))
-#                woo = row
-#
-#                dateob = datetime(int(row[6:10]),int(row[0:2]),int(row[3:5]),int(row[11:13]),int(row[14:16]),int(row[17:19]),int(float(row[19:23])*1000000))
-#                epoch = dateob.strftime('%s.%f')
-#                dtime = dateob.strftime('%Y%m%d%H%M%S')
-#                #print(month)
-#                #print(row[1])
-#                #print(row[0:6])
-#                if count < 10:
-#                    date = str(row[6:10] + row[0:2]+row[3:5])
-#                    #print((row[11:20]))
-#                    time = str((row[10:19].replace(":","")))
-#                    datetime = (date + time).replace(" ","")
-#                    print(datetime)
-#                    #print((row[0:10].replace("/","")))
-#
-#                #datetime = row[fDate].replace("-","")+row[fTime].replace(":","")
-#                x1.append(float(epoch));
-#                x2.append(float(dtime));
-#                x3.append(float(row[fLat]));
-#                x4.append(float(row[fLon])); 
-#                x5.append(float(row[fBCH4]));
-#                x6.append(float(row[fTCH4]))
-#                x7.append(0.0); x8.append(0.0)
-#                x8.append()
-#                x9.append(float(row[24:25]))
-#                x10.append(float(row[26:33]))
-#                x11.append(float(row[34:41]))
-##                
-#                count += 1
-#        print ("Number of observations processed: " + str(count))
-#
-#        #convert lists to numpy arrays
-#        aEpochTime = numpy.array(x1); aDateTime = numpy.array(x2); aLat = numpy.array(x3); aLon = numpy.array(x4); aCH4 = numpy.array(x5); aTCH4 = numpy.array(x6)
-#        aMean = numpy.array(x7); aThreshold = numpy.array(x8)
-#
-#        xLatMean = numpy.mean(aLat)
-#        xLonMean = numpy.mean(aLon)
-#        
-#        fLog.write ( "Day CH4_mean = " + str(numpy.mean(aCH4)) + ", Day CH4_SD = " + str(numpy.std(aCH4)) + "\n")
-#        fLog.write( "Center lon/lat = " + str(xLonMean) + ", " + str(xLatMean) + "\n")
-#        
-#        lstCH4_AB = []
-#
-#        #generate list of the index for observations that were above the threshold
-#        for i in range(0,count-2):
-#            if ((count-2)>xB):
-#                topBound = min((i+xB), (count-2))
-#                botBound = max((i-xB), 0)
-#
-#                for t in range(min((i+xB), (count-2)), i, -1):
-#                    if aEpochTime[t] < (aEpochTime[i]+(xB/2)):
-#                        topBound = t
-#                        break
-#                for b in range(max((i-xB), 0), i):
-#                    if aEpochTime[b] > (aEpochTime[i]-(xB/2)):
-#                        botBound = b
-#                        break
-#
-#                xCH4Mean = numpy.percentile(aCH4[botBound:topBound],50)
-#                xCH4SD = numpy.std(aCH4[botBound:topBound])
-#            else:
-#                xCH4Mean = numpy.percentile(aCH4[0:(count-2)],50)
-#                xCH4SD = numpy.std(aCH4[0:(count-2)])
-#            xThreshold = xCH4Mean + (xCH4Mean * 0.1)
-#            
-#            if (aCH4[i] > xThreshold):
-#                lstCH4_AB.append(i)
-#                aMean[i] = xCH4Mean    #insert mean + SD as upper quartile CH4 value into the array to later retreive into the peak calculation
-#                aThreshold[i] = xThreshold
-#
-#        # now group the above baseline threshold observations into groups based on distance threshold
-#        lstCH4_ABP = []
-#        xDistPeak = 0.0
-#        xCH4Peak = 0.0
-#        xTime = 0.0
-#        cntPeak = 0
-#        cnt = 0
-#        sID = ""
-#        sPeriod5Min = ""
-#        prevIndex = 0
-#        for i in lstCH4_AB:   
-#            if (cnt == 0):
-#                xLon1 = aLon[i]; xLat1 = aLat[i]
-#            else:
-#                # calculate distance between points
-#                xDist = haversine(xLat1, xLon1, aLat[i], aLon[i])
-#                xDistPeak += xDist
-#                xCH4Peak += (xDist * (aCH4[i] - aMean[i]))
-#                xLon1 = aLon[i]; xLat1 = aLat[i]
-#                if (sID == ""):
-#                    xTime = aEpochTime[i]
-#                    sID = str(xCar) + "_" + str(xTime)
-#                    sPeriod5Min = str(int((aEpochTime[i] - 1350000000) / (30 * 1))) # 30 sec
-#                if ((aEpochTime[i]-aEpochTime[prevIndex]) > xTimeThreshold):       #initial start of a observed peak
-#                    cntPeak += 1
-#                    xTime = aEpochTime[i]
-#                    xDistPeak = 0.0
-#                    xCH4Peak = 0.0
-#                    sID = str(xCar) + "_" + str(xTime)
-#                    sPeriod5Min = str(int((aEpochTime[i] - 1350000000) / (30 * 1))) # 30 sec
-#                    #print str(i) +", " + str(xDist) + "," + str(cntPeak) +"," + str(xDistPeak)         
-#                lstCH4_ABP.append([sID, xTime, aEpochTime[i], aDateTime[i], aCH4[i], aLon[i], aLat[i], aMean[i] ,aThreshold[i], xDistPeak, xCH4Peak, aTCH4[i], sPeriod5Min])
-#            cnt += 1
-#            prevIndex = i
-#    
-#        # Finding peak_id larger than 160.0 m
-#        tmpsidlist = []
-#        for r in lstCH4_ABP:
-#            if (float(r[9])>160.0) and (r[0] not in tmpsidlist):
-#                tmpsidlist.append(r[0])
-#        cntPeak-=len(tmpsidlist)
-#
-#        fLog.write ( "Number of peaks found: " + str(cntPeak) + "\n")
-#        print (xCar + "\t" + xDate + "\t" + xFilename + "\t" + str(count) + "\t" + str(len(lstCH4_ABP)))
-#        #### calculate attribute for the area under the curve -- PPM
-#        
-#        #write out the observed peaks to a csv to be read into a GIS
-#        fOut = open(fnOut, 'w')
-#        s = "PEAK_NUM,EPOCHSTART,EPOCH,DATETIME,CH4,LON,LAT,CH4_BASELINE,CH4_THRESHOLD,PEAK_DIST_M,PEAK_CH4,TCH4,PERIOD5MIN\n"
-#        fOut.write(s)
-#
-#        truecount = 0
-#        for r in lstCH4_ABP:
-#            if r[0] not in tmpsidlist:
-#                s = ''
-#                for rr in r:
-#                    s += str(rr) + ','
-#                s = s[:-1]
-#                s += '\n'
-#                fOut.write(s)
-#                truecount += 1
-#        fOut.close()
-#        fLog.close()
-#
-#        if truecount > 0:
-#            #arcpy.MakeXYEventLayer_management(fnOut,"LON","LAT",xCar + "L","GEOGCS['GCS_WGS_1984',DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]];-400 -400 1000000000;-100000 10000;-100000 10000;8.98315284119522E-09;0.001;0.001;IsHighPrecision","#")
-#            #arcpy.FeatureToPoint_management(xCar + "L",fnShape,"CENTROID")
-#            #arcpy.Delete_management(xCar+"L")
-#            return True
-#    except ValueError:
-#            print ("Error in Identify Peaks")
-#            return False
-#
+
 def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
     import pandas as pd #
     import geopandas as gpd
@@ -763,24 +369,44 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
 
     datFram = pd.read_csv(file_loc)
     
-    datFram_cent =  datFram.copy()
-    datFram_cent['CH4_AB'] = datFram_cent['CH4'].sub(datFram_cent['CH4_BASELINE'], axis = 0) 
+    datFram_cent =  datFram.loc[:,:]
+    
+    datFram_cent['CH4_AB'] = datFram_cent.loc[:,'CH4'].sub(datFram_cent.loc[:,'CH4_BASELINE'], axis = 0) 
+    
+ 
+    ### MAXCH4 is a df with the max methane (above baseline) in the given observed peak
     maxch4 = datFram_cent.groupby('PEAK_NUM',as_index = False).CH4_AB.max().rename(columns = {'CH4_AB':'pk_maxCH4_AB'})
-    datFram_cent_wmax = pd.merge(datFram_cent,maxch4,on = ['PEAK_NUM'])  
-    datFram_wtLoc = weightedLoc(datFram_cent,'LAT','LON','PEAK_NUM','CH4_AB').rename(columns = {'LAT':'pk_LAT','LON':'pk_LON'})
+    
+    ## COMBINING THE MAXIMUM ABOVE BASELINE CH4 LEVEL TO THE ORIGINAL DATAFRAME
+    datFram_cent_wmax = pd.merge(datFram_cent.loc[:,:],maxch4.loc[:,:],on = ['PEAK_NUM'])  
+    
+    ### FINDING WEIGHTED LOCATION OF THE OP, BY THE ABOVE BASELINE CH4 LEVEL
+    wtloc = weightedLoc(datFram_cent,'LAT','LON','PEAK_NUM','CH4_AB')
+    datFram_wtLoca =  wtloc.copy()
+    datFram_wtLoc = datFram_wtLoca.rename(columns = {'LAT':'pk_LAT','LON':'pk_LON'})
+    
+    #datFram_wtLoc = weightedLoc(datFram_cent,'LAT','LON','PEAK_NUM','CH4_AB').rename(columns = {'LAT':'pk_LAT','LON':'pk_LON'}).copy()
     datFram_wtLocMax = pd.merge(datFram_wtLoc,maxch4,on = ['PEAK_NUM'])
     
     pass_info = datFram.copy()
     geometry_temp = [Point(xy) for xy in zip(datFram['LON'], datFram['LAT'])]
     crs = {'init': 'epsg:4326'}
+     
+    ## geometry is the point of the lat/lon
     gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
     gdf_buff = gdf_buff.to_crs(epsg=32610)
     gdf_buff['geometry'] = gdf_buff.geometry.buffer(30) 
-    gdf_tog = pd.merge(gdf_buff,pass_info,on = ['PEAK_NUM', 'EPOCHSTART', 'EPOCH', 'DATETIME', 'CH4', 'LON', 'LAT',
+    
+    pass_info_new = pass_info.rename(columns={"geometry": 'pk_geo'}).copy()
+    
+    gdf_tog = pd.merge(gdf_buff,pass_info_new,on = ['PEAK_NUM', 'EPOCHSTART', 'EPOCH', 'DATETIME', 'CH4', 'LON', 'LAT',
        'CH4_BASELINE', 'CH4_THRESHOLD', 'PEAK_DIST_M', 'PEAK_CH4', 'TCH4',
        'PERIOD5MIN'])
+    
     gdf_bind_pks = gdf_tog.dissolve(by = 'PEAK_NUM',as_index=False)[['PEAK_NUM','geometry']]
     
+
+                  
     if gdf_bind_pks.shape[0] > 1:
         data_overlap = gpd.GeoDataFrame(crs=gdf_bind_pks.crs)
         data_temp = gdf_bind_pks.copy()
@@ -791,7 +417,6 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
             #print(len(overlaps))
             if len(overlaps)>0:
                 #print(len(overlaps))
-                temp_list=[]
                 #print('checking')
                 # compare the area with threshold 
                 for y in overlaps:
@@ -800,15 +425,25 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                     if temp_area.shape[0]>0:
                         temp_union = gpd.overlay(data_temp.loc[data_temp.PEAK_NUM==y,],data_temp.loc[data_temp.PEAK_NUM==row.PEAK_NUM,],how='union')
                         data_overlap=gpd.GeoDataFrame(pd.concat([temp_union,data_overlap],ignore_index=True),crs=data_temp.crs)
-      
         if data_overlap.size > 0: 
-                firstnull = data_overlap[data_overlap.PEAK_NUM_1.isnull()]
-                firstnull.loc[:,'PEAK_NUM_1'] = firstnull['PEAK_NUM_2']
                 
-                secnull = data_overlap[data_overlap.PEAK_NUM_2.isnull()].copy()
-                secnull.loc[:,'PEAK_NUM_2'] = secnull['PEAK_NUM_1'].copy()
+                firstnull2 = data_overlap.loc[data_overlap.PEAK_NUM_1.isnull(),:]
+                #firstnull = data_overlap[data_overlap.PEAK_NUM_1.isnull()]
+                #pk2 = firstnull.copy().loc[:,'PEAK_NUM_2']
+                #firstnull.loc[:,('PEAK_NUM_1')] = pk2
                 
-                withoutNA = data_overlap.dropna().copy()
+                firstnull = firstnull2.copy()
+                firstnull.loc[:,'PEAK_NUM_1'] = firstnull2.loc[:,'PEAK_NUM_2']
+                
+                secnull2 = data_overlap.loc[data_overlap.PEAK_NUM_2.isnull(),:]
+                
+                #spk2 = secnull.copy().loc[:,'PEAK_NUM_1']
+                secnull = secnull2.copy()
+                secnull.loc[:,'PEAK_NUM_2'] = secnull2.loc[:,'PEAK_NUM_1']
+
+                #secnull.loc[:,'PEAK_NUM_2'] = secnull['PEAK_NUM_1'].copy()
+                
+                withoutNA = data_overlap.copy().dropna()
                 allTog = pd.concat([firstnull,secnull,withoutNA]).reset_index().copy()
                 
                 over = allTog.copy()
@@ -820,6 +455,8 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                 over['min_val']=over.apply(lambda y: min(y.combined),axis=1).copy()
                 over=over.reset_index()[['PEAK_NUM_1','PEAK_NUM_2','geometry','combined','min_val']]
                 
+  
+
                 
                 #over = data_overlap.copy()
                 #over['sorted']=over.apply(lambda y: sorted([y['PEAK_NUM_1'],y['PEAK_NUM_2']]),axis=1)
@@ -831,7 +468,8 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                 #over=over.reset_index()[['PEAK_NUM_1','PEAK_NUM_2','geometry','combined','min_val']]
                         
                 overcop = over.copy()
-                overcop.loc[:,'recombine'] = overcop.combined.copy()
+                overcop.loc[:,'recombine'] = overcop.loc[:,'combined']
+                
                 for index, row in overcop.iterrows():
                     united = row.recombine
                     #print(united)
@@ -840,7 +478,13 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                         if united_temp != None:
                             united = united_temp
                             #print(united)
-                    overcop.recombine[index] = united.copy()
+                    #overcop.recombine[index] = united.copy()
+                    
+                    
+                    #overcop.loc[(index),('recombine')] = united.copy()
+
+                    overcop.at[index, 'recombine']  = united.copy()
+                    
                     #print(united)
                     del(united)   
                 overcop['recombine']= overcop.apply(lambda y: sorted(y.recombine),axis=1).copy()
@@ -851,40 +495,45 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                 combined = gdf_bind_pks.copy()
                 combined['recombine'] = [list(x) for x in list(combined.loc[:,['PEAK_NUM']].to_numpy())]
                 combined['numtimes'] = 1
-                combined['newgeo'] = combined.copy().geometry
-                combined['min_read'] = combined.PEAK_NUM.copy()
+                combined['newgeo'] = combined.loc[:,'geometry']
+                combined['min_read'] = combined.loc[:,"PEAK_NUM"]
                 for index,row in combined.iterrows():
                     for index2,row2 in newOverlap.iterrows():
                         if row.PEAK_NUM in row2.recombine:
-                            combined.recombine[index] = row2.recombine.copy()
-                            combined.newgeo[index] = row2.geometry
+                            #combined.recombine[index] = row2.copy().recombine
+                            combined.at[index, 'recombine']  = row2.recombine.copy()
+                            
+                            #combined.newgeo[index] = row2.copy().geometry
+                            combined.at[index, 'newgeo']  = row2.copy().geometry
+
                             ## check if this works
-                            combined.min_read[index] = row2.min_read
+                            #combined.min_read[index] = row2.copy().min_read
+                            combined.at[index,'min_read'] = row2.copy().min_read
                             
                 combined['numtimes'] = combined.apply(lambda y: len(y.recombine),axis = 1).copy()
-                combined_reduced = combined[['PEAK_NUM','newgeo','recombine','numtimes','min_read']].copy()
+                combined_reduced = combined.loc[:,['PEAK_NUM','newgeo','recombine','numtimes','min_read']]
                 gdf_pass_pks = pd.merge(gdf_tog,combined_reduced,on = ['PEAK_NUM']).copy()
                 gdf_pass_pks['verified'] = gdf_pass_pks.apply(lambda y: (True if y.numtimes > 1 else False),axis=1 ).copy()
         if data_overlap.size == 0:
            gdf_pass_pks = gdf_bind_pks.copy()
-           gdf_pass_pks['min_read']= gdf_pass_pks['PEAK_NUM'].copy()
+           gdf_pass_pks['min_read']= gdf_pass_pks.loc[:,'PEAK_NUM']
            gdf_pass_pks['numtimes'] = 1
-           gdf_pass_pks['newgeo'] = gdf_pass_pks.copy().geometry
+           gdf_pass_pks['newgeo'] = gdf_pass_pks.loc[:,'geometry']
            gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['PEAK_NUM']].to_numpy())].copy()
            gdf_pass_pks['verified'] = False
-           gdf_pass_pks['oldgeo'] = gdf_pass_pks.copy().geometry
-           gdf_pass_pks['geometry'] = gdf_pass_pks.copy().newgeo
+           gdf_pass_pks['oldgeo'] = gdf_pass_pks.loc[:,'geometry']
+           gdf_pass_pks['geometry'] = gdf_pass_pks.loc[:,"newgeo"]
     if gdf_bind_pks.shape[0] == 1:
         gdf_pass_pks = gdf_bind_pks.copy()
-        gdf_pass_pks['min_read']= gdf_pass_pks['PEAK_NUM'].copy()
+        gdf_pass_pks['min_read']= gdf_pass_pks.loc[:,'PEAK_NUM']
         gdf_pass_pks['numtimes'] = 1
-        gdf_pass_pks['newgeo'] = gdf_pass_pks.copy().geometry
+        gdf_pass_pks['newgeo'] = gdf_pass_pks.loc[:,'geometry']
         gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['PEAK_NUM']].to_numpy())].copy()
         gdf_pass_pks['verified'] = False
-        epdat = pass_info[['PEAK_NUM','EPOCHSTART']].copy()
+        epdat = pass_info.loc[:,['PEAK_NUM','EPOCHSTART']]
         gdf_pass_pks = pd.merge(gdf_pass_pks,epdat,on = ['PEAK_NUM']).copy()
-    gdf_pass_pks['oldgeo'] = gdf_pass_pks.copy().geometry
-    gdf_pass_pks['geometry'] = gdf_pass_pks.copy().newgeo
+    gdf_pass_pks['oldgeo'] = gdf_pass_pks.loc[:,"geometry"]
+    gdf_pass_pks['geometry'] = gdf_pass_pks.loc[:,"newgeo"]
     del(gdf_pass_pks['newgeo'])
     gdf_pass_pks['pass'] = whichpass
     gdf_tot = pd.merge(gdf_pass_pks,datFram_wtLocMax,on = ['PEAK_NUM']).copy()
@@ -892,156 +541,23 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
     #gdf_pass_pks.to_file(str(file[0:20]) + '.shp')
     #return(gdf_pass_pks)
         ## condense by peak_num
-    gdfcop = gdf_tot.copy()[['PEAK_NUM','geometry','min_read','numtimes','verified','pass','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates().copy()
+    gdfcop = gdf_tot.loc[:,['PEAK_NUM','geometry','min_read','numtimes','verified','pass','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates()
     gdfcop = gdfcop.to_crs(epsg=32610).copy()
     gdfcop.to_file(new_loc_json, driver="GeoJSON")
 
 
     gdf_tot.to_csv(new_loc, index = False)
+    
+# =============================================================================
+#     del(gdfcop,gdf_pass_pks,epdat,data_overlap,combined,newOverlap,united,united_temp,over,
+#        overcop,allTog,withoutNA,secnull,firstnull,temp_area,temp_union,temp_list,data_temp,
+#        gdf_bind_pks,data_temp1,gdf_tog,pass_info_new,gdf_buff,pass_info,crs,geometry_temp,
+#        datFram_wtLocMax,datFram_wtLoc,datFram_wtLoca,wtloc,datFram_cent_wmax,maxch4,
+#        datFram_cent,datFram,new_loc_json,new_loc,file_loc)  
+# =============================================================================
+    
     return(gdf_tot)
         
-#def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
-#    import pandas as pd #
-#    import contextily as ctx
-#    import os, sys, datetime, time, math, csv, numpy,gzip
-#    from math import radians, sin, cos, sqrt, asin
-#    import geopandas as gpd
-#    from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
-#    import matplotlib.pyplot as plt
-#
-#    file_loc = xDir + xFilename
-#    new_loc = outFolder + "Filtered" + xFilename
-#    
-#    datFram = pd.read_csv(file_loc)
-#    
-#    datFram_cent =  datFram.copy()
-#    datFram_cent['CH4_AB'] = datFram_cent['CH4'].sub(datFram_cent['CH4_BASELINE'], axis = 0) 
-#    maxch4 = datFram_cent.groupby('PEAK_NUM',as_index = False).CH4_AB.max().rename(columns = {'CH4_AB':'pk_maxCH4_AB'})
-#    datFram_cent_wmax = pd.merge(datFram_cent,maxch4,on = ['PEAK_NUM'])
-#   
-#    datFram_wtLoc = weightedLoc(datFram_cent,'LAT','LON','PEAK_NUM','CH4_AB').rename(columns = {'LAT':'pk_LAT','LON':'pk_LON'})
-#    datFram_wtLocMax = pd.merge(datFram_wtLoc,maxch4,on = ['PEAK_NUM'])
-#    
-#    pass_info = datFram.copy()
-#    geometry_temp = [Point(xy) for xy in zip(datFram['LON'], datFram['LAT'])]
-#    crs = {'init': 'epsg:4326'}
-#    gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
-#    gdf_buff = gdf_buff.to_crs(epsg=32610)
-#    gdf_buff['geometry'] = gdf_buff.geometry.buffer(30) 
-#    gdf_tog = pd.merge(gdf_buff,pass_info,on = ['PEAK_NUM', 'EPOCHSTART', 'EPOCH', 'DATETIME', 'CH4', 'LON', 'LAT',
-#       'CH4_BASELINE', 'CH4_THRESHOLD', 'PEAK_DIST_M', 'PEAK_CH4', 'TCH4',
-#       'PERIOD5MIN'])
-#    gdf_bind_pks = gdf_tog.dissolve(by = 'PEAK_NUM',as_index=False)[['PEAK_NUM','geometry']]
-#    
-#    if gdf_bind_pks.shape[0] > 1:
-#        data_overlap = gpd.GeoDataFrame(crs=gdf_bind_pks.crs)
-#        data_temp = gdf_bind_pks.copy()
-#        for index, row in data_temp.iterrows():
-#            data_temp1=data_temp.loc[data_temp.PEAK_NUM!=row.PEAK_NUM,]
-#            # check if intersection occured
-#            overlaps=data_temp1[data_temp1.geometry.overlaps(row.geometry)]['PEAK_NUM'].tolist()
-#            #print(len(overlaps))
-#            if len(overlaps)>0:
-#                #print(len(overlaps))
-#                temp_list=[]
-#                #print('checking')
-#                # compare the area with threshold 
-#                for y in overlaps:
-#                    temp_area=gpd.overlay(data_temp.loc[data_temp.PEAK_NUM==y,],data_temp.loc[data_temp.PEAK_NUM==row.PEAK_NUM,],how='intersection')
-#                    temp_area=temp_area.loc[temp_area.geometry.area>=0.001]
-#                    if temp_area.shape[0]>0:
-#                        temp_union = gpd.overlay(data_temp.loc[data_temp.PEAK_NUM==y,],data_temp.loc[data_temp.PEAK_NUM==row.PEAK_NUM,],how='union')
-#                        data_overlap=gpd.GeoDataFrame(pd.concat([temp_union,data_overlap],ignore_index=True),crs=data_temp.crs)
-#      
-#        if data_overlap.size > 0: 
-#                firstnull = data_overlap[data_overlap.PEAK_NUM_1.isnull()]
-#                firstnull['PEAK_NUM_1'] = firstnull['PEAK_NUM_2']
-#                
-#                secnull = data_overlap[data_overlap.PEAK_NUM_2.isnull()]
-#                secnull['PEAK_NUM_2'] = secnull['PEAK_NUM_1']
-#                
-#                withoutNA = data_overlap.dropna()
-#                allTog = pd.concat([firstnull,secnull,withoutNA]).reset_index()
-#                
-#                over = allTog.copy()
-#                over['sorted']=over.apply(lambda y: sorted([y['PEAK_NUM_1'],y['PEAK_NUM_2']]),axis=1)
-#                over['sorted']=over.sorted.apply(lambda y: ''.join(y))
-#                over = over.drop_duplicates('sorted')
-#                over['combined']= [list(x) for x in list(over.loc[:,['PEAK_NUM_1','PEAK_NUM_2']].to_numpy())]
-#                over['VER_NUM'] = over.apply(lambda y: y.combined,axis=1)
-#                over['min_val']=over.apply(lambda y: min(y.combined),axis=1)
-#                over=over.reset_index()[['PEAK_NUM_1','PEAK_NUM_2','geometry','combined','min_val']]
-#                
-#                
-#                #over = data_overlap.copy()
-#                #over['sorted']=over.apply(lambda y: sorted([y['PEAK_NUM_1'],y['PEAK_NUM_2']]),axis=1)
-#                #over['sorted']=over.sorted.apply(lambda y: ''.join(y))
-#                #over = over.drop_duplicates('sorted')
-#                #over['combined']= [list(x) for x in list(over.loc[:,['PEAK_NUM_1','PEAK_NUM_2']].to_numpy())]
-#                #over['VER_NUM'] = over.apply(lambda y: y.combined,axis=1)
-#                #over['min_val']=over.apply(lambda y: min(y.combined),axis=1)
-#                #over=over.reset_index()[['PEAK_NUM_1','PEAK_NUM_2','geometry','combined','min_val']]
-#                        
-#                overcop = over.copy()
-#                overcop['recombine'] = overcop.combined
-#                for index, row in overcop.iterrows():
-#                    united = row.recombine
-#                    #print(united)
-#                    for index2, row2 in overcop.iterrows():
-#                        united_temp = unIfInt(united,row2.recombine)
-#                        if united_temp != None:
-#                            united = united_temp
-#                            #print(united)
-#                    overcop.recombine[index] = united
-#                    #print(united)
-#                    del(united)   
-#                overcop['recombine']= overcop.apply(lambda y: sorted(y.recombine),axis=1)
-#                overcop['min_read'] = overcop.apply(lambda y: min(y.recombine),axis=1)
-#                newOverlap = overcop.dissolve(by='min_read',as_index=False).loc[:,['min_read','geometry','recombine']]
-#
-#  
-#                combined = gdf_bind_pks.copy()
-#                combined['recombine'] = [list(x) for x in list(combined.loc[:,['PEAK_NUM']].to_numpy())]
-#                combined['numtimes'] = 1
-#                combined['newgeo'] = combined.geometry
-#                combined['min_read'] = combined.PEAK_NUM
-#                for index,row in combined.iterrows():
-#                    for index2,row2 in newOverlap.iterrows():
-#                        if row.PEAK_NUM in row2.recombine:
-#                            combined.recombine[index] = row2.recombine
-#                            combined.newgeo[index] = row2.geometry
-#                            combined.min_read[index] = row2.min_read
-#                combined['numtimes'] = combined.apply(lambda y: len(y.recombine),axis = 1)
-#                combined_reduced = combined[['PEAK_NUM','newgeo','recombine','numtimes','min_read']]
-#                gdf_pass_pks = pd.merge(gdf_tog,combined_reduced,on = ['PEAK_NUM'])
-#                gdf_pass_pks['verified'] = gdf_pass_pks.apply(lambda y: (True if y.numtimes > 1 else False),axis=1 )
-#        if data_overlap.size == 0:
-#           gdf_pass_pks = gdf_bind_pks.copy()
-#           gdf_pass_pks['min_read']= gdf_pass_pks['PEAK_NUM']
-#           gdf_pass_pks['numtimes'] = 1
-#           gdf_pass_pks['newgeo'] = gdf_pass_pks.geometry
-#           gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['PEAK_NUM']].to_numpy())]
-#           gdf_pass_pks['verified'] = False
-#           gdf_pass_pks['oldgeo'] = gdf_pass_pks.geometry.copy()
-#           gdf_pass_pks['geometry'] = gdf_pass_pks.newgeo.copy()
-#    if gdf_bind_pks.shape[0] == 1:
-#        gdf_pass_pks = gdf_bind_pks.copy()
-#        gdf_pass_pks['min_read']= gdf_pass_pks['PEAK_NUM']
-#        gdf_pass_pks['numtimes'] = 1
-#        gdf_pass_pks['newgeo'] = gdf_pass_pks.geometry
-#        gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['PEAK_NUM']].to_numpy())]
-#        gdf_pass_pks['verified'] = False
-#        epdat = pass_info[['PEAK_NUM','EPOCHSTART']]
-#        gdf_pass_pks = pd.merge(gdf_pass_pks,epdat,on = ['PEAK_NUM']) 
-#    gdf_pass_pks['oldgeo'] = gdf_pass_pks.geometry.copy()
-#    gdf_pass_pks['geometry'] = gdf_pass_pks.newgeo.copy()
-#    del(gdf_pass_pks['newgeo'])
-#    gdf_pass_pks['pass'] = whichpass
-#    gdf_tot = pd.merge(gdf_pass_pks,datFram_wtLocMax,on = ['PEAK_NUM'])
-#    #gdf_pass_pks.to_csv(new_loc, index = False)
-#    #gdf_pass_pks.to_file(str(file[0:20]) + '.shp')
-#    #return(gdf_pass_pks)
-#    return(gdf_tot)
 
     
 ### COMBINE PASS WILL THEN COMBINE THE DIFFERENT PASSES TOGETHER TO BE IN ONE SHAPE FILE
@@ -1096,8 +612,6 @@ def passCombine (firstgrp, secondgrp):
             # check if intersection occured
             overlaps=data_temp1[data_temp1.geometry.overlaps(row.geometry)]['min_read'].tolist()
             if len(overlaps)>0:
-                temp_list=[]
-                #print('checking')
                 # compare the area with threshold 
                 for y in overlaps:
                     temp_area=gpd.overlay(data_temp.loc[data_temp.min_read==y,],data_temp.loc[data_temp.min_read==row.min_read,],how='intersection')
@@ -1133,7 +647,10 @@ def passCombine (firstgrp, secondgrp):
                 #rowwoo = row
                 
                 ## fixthis
+                
                 first_thing = first_dis[first_dis['min_read']== row.min_read_1].loc[:,['recombine']]
+                #first_thing = first_dis.loc[first_dis.min_read == row.min_read_1,'recombine']
+                #first_thing = first_dis.loc[:,first_dis.min_read == row.min_read_1].loc[:,'recombine']
 
                 #first_thing = firstpass[firstpass['min_read']== row.min_read_1].loc[:,['recombine']]
                 firstcomb = first_thing.recombine.explode().copy()
@@ -1159,8 +676,15 @@ def passCombine (firstgrp, secondgrp):
                 tot_df = pd.concat([firstdf,secdf])
                 tot_list = tot_df.recombine.tolist()
                 
-                overcop.recombine[index] = tot_list.copy()
+                #pd.set_option('mode.chained_assignment', None)
+                #overcop.recombine[index] = tot_list.copy()
+                #pd.reset_option('mode.chained_assignment')
                 
+                overcop.at[index, 'recombine']  = tot_list.copy()
+
+
+
+
     ## this recombines the lists together to have the combined entries together?
        
             overcop['recombine']= overcop.apply(lambda y: sorted(y.recombine),axis=1).copy()
@@ -1181,11 +705,24 @@ def passCombine (firstgrp, secondgrp):
                     if row.min_read in row2.recombine:
                         #woo = row2
                         #indo = index
-                        combined.recombine[index] = row2.recombine.copy()
+                        
+                        #pd.set_option('mode.chained_assignment', None)
+                        #combined.recombine[index] = row2.copy().recombine
+                        
+                        combined.at[index, 'recombine']  = row2.recombine.copy()
+
+                        
+                        #pd.reset_option('mode.chained_assignment')
+
 
                         #combined.newgeo[index] = row2.geometry
-                        combined.newgeo[index] = row2.geometry
-                        combined.min_read[index] = row2.min_read
+                        #combined.newgeo[index] = row2.copy().geometry
+                        
+                        #combined.loc[index,('newgeo')] = row2.copy().geometry
+                        
+                        #combined.min_read[index] = row2.copy().min_read
+                        combined.at[index, 'min_read']  = row2.copy().min_read
+
                     
         
             combined['numtimes'] = combined.copy().apply(lambda y: len(y.recombine),axis = 1).copy()
@@ -1200,7 +737,9 @@ def passCombine (firstgrp, secondgrp):
            # gdf_tog = gdf_tog.drop('newgeo',axis=1)
             gdf_tog['firstgeo'] = gdf_tog.copy().oldgeo
             gdf_tog['secondgeo'] = gdf_tog.copy().geometry
+            
             del(gdf_tog['geometry'])
+            #gdf_tog.drop(columns=['geometry'])
             del(gdf_tog['oldgeo'])
 
                                    
@@ -1214,42 +753,7 @@ def passCombine (firstgrp, secondgrp):
     #return(gdf_pass_pks)
     return(gdf_tot_pks)
 
-    
-    
-### WEIGHTED AVERAGE OF THE LOCATION
 
-#def weightedLoc(df,lat,lon,by,val2avg):
-#    #df_use = df[[str(lat),str(lon),str(by)]]
-#    df_use = df[[(lat),(lon),(by),val2avg]]
-#    by_val = ""
-#    wts = []
-#    x_num = []
-#    y_num = []
-#    results = pd.DataFrame(data= None,columns = [(by),(lat),(lon)])
-#
-#    for index,x in df_use.iterrows():
-#        if by_val and (by_val != df_use.iloc[index][by]):
-#            long = sum(x_num)/sum(wts)
-#            latitude = sum(y_num)/sum(wts)
-#            del x_num[:]
-#            del y_num[:]
-#            del wts[:]
-#            results = results.append({(by):by_val,lon:long,lat:latitude},ignore_index = True)
-#            
-#        by_val = df_use.iloc[index][(by)]
-#        wts.append(float(df_use.iloc[index][val2avg]))
-#        x_num.append(float(df_use.iloc[index][(lon)])*float(df_use.iloc[index][val2avg]))
-#        y_num.append(float(df_use.iloc[index][(lat)])*float(df_use.iloc[index][val2avg]))
-#    if wts:
-#        long = sum(x_num)/sum(wts)
-#        latitude = sum(y_num)/sum(wts)
-#        del x_num[:]
-#        del y_num[:]
-#        del wts[:]
-#        results = results.append({by:by_val,lon:long,lat:latitude},ignore_index = True)
-#    return(results)
-    
-    
 
 def wt_time_Locs(wt,loc):
     return(wt*loc)
@@ -1259,7 +763,7 @@ def sumthing(thing):
 
 
 def weightedLoc(df,lat,lon,by,val2avg):
-    df_use = df[[(lat),(lon),(by),val2avg]]
+    df_use = df.loc[:,[(lat),(lon),(by),val2avg]]
     #by_val = ""
     #wts = []
     #x_num = []
@@ -1312,173 +816,17 @@ def weightedLoc(df,lat,lon,by,val2avg):
     return(toreturn)   
 
 
- 
-#def weightedLoc(df,lat,lon,by,val2avg):
-#    #df_use = df[[str(lat),str(lon),str(by)]]
-#    df_use = df[[(lat),(lon),(by),val2avg]]
-#    by_val = ""
-#    wts = []
-#    x_num = []
-#    y_num = []
-#    x_num_wt = []
-#    y_num_wt = []
-#    results = pd.DataFrame(data= None,columns = [(by),(lat),(lon)])
-#    add1 = 0
-#    if  df_use.shape[0] == 1:
-#        long = float(df_use.iloc[0][(lon)])
-#        latitude =  float(df_use.iloc[0][(lat)])
-#        by_val = df_use.iloc[0][(by)]
-#        results = results.append({(by):by_val,lon:long,lat:latitude},ignore_index = True)
-#    if  df_use.shape[0] > 1:
-#        for index,x in df_use.iterrows():
-#            #print(index)
-#            if df_use.iloc[index][by] == 'CSULi_1568812598.4':
-#                add1 += 1
-#            #if index == 12:
-#             #   print(df_use.iloc[index][by])
-#            if by_val and (by_val != df_use.iloc[index][by]) and index != 1 :
-#                #print(index)
-#                if sum(wts)!= 0:
-#                    long = sum(x_num)/sum(wts)
-#                    latitude = sum(y_num)/sum(wts)
-#                
-#                
-#                del x_num[:]
-#                del y_num[:]
-#                del x_num_wt[:]
-#                del y_num_wt[:]
-#                del wts[:]
-#                results = results.append({(by):by_val,lon:long,lat:latitude},ignore_index = True)
-#                
-#            by_val = df_use.iloc[index][(by)]
-#            wts.append(float(df_use.iloc[index][val2avg]))
-#            x_num.append(float(df_use.iloc[index][(lon)])*float(df_use.iloc[index][val2avg]))
-#            y_num.append(float(df_use.iloc[index][(lat)])*float(df_use.iloc[index][val2avg]))
-#            
-#            if by_val and (by_val == df_use.iloc[index][by]) and index == len(df_use.index)-1 :
-#                #print(index)
-#                long = sum(x_num)/sum(wts)
-#                latitude = sum(y_num)/sum(wts)
-#                del x_num[:]
-#                del y_num[:]
-#                del x_num_wt[:]
-#                del y_num_wt[:]
-#                del wts[:]
-#                results = results.append({(by):by_val,lon:long,lat:latitude},ignore_index = True)
-#            if by_val and len(df_use[df_use[by]==by_val][by])==1:
-#                #print(df_use[df_use[by]==by_val][by])
-#                #long = sum(x_num)/sum(wts)
-#                #latitude = sum(y_num)/sum(wts)
-#                #print("issue")
-#                #print(index)
-#                long = float(df_use.iloc[index][(lon)])
-#                #print(long)
-#                latitude = float(df_use.iloc[index][(lat)])
-#                #print(latitude)
-#                #print(long)
-#                #print(latitude)
-#                
-#                del x_num[:]
-#                del y_num[:]
-#                del x_num_wt[:]
-#                del y_num_wt[:]
-#                del wts[:]
-#                results = results.append({(by):by_val,lon:long,lat:latitude},ignore_index = True)
-#                 
-#    
-#    #if wts:
-#     #   long = sum(x_num)/sum(wts)
-#      #  latitude = sum(y_num)/sum(wts)
-#      #  del x_num[:]
-#      #  del y_num[:]
-#      #  del wts[:]
-#       # results = results.append({by:by_val,lon:long,lat:latitude},ignore_index = True)
-#    results = results[results[lat].isna()== False].reset_index()[[(by),(lat),(lon)]]
-#    results = results.drop_duplicates()
-#    return(results)
-#    
-    
-#def weightedLoc(df,lat,lon,by,val2avg):
-#    import pandas as pd
-#    #df_use = df[[str(lat),str(lon),str(by)]]
-#    df_use = df[[(lat),(lon),(by),val2avg]]
-#    by_val = ""
-#    wts = []
-#    x_num = []
-#    y_num = []
-#    x_num_wt = []
-#    y_num_wt = []
-#    results = pd.DataFrame(data= None,columns = [(by),(lat),(lon)])
-#    
-#    if  df_use.shape[0] == 1:
-#        long = float(df_use.iloc[0][(lon)])
-#        latitude =  float(df_use.iloc[0][(lat)])
-#        by_val = df_use.iloc[0][(by)]
-#        results = results.append({(by):by_val,lon:long,lat:latitude},ignore_index = True)
-#    if  df_use.shape[0] > 1:
-#        for index,x in df_use.iterrows():
-#            if by_val and (by_val != df_use.iloc[index][by]) :
-#                long = sum(x_num)/sum(wts)
-#                latitude = sum(y_num)/sum(wts)
-#                del x_num[:]
-#                del y_num[:]
-#                del x_num_wt[:]
-#                del y_num_wt[:]
-#                del wts[:]
-#                results = results.append({(by):by_val,lon:long,lat:latitude},ignore_index = True)
-#                
-#            by_val = df_use.iloc[index][(by)]
-#            wts.append(float(df_use.iloc[index][val2avg]))
-#            x_num.append(float(df_use.iloc[index][(lon)])*float(df_use.iloc[index][val2avg]))
-#            y_num.append(float(df_use.iloc[index][(lat)])*float(df_use.iloc[index][val2avg]))
-#            
-#            if by_val and (by_val == df_use.iloc[index][by]) and index == len(df_use.index)-1 :
-#                print(index)
-#                long = sum(x_num)/sum(wts)
-#                latitude = sum(y_num)/sum(wts)
-#                del x_num[:]
-#                del y_num[:]
-#                del x_num_wt[:]
-#                del y_num_wt[:]
-#                del wts[:]
-#                results = results.append({(by):by_val,lon:long,lat:latitude},ignore_index = True)
-#            if by_val and len(df_use[df_use[by]==by_val][by])==1:
-#                print(by)
-#                long = sum(x_num)/sum(wts)
-#                latitude = sum(y_num)/sum(wts)
-#                del x_num[:]
-#                del y_num[:]
-#                del x_num_wt[:]
-#                del y_num_wt[:]
-#                del wts[:]
-#                results = results.append({(by):by_val,lon:long,lat:latitude},ignore_index = True)
-#                 
-#
-#    #if wts:
-#     #   long = sum(x_num)/sum(wts)
-#      #  latitude = sum(y_num)/sum(wts)
-#      #  del x_num[:]
-#      #  del y_num[:]
-#      #  del wts[:]
-#       # results = results.append({by:by_val,lon:long,lat:latitude},ignore_index = True)
-#    return(results)
-
-
-####   
     
 def verPk(totalData):
     import pandas as pd #
-    import contextily as ctx
-    import os, sys, datetime, time, math, csv, numpy,gzip
-    from math import radians, sin, cos, sqrt, asin
+    from numpy import log
     import geopandas as gpd
     from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
-    import matplotlib.pyplot as plt
 
     totalData = totalData[totalData.numtimes != 1]
     pkRed = totalData[['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']].drop_duplicates().reset_index()
     verLoc = weightedLoc(pkRed,'pk_LAT','pk_LON','min_read','pk_maxCH4_AB')
-    pkRed['logCH4']=pkRed.apply(lambda y: log(y.pk_maxCH4_AB),axis=1)
+    pkRed.loc[:,('logCH4')]=pkRed.apply(lambda y: log(y.pk_maxCH4_AB),axis=1)
     mnVals = pkRed.groupby('min_read',as_index = False).logCH4.mean()
     together = pd.merge(verLoc,mnVals,on = ['min_read'])
     geometry_temp = [Point(xy) for xy in zip(together['pk_LON'], together['pk_LAT'])]

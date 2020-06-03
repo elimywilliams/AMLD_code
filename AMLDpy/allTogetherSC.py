@@ -9,12 +9,12 @@ Created on Wed Mar 18 09:21:43 2020
 #### ALL THAT NEEDS TO BE CHANGED
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 xCar = 'ColLi'
-inDir = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
-outFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/Processed/"
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat" ##where the .txt files are located
-shpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDat/compFinal.json"
-processedFileLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
-OPshpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDat/OP_Final.json"
+inDir = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
+outFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/Processed/"
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort" ##where the .txt files are located
+shpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/compFinal.json"
+processedFileLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
+OPshpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/OP_Final.json"
 
 
 ####### starting the 
@@ -48,7 +48,8 @@ s3 = "Filtered" + str()
 xCar = s1
 start = time.time()
 
-if __name__ == '__main__':
+if __name__ == '__main__':  
+    #df_use['lon_wt'] = df_use.apply(lambda y: y[lon] * y[val2avg],axis = 1).copy()
 
     inDirRaw = rawDatLoc
     outDir = inDir
@@ -83,19 +84,20 @@ if __name__ == '__main__':
 
 
 if __name__ == '__main__':
-    listthing = os.listdir(inDir)
+    listthing = os.listdir(inDir).copy()
     
     #for file in os.listdir(inDir):
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
-            xCar = s1
+            #xCar = s1
             xDate = file[6:14]
-            print(file)
+            #print(file)
             theResult = IdentifyPeaks(xCar, xDate, inDir, file)
 
 index = 0
 numproc = 0
-listthing = os.listdir(inDir)
+del(listthing)
+listthing = os.listdir(inDir).copy()
 
 for file in listthing:
     if file.startswith(s2) and file.endswith('.csv'):
@@ -107,8 +109,8 @@ for file in listthing:
         #print(index)
         #print(file)
         #print(file)
-        woo = file
-        xCar = s1
+        #woo = file
+        #xCar = s1
         xDate = file[12:20]
         if index == 1 and nonempt:
             mainThing = filterPeak(xCar,xDate,inDir,file,outFolder,whichpass = index )
@@ -137,8 +139,9 @@ combinedDat = mainThing.copy()
 combinedDatPk = combinedDat[['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']].drop_duplicates().reset_index()[['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']]
 
 wcomb = weightedLoc(combinedDatPk,'pk_LAT','pk_LON','min_read','pk_maxCH4_AB')
-wcomb = wcomb[wcomb.pk_LAT.isna()==False]
-wcomb = wcomb.rename(columns={'pk_LAT': 'overall_LAT','pk_LON':'overall_LON'})
+wcomb2 = wcomb.loc[wcomb.pk_LAT.isna()==False,:]
+del(wcomb)
+wcomb = wcomb2.rename(columns={'pk_LAT': 'overall_LAT','pk_LON':'overall_LON'}).copy()
 
 
 
@@ -171,8 +174,6 @@ gdf = gdf.to_crs(epsg = 3857)
 ###################################################################
 ################## SAVE THE FILE TO A SHAPE FILE (FOR EXPORT TO ARCMAP PERHAPS)######################################
 gdf.to_file(shpFileLocName, driver="GeoJSON")
-end = time.time()
-print("The processing of the data is complete. I processed " + str(index) + " files and converted them to a GeoJSON file, which is located here: " + str(shpFileLocName) + ". The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
 
 
 
