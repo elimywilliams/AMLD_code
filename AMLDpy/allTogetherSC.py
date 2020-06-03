@@ -7,7 +7,7 @@ Created on Wed Mar 18 09:21:43 2020
 """
 
 #### ALL THAT NEEDS TO BE CHANGED
-functionFileLoc = '/Users/emilywilliams/AMLD/'
+functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 xCar = 'ColLi'
 inDir = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
 outFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/Processed/"

@@ -843,55 +843,55 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                     overcop.recombine[index] = united
                     #print(united)
                     del(united)   
-                overcop['recombine']= overcop.apply(lambda y: sorted(y.recombine),axis=1)
-                overcop['min_read'] = overcop.apply(lambda y: min(y.recombine),axis=1)
-                newOverlap = overcop.dissolve(by='min_read',as_index=False).loc[:,['min_read','geometry','recombine']]
+                overcop['recombine']= overcop.apply(lambda y: sorted(y.recombine),axis=1).copy()
+                overcop['min_read'] = overcop.apply(lambda y: min(y.recombine),axis=1).copy()
+                newOverlap = overcop.dissolve(by='min_read',as_index=False).loc[:,['min_read','geometry','recombine']].copy()
 
   
                 combined = gdf_bind_pks.copy()
                 combined['recombine'] = [list(x) for x in list(combined.loc[:,['PEAK_NUM']].to_numpy())]
                 combined['numtimes'] = 1
-                combined['newgeo'] = combined.geometry
-                combined['min_read'] = combined.PEAK_NUM
+                combined['newgeo'] = combined.geometry.copy()
+                combined['min_read'] = combined.PEAK_NUM.copy()
                 for index,row in combined.iterrows():
                     for index2,row2 in newOverlap.iterrows():
                         if row.PEAK_NUM in row2.recombine:
-                            combined.recombine[index] = row2.recombine
-                            combined.newgeo[index] = row2.geometry
-                            combined.min_read[index] = row2.min_read
-                combined['numtimes'] = combined.apply(lambda y: len(y.recombine),axis = 1)
-                combined_reduced = combined[['PEAK_NUM','newgeo','recombine','numtimes','min_read']]
-                gdf_pass_pks = pd.merge(gdf_tog,combined_reduced,on = ['PEAK_NUM'])
-                gdf_pass_pks['verified'] = gdf_pass_pks.apply(lambda y: (True if y.numtimes > 1 else False),axis=1 )
+                            combined.recombine[index] = row2.recombine.copy()
+                            combined.newgeo[index] = row2.geometry.copy()
+                            combined.min_read[index] = row2.min_read.copy()
+                combined['numtimes'] = combined.apply(lambda y: len(y.recombine),axis = 1).copy()
+                combined_reduced = combined[['PEAK_NUM','newgeo','recombine','numtimes','min_read']].copy()
+                gdf_pass_pks = pd.merge(gdf_tog,combined_reduced,on = ['PEAK_NUM']).copy()
+                gdf_pass_pks['verified'] = gdf_pass_pks.apply(lambda y: (True if y.numtimes > 1 else False),axis=1 ).copy()
         if data_overlap.size == 0:
            gdf_pass_pks = gdf_bind_pks.copy()
-           gdf_pass_pks['min_read']= gdf_pass_pks['PEAK_NUM']
+           gdf_pass_pks['min_read']= gdf_pass_pks['PEAK_NUM'].copy()
            gdf_pass_pks['numtimes'] = 1
-           gdf_pass_pks['newgeo'] = gdf_pass_pks.geometry
-           gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['PEAK_NUM']].to_numpy())]
+           gdf_pass_pks['newgeo'] = gdf_pass_pks.geometry.copy()
+           gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['PEAK_NUM']].to_numpy())].copy()
            gdf_pass_pks['verified'] = False
            gdf_pass_pks['oldgeo'] = gdf_pass_pks.geometry.copy()
            gdf_pass_pks['geometry'] = gdf_pass_pks.newgeo.copy()
     if gdf_bind_pks.shape[0] == 1:
         gdf_pass_pks = gdf_bind_pks.copy()
-        gdf_pass_pks['min_read']= gdf_pass_pks['PEAK_NUM']
+        gdf_pass_pks['min_read']= gdf_pass_pks['PEAK_NUM'].copy()
         gdf_pass_pks['numtimes'] = 1
-        gdf_pass_pks['newgeo'] = gdf_pass_pks.geometry
-        gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['PEAK_NUM']].to_numpy())]
+        gdf_pass_pks['newgeo'] = gdf_pass_pks.geometry.copy()
+        gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['PEAK_NUM']].to_numpy())].copy()
         gdf_pass_pks['verified'] = False
-        epdat = pass_info[['PEAK_NUM','EPOCHSTART']]
-        gdf_pass_pks = pd.merge(gdf_pass_pks,epdat,on = ['PEAK_NUM']) 
+        epdat = pass_info[['PEAK_NUM','EPOCHSTART']].copy()
+        gdf_pass_pks = pd.merge(gdf_pass_pks,epdat,on = ['PEAK_NUM']).copy()
     gdf_pass_pks['oldgeo'] = gdf_pass_pks.geometry.copy()
     gdf_pass_pks['geometry'] = gdf_pass_pks.newgeo.copy()
     del(gdf_pass_pks['newgeo'])
     gdf_pass_pks['pass'] = whichpass
-    gdf_tot = pd.merge(gdf_pass_pks,datFram_wtLocMax,on = ['PEAK_NUM'])
+    gdf_tot = pd.merge(gdf_pass_pks,datFram_wtLocMax,on = ['PEAK_NUM']).copy()
     #gdf_pass_pks.to_csv(new_loc, index = False)
     #gdf_pass_pks.to_file(str(file[0:20]) + '.shp')
     #return(gdf_pass_pks)
         ## condense by peak_num
-    gdfcop = gdf_tot.copy()[['PEAK_NUM','geometry','min_read','numtimes','verified','pass','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates()
-    gdfcop = gdfcop.to_crs(epsg=32610)
+    gdfcop = gdf_tot.copy()[['PEAK_NUM','geometry','min_read','numtimes','verified','pass','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates().copy()
+    gdfcop = gdfcop.to_crs(epsg=32610).copy()
     gdfcop.to_file(new_loc_json, driver="GeoJSON")
 
 
@@ -1063,31 +1063,31 @@ def intersect(a, b):
 
 def passCombine (firstgrp, secondgrp):
     import pandas as pd #
-    import contextily as ctx
-    import os, sys, datetime, time, math, csv, numpy,gzip
-    from math import radians, sin, cos, sqrt, asin
+    #import contextily as ctx
+    #import os, sys, datetime, time, math, csv, numpy,gzip
+    #from math import radians, sin, cos, sqrt, asin
     import geopandas as gpd
-    from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
-    import matplotlib.pyplot as plt
+    #from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
+    #import matplotlib.pyplot as plt
 
-    first_geo = firstgrp.geometry
+    first_geo = firstgrp.copy().geometry
     crs = {'init': 'epsg:4326'}
-    firstgrp = gpd.GeoDataFrame(firstgrp,crs = crs,geometry = first_geo)
+    firstgrp = gpd.GeoDataFrame(firstgrp.copy(),crs = crs,geometry = first_geo)
     
-    first_pks = firstgrp[['PEAK_NUM','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates()
-    sec_pks = secondgrp[['PEAK_NUM','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates()
+    first_pks = firstgrp[['PEAK_NUM','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates().copy()
+    sec_pks = secondgrp[['PEAK_NUM','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates().copy()
     tot_pks = pd.concat([first_pks,sec_pks])
     
-    first_dis = firstgrp.dissolve(by='min_read',as_index=False)[['min_read','geometry','recombine','verified','pass']]
-    sec_dis = secondgrp.dissolve(by='min_read',as_index=False)[['min_read','geometry','recombine','verified','pass']]
-    gdf_bind_pks = pd.concat([first_dis,sec_dis])[['min_read','geometry','recombine']]
+    first_dis = firstgrp.dissolve(by='min_read',as_index=False)[['min_read','geometry','recombine','verified','pass']].copy()
+    sec_dis = secondgrp.dissolve(by='min_read',as_index=False)[['min_read','geometry','recombine','verified','pass']].copy()
+    gdf_bind_pks = pd.concat([first_dis,sec_dis])[['min_read','geometry','recombine']].copy()
     #gdf_tog = pd.concat([firstgrp,secondgrp])
-    gdf_tog = pd.concat([firstgrp.drop(['pk_LAT', 'pk_LON','pk_maxCH4_AB'], axis=1),secondgrp.drop(['pk_LAT', 'pk_LON','pk_maxCH4_AB'], axis=1)])
+    gdf_tog = pd.concat([firstgrp.drop(['pk_LAT', 'pk_LON','pk_maxCH4_AB'], axis=1),secondgrp.drop(['pk_LAT', 'pk_LON','pk_maxCH4_AB'], axis=1)]).copy()
 
     gdf_bind_pks['prev_read'] = gdf_bind_pks['min_read'].copy()
     gdf_tog['prev_read'] = gdf_tog['min_read'].copy()
     if gdf_bind_pks.shape[0] > 1:
-        data_overlap = gpd.GeoDataFrame(crs=gdf_bind_pks.crs)
+        data_overlap = gpd.GeoDataFrame(crs=gdf_bind_pks.crs).copy()
         data_temp = gdf_bind_pks.copy()
         for index, row in data_temp.iterrows():
             data_temp1=data_temp.loc[data_temp.min_read!=row.min_read,]
@@ -1162,44 +1162,45 @@ def passCombine (firstgrp, secondgrp):
             combined = gdf_bind_pks.copy()
             #combined['recombine'] = [list(x) for x in list(combined.loc[:,['min_read']].to_numpy())]
             combined['numtimes'] = 1
-            combined['newgeo'] = combined.geometry
-            combined['oldgeo'] = combined.geometry.copy()
+            combined['newgeo'] = combined.copy().geometry
+            combined['oldgeo'] = combined.copy().geometry
 
             #combined['min_read'] = combined.min_rea
             combined = combined.reset_index()
             for index,row in combined.iterrows():
                 for index2,row2 in newOverlap.iterrows():
                     if row.min_read in row2.recombine:
-                        woo = row2
-                        indo = index
+                        #woo = row2
+                        #indo = index
                         combined.recombine[index] = row2.recombine
                         #combined.newgeo[index] = row2.geometry
                         combined.newgeo[index] = row2.geometry
                         combined.min_read[index] = row2.min_read
                     
         
-            combined['numtimes'] = combined.apply(lambda y: len(y.recombine),axis = 1)
-            combined['geometry'] = combined.newgeo.copy()
+            combined['numtimes'] = combined.copy().apply(lambda y: len(y.recombine),axis = 1)
+            combined['geometry'] = combined.copy().newgeo
+            
             del(combined['newgeo'])
-            combined_reduced = combined[['min_read','geometry','oldgeo','recombine','numtimes','prev_read']]
+            combined_reduced = combined[['min_read','geometry','oldgeo','recombine','numtimes','prev_read']].copy()
             #gdf_pass_pks = pd.merge(gdf_tog,combined_reduced,on = ['min_read'])
             gdf_tog = gdf_tog.drop('min_read',axis=1)
             gdf_tog = gdf_tog.drop('numtimes',axis=1)
             gdf_tog = gdf_tog.drop('recombine',axis=1)
            # gdf_tog = gdf_tog.drop('newgeo',axis=1)
-            gdf_tog['firstgeo'] = gdf_tog.oldgeo.copy()
-            gdf_tog['secondgeo'] = gdf_tog.geometry.copy()
+            gdf_tog['firstgeo'] = gdf_tog.copy().oldgeo
+            gdf_tog['secondgeo'] = gdf_tog.copy().geometry
             del(gdf_tog['geometry'])
             del(gdf_tog['oldgeo'])
 
                                    
-            gdf_pass_pks = pd.merge(gdf_tog,combined_reduced,on = ['prev_read'])
+            gdf_pass_pks = pd.merge(gdf_tog,combined_reduced,on = ['prev_read']).copy()
 
-            gdf_pass_pks['verified'] = gdf_pass_pks.apply(lambda y: (True if y.numtimes > 1 else False),axis=1 )
+            gdf_pass_pks['verified'] = gdf_pass_pks.copy().apply(lambda y: (True if y.numtimes > 1 else False),axis=1 )
         if data_overlap.size == 0:
-            gdf_pass_pks = gdf_tog
+            gdf_pass_pks = gdf_tog.copy()
     ## didnt adress if the bind shape was only size only 1
-        gdf_tot_pks = pd.merge(gdf_pass_pks,tot_pks,on = ['PEAK_NUM'])
+        gdf_tot_pks = pd.merge(gdf_pass_pks,tot_pks,on = ['PEAK_NUM']).copy()
     #return(gdf_pass_pks)
     return(gdf_tot_pks)
 
