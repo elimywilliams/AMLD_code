@@ -803,21 +803,21 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
       
         if data_overlap.size > 0: 
                 firstnull = data_overlap[data_overlap.PEAK_NUM_1.isnull()]
-                firstnull['PEAK_NUM_1'] = firstnull['PEAK_NUM_2']
+                firstnull.loc[:,'PEAK_NUM_1'] = firstnull['PEAK_NUM_2']
                 
-                secnull = data_overlap[data_overlap.PEAK_NUM_2.isnull()]
-                secnull['PEAK_NUM_2'] = secnull['PEAK_NUM_1']
+                secnull = data_overlap[data_overlap.PEAK_NUM_2.isnull()].copy()
+                secnull.loc[:,'PEAK_NUM_2'] = secnull['PEAK_NUM_1'].copy()
                 
-                withoutNA = data_overlap.dropna()
-                allTog = pd.concat([firstnull,secnull,withoutNA]).reset_index()
+                withoutNA = data_overlap.dropna().copy()
+                allTog = pd.concat([firstnull,secnull,withoutNA]).reset_index().copy()
                 
                 over = allTog.copy()
-                over['sorted']=over.apply(lambda y: sorted([y['PEAK_NUM_1'],y['PEAK_NUM_2']]),axis=1)
-                over['sorted']=over.sorted.apply(lambda y: ''.join(y))
-                over = over.drop_duplicates('sorted')
-                over['combined']= [list(x) for x in list(over.loc[:,['PEAK_NUM_1','PEAK_NUM_2']].to_numpy())]
-                over['VER_NUM'] = over.apply(lambda y: y.combined,axis=1)
-                over['min_val']=over.apply(lambda y: min(y.combined),axis=1)
+                over['sorted']=over.apply(lambda y: sorted([y['PEAK_NUM_1'],y['PEAK_NUM_2']]),axis=1).copy()
+                over['sorted']=over.sorted.apply(lambda y: ''.join(y)).copy()
+                over = over.drop_duplicates('sorted').copy()
+                over['combined']= [list(x) for x in list(over.loc[:,['PEAK_NUM_1','PEAK_NUM_2']].to_numpy())].copy()
+                over['VER_NUM'] = over.apply(lambda y: y.combined,axis=1).copy()
+                over['min_val']=over.apply(lambda y: min(y.combined),axis=1).copy()
                 over=over.reset_index()[['PEAK_NUM_1','PEAK_NUM_2','geometry','combined','min_val']]
                 
                 
@@ -831,7 +831,7 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                 #over=over.reset_index()[['PEAK_NUM_1','PEAK_NUM_2','geometry','combined','min_val']]
                         
                 overcop = over.copy()
-                overcop['recombine'] = overcop.combined
+                overcop.loc[:,'recombine'] = overcop.combined.copy()
                 for index, row in overcop.iterrows():
                     united = row.recombine
                     #print(united)
@@ -840,7 +840,7 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                         if united_temp != None:
                             united = united_temp
                             #print(united)
-                    overcop.recombine[index] = united
+                    overcop.recombine[index] = united.copy()
                     #print(united)
                     del(united)   
                 overcop['recombine']= overcop.apply(lambda y: sorted(y.recombine),axis=1).copy()
@@ -851,14 +851,16 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                 combined = gdf_bind_pks.copy()
                 combined['recombine'] = [list(x) for x in list(combined.loc[:,['PEAK_NUM']].to_numpy())]
                 combined['numtimes'] = 1
-                combined['newgeo'] = combined.geometry.copy()
+                combined['newgeo'] = combined.copy().geometry
                 combined['min_read'] = combined.PEAK_NUM.copy()
                 for index,row in combined.iterrows():
                     for index2,row2 in newOverlap.iterrows():
                         if row.PEAK_NUM in row2.recombine:
                             combined.recombine[index] = row2.recombine.copy()
-                            combined.newgeo[index] = row2.geometry.copy()
-                            combined.min_read[index] = row2.min_read.copy()
+                            combined.newgeo[index] = row2.geometry
+                            ## check if this works
+                            combined.min_read[index] = row2.min_read
+                            
                 combined['numtimes'] = combined.apply(lambda y: len(y.recombine),axis = 1).copy()
                 combined_reduced = combined[['PEAK_NUM','newgeo','recombine','numtimes','min_read']].copy()
                 gdf_pass_pks = pd.merge(gdf_tog,combined_reduced,on = ['PEAK_NUM']).copy()
@@ -867,22 +869,22 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
            gdf_pass_pks = gdf_bind_pks.copy()
            gdf_pass_pks['min_read']= gdf_pass_pks['PEAK_NUM'].copy()
            gdf_pass_pks['numtimes'] = 1
-           gdf_pass_pks['newgeo'] = gdf_pass_pks.geometry.copy()
+           gdf_pass_pks['newgeo'] = gdf_pass_pks.copy().geometry
            gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['PEAK_NUM']].to_numpy())].copy()
            gdf_pass_pks['verified'] = False
-           gdf_pass_pks['oldgeo'] = gdf_pass_pks.geometry.copy()
-           gdf_pass_pks['geometry'] = gdf_pass_pks.newgeo.copy()
+           gdf_pass_pks['oldgeo'] = gdf_pass_pks.copy().geometry
+           gdf_pass_pks['geometry'] = gdf_pass_pks.copy().newgeo
     if gdf_bind_pks.shape[0] == 1:
         gdf_pass_pks = gdf_bind_pks.copy()
         gdf_pass_pks['min_read']= gdf_pass_pks['PEAK_NUM'].copy()
         gdf_pass_pks['numtimes'] = 1
-        gdf_pass_pks['newgeo'] = gdf_pass_pks.geometry.copy()
+        gdf_pass_pks['newgeo'] = gdf_pass_pks.copy().geometry
         gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['PEAK_NUM']].to_numpy())].copy()
         gdf_pass_pks['verified'] = False
         epdat = pass_info[['PEAK_NUM','EPOCHSTART']].copy()
         gdf_pass_pks = pd.merge(gdf_pass_pks,epdat,on = ['PEAK_NUM']).copy()
-    gdf_pass_pks['oldgeo'] = gdf_pass_pks.geometry.copy()
-    gdf_pass_pks['geometry'] = gdf_pass_pks.newgeo.copy()
+    gdf_pass_pks['oldgeo'] = gdf_pass_pks.copy().geometry
+    gdf_pass_pks['geometry'] = gdf_pass_pks.copy().newgeo
     del(gdf_pass_pks['newgeo'])
     gdf_pass_pks['pass'] = whichpass
     gdf_tot = pd.merge(gdf_pass_pks,datFram_wtLocMax,on = ['PEAK_NUM']).copy()
@@ -1106,38 +1108,44 @@ def passCombine (firstgrp, secondgrp):
                         data_overlap=gpd.GeoDataFrame(pd.concat([temp_union,data_overlap],ignore_index=True),crs=data_temp.crs)    
     
         if data_overlap.size != 0: 
-            firstnull = data_overlap[data_overlap.min_read_1.isnull()]
-            firstnull['min_read_1'] = firstnull['min_read_2']
+            firstnull = data_overlap[data_overlap.min_read_1.isnull()].copy()
+            firstnull['min_read_1'] = firstnull['min_read_2'].copy()
                 
-            secnull = data_overlap[data_overlap.min_read_2.isnull()]
-            secnull['min_read_2'] = secnull['min_read_1']
+            secnull = data_overlap[data_overlap.min_read_2.isnull()].copy()
+            secnull['min_read_2'] = secnull['min_read_1'].copy()
                 
-            withoutNA = data_overlap.dropna()
-            allTog = pd.concat([firstnull,secnull,withoutNA]).reset_index()
+            withoutNA = data_overlap.dropna().copy()
+            allTog = pd.concat([firstnull,secnull,withoutNA]).reset_index().copy()
             
             over = allTog.copy()
-            over['sorted']=over.apply(lambda y: sorted([y['min_read_1'],y['min_read_2']]),axis=1)
-            over['sorted']=over.sorted.apply(lambda y: ''.join(y))
-            over = over.drop_duplicates('sorted')
-            over['combined']= [list(x) for x in list(over.loc[:,['min_read_1','min_read_2']].to_numpy())]
-            over['VER_NUM'] = over.apply(lambda y: y.combined,axis=1)
-            over['min_val']=over.apply(lambda y: min(y.combined),axis=1)
-            over=over.reset_index()[['min_read_1','min_read_2','geometry','combined','min_val']]
+            over['sorted']=over.apply(lambda y: sorted([y['min_read_1'],y['min_read_2']]),axis=1).copy()
+            over['sorted']=over.sorted.apply(lambda y: ''.join(y)).copy()
+            over = over.drop_duplicates('sorted').copy()
+            over['combined']= [list(x) for x in list(over.loc[:,['min_read_1','min_read_2']].to_numpy())].copy()
+            over['VER_NUM'] = over.apply(lambda y: y.combined,axis=1).copy()
+            over['min_val']=over.apply(lambda y: min(y.combined),axis=1).copy()
+            over=over.reset_index()[['min_read_1','min_read_2','geometry','combined','min_val']].copy()
                 
             overcop = over.copy()
-            overcop['recombine'] = overcop.combined
+            overcop['recombine'] = overcop.combined.copy()
             
             for index,row in overcop.iterrows():
-                rowwoo = row
+                #rowwoo = row
+                
+                ## fixthis
                 first_thing = first_dis[first_dis['min_read']== row.min_read_1].loc[:,['recombine']]
 
                 #first_thing = firstpass[firstpass['min_read']== row.min_read_1].loc[:,['recombine']]
-                firstcomb = first_thing.recombine.explode()
-                first_list = firstcomb.reset_index().recombine
+                firstcomb = first_thing.recombine.explode().copy()
+                first_list = firstcomb.reset_index().recombine.copy()
                 #first_list = firstpass.loc[:,firstpass['min_read']== row.min_read_1].recombine
                 #first_list.explode()
                 #first_list = firstpass.loc[:,firstpass['min_read']== row.min_read_1].recombine.explode()[0]
                # second_list = secondpass[secondpass['min_read']== row.min_read_2].recombine
+               
+               
+               ## fix this 
+               
                 sec_thing = sec_dis[sec_dis['min_read']== row.min_read_1].loc[:,['recombine']]
 
                 #sec_thing = secondpass[secondpass['min_read']== row.min_read_2].loc[:,['recombine']]
@@ -1151,12 +1159,13 @@ def passCombine (firstgrp, secondgrp):
                 tot_df = pd.concat([firstdf,secdf])
                 tot_list = tot_df.recombine.tolist()
                 
-                overcop.recombine[index] = tot_list
+                overcop.recombine[index] = tot_list.copy()
+                
     ## this recombines the lists together to have the combined entries together?
        
-            overcop['recombine']= overcop.apply(lambda y: sorted(y.recombine),axis=1)
-            overcop['min_read'] = overcop.apply(lambda y: min(y.recombine),axis=1)
-            newOverlap = overcop.dissolve(by='min_read',as_index=False).loc[:,['min_read','geometry','recombine']]
+            overcop['recombine']= overcop.apply(lambda y: sorted(y.recombine),axis=1).copy()
+            overcop['min_read'] = overcop.apply(lambda y: min(y.recombine),axis=1).copy()
+            newOverlap = overcop.dissolve(by='min_read',as_index=False).loc[:,['min_read','geometry','recombine']].copy()
         
       
             combined = gdf_bind_pks.copy()
@@ -1172,13 +1181,14 @@ def passCombine (firstgrp, secondgrp):
                     if row.min_read in row2.recombine:
                         #woo = row2
                         #indo = index
-                        combined.recombine[index] = row2.recombine
+                        combined.recombine[index] = row2.recombine.copy()
+
                         #combined.newgeo[index] = row2.geometry
                         combined.newgeo[index] = row2.geometry
                         combined.min_read[index] = row2.min_read
                     
         
-            combined['numtimes'] = combined.copy().apply(lambda y: len(y.recombine),axis = 1)
+            combined['numtimes'] = combined.copy().apply(lambda y: len(y.recombine),axis = 1).copy()
             combined['geometry'] = combined.copy().newgeo
             
             del(combined['newgeo'])
@@ -1250,22 +1260,22 @@ def sumthing(thing):
 
 def weightedLoc(df,lat,lon,by,val2avg):
     df_use = df[[(lat),(lon),(by),val2avg]]
-    by_val = ""
-    wts = []
-    x_num = []
-    y_num = []
-    x_num_wt = []
-    y_num_wt = []
-    results = pd.DataFrame(data= None,columns = [(by),(lat),(lon)])
+    #by_val = ""
+    #wts = []
+    #x_num = []
+    #y_num = []
+    #x_num_wt = []
+    #y_num_wt = []
+    #results = pd.DataFrame(data= None,columns = [(by),(lat),(lon)])
 
-    df_use['lat_wt'] = df_use.apply(lambda y: y[lat] * y[val2avg],axis = 1)
-    df_use['lon_wt'] = df_use.apply(lambda y: y[lon] * y[val2avg],axis = 1)
+    df_use.loc[:,'lat_wt'] = df_use.apply(lambda y: y[lat] * y[val2avg],axis = 1).copy()
+    df_use.loc[:,'lon_wt'] = df_use.apply(lambda y: y[lon] * y[val2avg],axis = 1).copy()
 
 
     #sumwts =pd.DataFrame( df_use.groupby('min_read').apply(lambda y: sumthing(y['pk_maxCH4_AB'])),columns = {'totwts'})
-    sumwts = pd.DataFrame( df_use.groupby(str(by)).apply(lambda y: sumthing(y[str(val2avg)])),columns = {'totwts'})
-    sumwts['min_reads'] = sumwts.index.copy()
-    sumwts = sumwts.reset_index(drop=True)
+    sumwts = pd.DataFrame( df_use.copy().groupby(str(by)).apply(lambda y: sumthing(y[str(val2avg)])),columns = {'totwts'})
+    sumwts.loc[:,'min_reads'] = sumwts.copy().index
+    sumwts = sumwts.copy().reset_index(drop=True)
     
     sumwts = sumwts.rename(columns={"min_reads": str(by)})
 
@@ -1293,8 +1303,8 @@ def weightedLoc(df,lat,lon,by,val2avg):
     df_use = pd.merge(sumwts,df_use,on = str(by))
     
 
-    df_use['overall_LON'] = df_use.apply(lambda y: y['totlons']/y['totwts'],axis = 1)
-    df_use['overall_LAT'] = df_use.apply(lambda y: y['totlats']/y['totwts'],axis = 1)
+    df_use.loc[:,'overall_LON'] = df_use.apply(lambda y: y['totlons']/y['totwts'],axis = 1)
+    df_use.loc[:,'overall_LAT'] = df_use.apply(lambda y: y['totlats']/y['totwts'],axis = 1)
 
     toreturn = df_use[[str(by),'overall_LON','overall_LAT']].drop_duplicates()
     toreturn = toreturn.rename(columns = {'overall_LON':str(lon),'overall_LAT':str(lat)})
