@@ -14,18 +14,18 @@ functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 xCar = 'SCcar' # might need to be 5 letters? need to check into that
 
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
 
 ## WHERE TO PUT LEAKS
-rawDir =  resFolder + 'raw/'
-inDir = resFolder + 'leaks/'
-outFolder = resFolder + 'processed/'
-finRes = resFolder + 'FinalShp/'
+rawDir =  resFolder + 'RawData/'
+inDir = resFolder + 'ObservedPeaks/'
+outFolder = resFolder + 'FilteredObservedPeaks/'
+finRes = resFolder + 'FinalShpFiles/'
 shpFileLocName = finRes + 'verifiedPKs.json'
-processedFileLoc = resFolder + 'proc/'
+processedFileLoc = resFolder + 'ProcessedData/'
 OPshpFileLocName = finRes + "OP_Final.json"
 
 
@@ -45,14 +45,29 @@ s2 = "Peaks_" + str(s1)
 s3 = "Filtered" + str()
 
 
-########################################################################################
+##################################
+### IMPORTING NECESSARY MODULES
+##################################
+
+import contextily as ctx
+import os, sys, datetime, time, math, csv, numpy,gzip,shutil
+sys.path.insert(1, functionFileLoc) ##change this to location of the "allFunctions.py" file
+from math import radians, sin, cos, sqrt, asin
+from numpy import log
+import geopandas as gpd
+import pandas as pd #
+from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
+import matplotlib.pyplot as plt
+from datetime import datetime
+from allFunctionsSC import IdentifyPeaks,filterPeak,unique,unIfInt,IsInPK,intersect,passCombine, weightedLoc,verPk,estEmissions,haversine,ProcessRawData,wt_time_Locs,sumthing
+
+
 ### create paths
 
 #### move files to new path
 
 #### CREATING NECESSARY FOLDERS
-import os
-import shutil
+
 foldList = [rawDir,resFolder,inDir,outFolder,finRes,processedFileLoc]
 for x in foldList:
     if os.path.isdir(x) == False:
@@ -75,21 +90,6 @@ for file in listthing:
 
 
 
-##################################
-### IMPORTING NECESSARY MODULES
-##################################
-
-import contextily as ctx
-import os, sys, datetime, time, math, csv, numpy,gzip
-sys.path.insert(1, functionFileLoc) ##change this to location of the "allFunctions.py" file
-from math import radians, sin, cos, sqrt, asin
-from numpy import log
-import geopandas as gpd
-import pandas as pd #
-from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
-import matplotlib.pyplot as plt
-from datetime import datetime
-from allFunctionsSC import IdentifyPeaks,filterPeak,unique,unIfInt,IsInPK,intersect,passCombine, weightedLoc,verPk,estEmissions,haversine,ProcessRawData,wt_time_Locs,sumthing
 
 
 ##### START OF THE ALGORITHM
