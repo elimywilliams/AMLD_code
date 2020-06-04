@@ -13,6 +13,7 @@ functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 xCar = 'SCcar' # might need to be 5 letters? need to check into that
 ## Folder with .txt Data
 rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat" 
+
 ## Folder to put results in (will make subfolders later)
 resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
 
@@ -53,6 +54,7 @@ s3 = "Filtered" + str()
 ##################################
 
 import contextily as ctx
+import pandas as pd
 import os, sys, datetime, time, math, csv, numpy,gzip,shutil
 sys.path.insert(1, functionFileLoc) ##change this to location of the "allFunctions.py" file
 from math import radians, sin, cos, sqrt, asin
@@ -127,19 +129,14 @@ if __name__ == '__main__':
 
 
 if __name__ == '__main__':
-    listthing = os.listdir(processedFileLoc).copy()
-    
-    #for file in os.listdir(inDir):
+    listthing = os.listdir(processedFileLoc).copy() 
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
-            #xCar = s1
             xDate = file[6:14]
-            #print(file)
             theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir)
 
 index = 0
 numproc = 0
-del(listthing)
 listthing = os.listdir(opDir).copy()
 
 for file in listthing:
@@ -149,107 +146,61 @@ for file in listthing:
         if pd.read_csv(file_loc).size != 0:
             index += 1
             nonempt = True
-        #print(index)
-        #print(file)
-        #print(file)
-        #woo = file
-        #xCar = s1
         xDate = file[12:20]
         if index == 1 and nonempt:
             mainThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
-            first = mainThing
-            firstfile = file
-            #print(file)
             numproc += 1
 
         if index != 1 and nonempt:
             secondThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
             mainThing = passCombine(mainThing,secondThing)
-            #print(file)
-            #print('i combined things')
-           # print(numproc)
-        #print(index)
-        mainThing.to_csv(finRes + 'FinalFiltered', index = False)
 
         
 print("I processed "+ str(index) + ' days of driving. The processed files are now stored in the folder: ' + str(filtopDir))
 
 ###########
-combinedDat = mainThing.copy()
-
-
+#combinedDat = mainThing.copy()
 
 ## plotwith the thing
-combinedDatPk = combinedDat[['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']].drop_duplicates().reset_index()[['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']]
-
+combinedDatPk = mainThing.loc[:,['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']].drop_duplicates().reset_index().loc[:,['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']]
 wcomb = weightedLoc(combinedDatPk,'pk_LAT','pk_LON','min_read','pk_maxCH4_AB')
 wcomb2 = wcomb.loc[wcomb.pk_LAT.isna()==False,:]
 del(wcomb)
-wcomb = wcomb2.rename(columns={'pk_LAT': 'overall_LAT','pk_LON':'overall_LON'}).copy()
-
+wcomb = wcomb2.loc[:,:].rename(columns={'pk_LAT': 'overall_LAT','pk_LON':'overall_LON'})
 
 
 ###### CREATE MAP THING (AND HOPE IT WORKS) ##########################################
 together = pd.merge(wcomb,combinedDatPk,on = ['min_read'])
- 
-
 totmaxCH4 = together.groupby('min_read',as_index = False).pk_maxCH4_AB.max().rename(columns = {'pk_maxCH4_AB':'VP_maxch4ab'})
 
 
-togetherMore = pd.merge(together,totmaxCH4,on = ['min_read'])
-togetherMore = togetherMore[['min_read','numtimes','overall_LAT','overall_LON','VP_maxch4ab']].drop_duplicates()
+togetherMore2 = pd.merge(together,totmaxCH4,on = ['min_read'])
+togetherMore = togetherMore2.loc[:,['min_read','numtimes','overall_LAT','overall_LON','VP_maxch4ab']].drop_duplicates()
 
 
-together = together[['min_read','overall_LAT','overall_LON','PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes']]
+together = together.loc[:,['min_read','overall_LAT','overall_LON','PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes']]
 together['em'] = together.apply(lambda y: estEmissions(y['pk_maxCH4_AB']),axis=1)
-together = together[together.numtimes!=1]
+
+### verified
+togetherVer = together.loc[together.numtimes!=1,:]
 
 # creating a geometry column 
-geometry = [Point(xy) for xy in zip(together['overall_LON'], together['overall_LAT'])]
-
-# Coordinate reference system : WGS84
+geometry = [Point(xy) for xy in zip(togetherVer['overall_LON'], togetherVer['overall_LAT'])]
 crs = {'init': 'epsg:4326'}
 
 # Creating a Geographic data frame 
-gdf = gpd.GeoDataFrame(together, crs=crs, geometry=geometry)
+gdf = gpd.GeoDataFrame(togetherVer, crs=crs, geometry=geometry)
 gdf = gdf.to_crs(epsg = 3857)
-
-
-###################################################################
-################## SAVE THE FILE TO A SHAPE FILE (FOR EXPORT TO ARCMAP PERHAPS)######################################
 gdf.to_file(shpFileLocName, driver="GeoJSON")
 
 
-
-
-
 ### SAVING ALL OBSERVED PEAKS (NOT JUST VERIFIED)
-together = pd.merge(wcomb,combinedDatPk,on = ['min_read'])
- 
-
-totmaxCH4 = together.groupby('min_read',as_index = False).pk_maxCH4_AB.max().rename(columns = {'pk_maxCH4_AB':'VP_maxch4ab'})
-
-
-togetherMore = pd.merge(together,totmaxCH4,on = ['min_read'])
-togetherMore = togetherMore[['min_read','numtimes','overall_LAT','overall_LON','VP_maxch4ab']].drop_duplicates()
-
-
-together = together[['min_read','overall_LAT','overall_LON','PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes']]
-together['em'] = together.apply(lambda y: estEmissions(y['pk_maxCH4_AB']),axis=1)
 
 # creating a geometry column 
 geometry = [Point(xy) for xy in zip(together['overall_LON'], together['overall_LAT'])]
-
-# Coordinate reference system : WGS84
-crs = {'init': 'epsg:4326'}
-
-# Creating a Geographic data frame 
 gdf = gpd.GeoDataFrame(together, crs=crs, geometry=geometry)
 gdf = gdf.to_crs(epsg = 3857)
 
-
-###################################################################
-################## SAVE THE FILE TO A SHAPE FILE (FOR EXPORT TO ARCMAP PERHAPS)######################################
 gdf.to_file(OPshpFileLocName, driver="GeoJSON")
 end = time.time()
 print("I created a GeoJSON file with the verified peak information, as well as the observed peak information, and it is located here: " + str(shpFileLocName) + ". The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
