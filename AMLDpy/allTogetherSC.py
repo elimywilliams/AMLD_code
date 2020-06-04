@@ -2,26 +2,32 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Mar 18 09:21:43 2020
-
 @author: emilywilliams
 """
 
 #### ALL THAT NEEDS TO BE CHANGED
+
+## WHERE THE allFunctionsSC.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
-xCar = 'ColLi'
-inDir = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
-outFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/Processed/"
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort" ##where the .txt files are located
-shpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/compFinal.json"
-processedFileLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
-OPshpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/OP_Final.json"
+
+## what you want the car to be named
+xCar = 'SCcar' # might need to be 5 letters? need to check into that
+
+## where the raw data is located
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat" ##where the .txt files are located
+inDir = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
+
+# where you want the 
+outFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/Processed/"
+shpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDat/compFinal.json"
+processedFileLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
+OPshpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDat/OP_Final.json"
 
 
-####### starting the 
-s1 = "COLLi"
+####### POTENTIALLY COULD CHANGE
+s1 = xCar
 s2 = "Peaks_" + str(s1)
 s3 = "Filtered" + str()
-
 
 ##################################
 ### IMPORTING NECESSARY MODULES
@@ -31,6 +37,7 @@ import contextily as ctx
 import os, sys, datetime, time, math, csv, numpy,gzip
 sys.path.insert(1, functionFileLoc) ##change this to location of the "allFunctions.py" file
 from math import radians, sin, cos, sqrt, asin
+from numpy import log
 import geopandas as gpd
 import pandas as pd #
 from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
@@ -39,13 +46,8 @@ from datetime import datetime
 from allFunctionsSC import IdentifyPeaks,filterPeak,unique,unIfInt,IsInPK,intersect,passCombine, weightedLoc,verPk,estEmissions,haversine,ProcessRawData,wt_time_Locs,sumthing
 
 
-###### POTENTIALLY COULD CHANGE I SUPPOSE
-s1 = "COLLi" ## the start of the file that you used
-s2 = "Peaks_" + str(s1)
-s3 = "Filtered" + str()
-
 ##### START OF THE ALGORITHM
-xCar = s1
+#xCar = s1
 start = time.time()
 
 if __name__ == '__main__':  
@@ -128,7 +130,7 @@ for file in listthing:
         #print(index)
         
         
-print("Hurray I processed "+ str(index) + ' files. They are now stored in the folder: ' + str(outFolder))
+print("I processed "+ str(index) + ' days of driving. The processed files are now stored in the folder: ' + str(outFolder))
 
 ###########
 combinedDat = mainThing.copy()
@@ -208,6 +210,6 @@ gdf = gdf.to_crs(epsg = 3857)
 ################## SAVE THE FILE TO A SHAPE FILE (FOR EXPORT TO ARCMAP PERHAPS)######################################
 gdf.to_file(OPshpFileLocName, driver="GeoJSON")
 end = time.time()
-print("The processing of the data is complete. I processed " + str(index) + " files and converted them to a GeoJSON file, which is located here: " + str(shpFileLocName) + ". The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
+print("I created a GeoJSON file with the verified peak information, as well as the observed peak information, and it is located here: " + str(shpFileLocName) + ". The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
 
 
