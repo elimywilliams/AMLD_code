@@ -5,30 +5,33 @@ Created on Wed Mar 18 09:21:43 2020
 @author: emilywilliams
 """
 
-#### ALL THAT NEEDS TO BE CHANGED
+############## ALL THAT NEEDS TO BE CHANGED ##############################################
 
 ## WHERE THE allFunctionsSC.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
-
 ## what you want the car to be named
 xCar = 'SCcar' # might need to be 5 letters? need to check into that
-
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort" 
-
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat" 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
 
+############################################################################################
+
+################### ASSIGNING FOLDERS FOR RESULTS
 ## WHERE TO PUT LEAKS
 rawDir =  resFolder + 'RawData/'
-inDir = resFolder + 'ObservedPeaks/'
-outFolder = resFolder + 'FilteredObservedPeaks/'
+#inDir = resFolder + 'ObservedPeaks/'
+opDir = resFolder + 'ObservedPeaks/'
+
+#outFolder = resFolder + 'FilteredObservedPeaks/'
+filtopDir = resFolder + 'FilteredObservedPeaks/'
 finRes = resFolder + 'FinalShpFiles/'
 shpFileLocName = finRes + 'verifiedPKs.json'
 processedFileLoc = resFolder + 'ProcessedData/'
 OPshpFileLocName = finRes + "OP_Final.json"
 
-
+## replace inDir with opDir
 
 #inDir = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
 
@@ -68,7 +71,7 @@ from allFunctionsSC import IdentifyPeaks,filterPeak,unique,unIfInt,IsInPK,inters
 
 #### CREATING NECESSARY FOLDERS
 
-foldList = [rawDir,resFolder,inDir,outFolder,finRes,processedFileLoc]
+foldList = [rawDir,resFolder,opDir,filtopDir,finRes,processedFileLoc]
 for x in foldList:
     if os.path.isdir(x) == False:
         try:
@@ -89,24 +92,15 @@ for file in listthing:
 
 
 
-
-
-
 ##### START OF THE ALGORITHM
-#xCar = s1
 start = time.time()
 
 if __name__ == '__main__':  
-    #df_use['lon_wt'] = df_use.apply(lambda y: y[lon] * y[val2avg],axis = 1).copy()
-
-    #inDirRaw = rawDatLoc
-    inDirRaw = rawDir
-    outDir = inDir
 
     dateList = []
     x1=""
     count = 0
-    listthing = os.listdir(inDirRaw)
+    listthing = os.listdir(rawDir)
     for file in listthing:
         #print (file)
         if file.endswith(".txt"):
@@ -127,13 +121,13 @@ if __name__ == '__main__':
             
             #xCar = "CSULi"
             xDate = file[:10]
-            theResult = ProcessRawData(xCar, xDate, inDirRaw, file, bFirst, 1, outDir)
+            theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
             #del(bFirst)
             count = count + 1
 
 
 if __name__ == '__main__':
-    listthing = os.listdir(inDir).copy()
+    listthing = os.listdir(processedFileLoc).copy()
     
     #for file in os.listdir(inDir):
     for file in listthing:
@@ -141,16 +135,16 @@ if __name__ == '__main__':
             #xCar = s1
             xDate = file[6:14]
             #print(file)
-            theResult = IdentifyPeaks(xCar, xDate, inDir, file)
+            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir)
 
 index = 0
 numproc = 0
 del(listthing)
-listthing = os.listdir(inDir).copy()
+listthing = os.listdir(opDir).copy()
 
 for file in listthing:
     if file.startswith(s2) and file.endswith('.csv'):
-        file_loc = inDir + file
+        file_loc = opDir + file
         nonempt = False
         if pd.read_csv(file_loc).size != 0:
             index += 1
@@ -162,22 +156,23 @@ for file in listthing:
         #xCar = s1
         xDate = file[12:20]
         if index == 1 and nonempt:
-            mainThing = filterPeak(xCar,xDate,inDir,file,outFolder,whichpass = index )
+            mainThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
             first = mainThing
             firstfile = file
             #print(file)
             numproc += 1
 
         if index != 1 and nonempt:
-            secondThing = filterPeak(xCar,xDate,inDir,file,outFolder,whichpass = index )
+            secondThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
             mainThing = passCombine(mainThing,secondThing)
             #print(file)
             #print('i combined things')
            # print(numproc)
         #print(index)
+        mainThing.to_csv(finRes + 'FinalFiltered', index = False)
+
         
-        
-print("I processed "+ str(index) + ' days of driving. The processed files are now stored in the folder: ' + str(outFolder))
+print("I processed "+ str(index) + ' days of driving. The processed files are now stored in the folder: ' + str(filtopDir))
 
 ###########
 combinedDat = mainThing.copy()

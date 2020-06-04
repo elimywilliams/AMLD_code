@@ -142,7 +142,7 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
     
     
 ## POTENTIALLY GOOD ONE    
-def IdentifyPeaks( xCar, xDate, xDir, xFilename):
+def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir):
     #import contextily as ctx
     import csv, numpy
     #import os, sys, datetime, time, math, csv, numpy,gzip
@@ -162,9 +162,9 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename):
         
         fn = xDir + "/" + xFilename      #set raw text file to read in
         #fn = fileloc
-        fnOut = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"       #set CSV format output for observed peaks for a given car, day, city
-        fnShape = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".shp"
-        fnLog = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".log"       #set CSV output for observed peaks for a given car, day, city
+        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"       #set CSV format output for observed peaks for a given car, day, city
+        fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".shp"
+        fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".log"       #set CSV output for observed peaks for a given car, day, city
 
         fLog = open(fnLog, 'w')
 
