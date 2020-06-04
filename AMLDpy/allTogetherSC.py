@@ -13,21 +13,67 @@ functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## what you want the car to be named
 xCar = 'SCcar' # might need to be 5 letters? need to check into that
 
-## where the raw data is located
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat" ##where the .txt files are located
-inDir = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
+## Folder with .txt Data
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat" 
+
+## Folder to put results in (will make subfolders later)
+resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
+
+## WHERE TO PUT LEAKS
+rawDir =  resFolder + 'raw/'
+inDir = resFolder + 'leaks/'
+outFolder = resFolder + 'processed/'
+finRes = resFolder + 'FinalShp/'
+shpFileLocName = finRes + 'verifiedPKs.json'
+processedFileLoc = resFolder + 'proc/'
+OPshpFileLocName = finRes + "OP_Final.json"
+
+
+
+#inDir = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
 
 # where you want the 
-outFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/Processed/"
-shpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDat/compFinal.json"
-processedFileLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
-OPshpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDat/OP_Final.json"
+#outFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/Processed/"
+#shpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDat/compFinal.json"
+#processedFileLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
+#OPshpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDat/OP_Final.json"
 
 
 ####### POTENTIALLY COULD CHANGE
 s1 = xCar
 s2 = "Peaks_" + str(s1)
 s3 = "Filtered" + str()
+
+
+########################################################################################
+### create paths
+
+#### move files to new path
+
+#### CREATING NECESSARY FOLDERS
+import os
+import shutil
+foldList = [rawDir,resFolder,inDir,outFolder,finRes,processedFileLoc]
+for x in foldList:
+    if os.path.isdir(x) == False:
+        try:
+            os.mkdir(x)
+        except OSError:
+            print ("Creation of the directory %s failed" % x)
+        else:
+            print ("Successfully created the directory %s " % x)
+
+### MOVING RAW FILES TO THE RAW DATA FILE FOLDER
+listthing = os.listdir(rawDatLoc)
+
+for file in listthing:
+    if file.endswith(".txt"):
+        shutil.move(rawDatLoc+'/' + file,rawDir)
+
+########################################################################################
+
+
+
 
 ##################################
 ### IMPORTING NECESSARY MODULES
@@ -53,7 +99,8 @@ start = time.time()
 if __name__ == '__main__':  
     #df_use['lon_wt'] = df_use.apply(lambda y: y[lon] * y[val2avg],axis = 1).copy()
 
-    inDirRaw = rawDatLoc
+    #inDirRaw = rawDatLoc
+    inDirRaw = rawDir
     outDir = inDir
 
     dateList = []
