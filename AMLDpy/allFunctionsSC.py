@@ -33,6 +33,7 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
     from datetime import datetime
     #import os
     import gzip
+    import csv
     try:
         
         #xOutDir = xDir 
@@ -46,7 +47,7 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
         #          0     1    2    3       4           5    6       7        8        9          10                 11              12           13            14      15      16      17        18         19         20         21         22         23        24   25  26       27           28       29           30       31       32       33  34        35   36   37  38   39       40       41   42       43   44   45   46   47   48   49   50   51     52     53     54
         sHeader = "Time Stamp,Inlet Number,P (mbars),T (degC),CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Latitude,Longitude"
         sOutHeader = "DATE,TIME,SECONDS,NANOSECONDS,VELOCITY,U,V,W,BCH4,BRSSI,TCH4,TRSSI,PRESS_MBAR,INLET,TEMPC,CH4,H20,C2H6,R,C2C1,BATTV,POWMV,CURRMA,SOCPER,LAT,LONG\n"
-
+        infoHeader = "FILENAME\n"
         # somehow gZIP is indicating if  it is the first file name (I think if it is 0 then it is the first file)
         if gZIP == 0:
             f = gzip.open(xDir + "/" + xFilename, 'r') #if in python 3, change this to "r" or just "b" can't remember but something about a bit not a string
@@ -62,16 +63,20 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
         #fnLog = xOutDir + xCar + "_" + xDate.replace("-", "") + "_log.csv"       #output for logfile
         
         fnOut = xOut  + xCar + "_" + xdat + "_dat.csv"       #set CSV output for raw data
-        fnLog = xOut  + xCar + "_" + xdat + "_log.csv"       #output for logfile
-       
+        fnLog =  xOut  + xCar + "_" + xdat + "_log.csv"       #output for logfile
+        infOut = xOut + xCar + "_" + xdat + "_info.csv"
+        
         if bFirst:
             fOut = open(fnOut, 'w')
             fOut.write(sOutHeader)
             fLog = open(fnLog, 'w')
+            infOut = open(infOut,'w')
+            infOut.write(infoHeader)
             print ("fnLog: "+fnOut) 
         if not bFirst:
             fOut = open(fnOut, 'a')
             fLog = open(fnLog, 'a')
+            infOut = open(infOut,'a')
         
         #read all lines
         xCntObs = -1
@@ -121,14 +126,17 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
                 csvWrite += str(lstS[7]) + ',' + str(lstS[8]) + ',' + str(lstS[9]) + ',' + str(lstS[10]) + ','+ str(lstS[11]) + ',' + str(lstS[12]) + ',' + str(lstS[13]) + str(',') + str(lstS[14]) 
                 fOut.write(csvWrite)
 #                xCntGoodValues += 1
+                
 
             xCntObs += 1
 
         #sOut = str(gZIP) + "," + str(f) + "," + str(xCntObs) + "," + str(xCntGoodValues) + "\n"
         #fLog.write(sOut)
-               
+        infOut.write(str(xFilename)+'\n')
+
         fOut.close()
         fLog.close()
+        infOut.close()
         
         #xDate = dateob.strftime("%Y%m%d")
         
@@ -144,11 +152,12 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
     
     
 ## POTENTIALLY GOOD ONE    
-def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir):
+def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1'):
     import csv, numpy    
     try:
+        xABThreshold = float(threshold)
 
-        xABThreshold = 0.1                 # above baseline threshold above the mean value
+        #xABThreshold = 0.1                 # above baseline threshold above the mean value
         xDistThreshold = 160.0                 # find the maximum CH4 reading of observations within street segments of this grouping distance in meters
         xSDF = 4                    # multiplier times standard deviation for floating baseline added to mean
         xB = 1020       # the number of records that constitutes the floating baseline time -- 7200 = 1 hour (assuming average of 0.5 seconds per record)
@@ -160,8 +169,13 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir):
         fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"       #set CSV format output for observed peaks for a given car, day, city
         fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".shp"
         fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".log"       #set CSV output for observed peaks for a given car, day, city
-
+        pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + "_info.csv"       #set CSV output for observed peaks for a given car, day, city
+        
+        infOut = processedFileLoc + xCar + "_" + xDate.replace("-","") + "_info.csv"
+        pkInfo = pd.read_csv(infOut)
+        
         fLog = open(fnLog, 'w')
+        pkLog = open(pkLog, 'w')
 
         #field column indices for various variables
         fDate = 0; 
@@ -227,7 +241,7 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir):
         
         fLog.write ( "Day CH4_mean = " + str(numpy.mean(aCH4)) + ", Day CH4_SD = " + str(numpy.std(aCH4)) + "\n")
         fLog.write( "Center lon/lat = " + str(xLonMean) + ", " + str(xLatMean) + "\n")
-        
+        pkLog.write('hi \n')
         lstCH4_AB = []
 
         #generate list of the index for observations that were above the threshold
@@ -250,7 +264,7 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir):
             else:
                 xCH4Mean = numpy.percentile(aCH4[0:(count-2)],50)
                 #xCH4SD = numpy.std(aCH4[0:(count-2)])
-            xThreshold = xCH4Mean + (xCH4Mean * 0.1)
+            xThreshold = xCH4Mean + (xCH4Mean * xABThreshold)
             
             if (aCH4[i] > xThreshold):
                 lstCH4_AB.append(i)
@@ -330,9 +344,15 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir):
             print ("Error in Identify Peaks")
             return False
 
-        
-        
+def makeGEO(df,lat,lon):
+    geo = [Point(xy) for xy in zip(df[(lon)], df[(lat)])]
+    return (geo)
 
+def makeGPD(df,lat,lon,cps = 'epsg:4326'):
+    gdf = gpd.GeoDataFrame(df, crs=cps, geometry=makeGEO(df,lat,lon))
+    return(gdf)
+    
+        
 def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
     import pandas as pd #
     import geopandas as gpd
@@ -360,13 +380,17 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
     datFram_wtLocMax = pd.merge(datFram_wtLoc,maxch4,on = ['PEAK_NUM'])
     
     pass_info = datFram.copy()
+    
+    ## MIGHT NEED TO CHANGE BACK
     geometry_temp = [Point(xy) for xy in zip(datFram['LON'], datFram['LAT'])]
     crs = {'init': 'epsg:4326'}
-     
-    ## geometry is the point of the lat/lon
+        
+        #geometry is the point of the lat/lon
     gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
+    
+    #gdf_buff = makeGPD(datFram,'LON','LAT')
     gdf_buff = gdf_buff.to_crs(epsg=32610)
-    gdf_buff['geometry'] = gdf_buff.geometry.buffer(30) 
+    gdf_buff['geometry'] = gdf_buff.loc[:,'geometry'].buffer(30) 
     
     pass_info_new = pass_info.rename(columns={"geometry": 'pk_geo'})
     
@@ -712,6 +736,24 @@ def verPk(totalData):
     crs = {'init': 'epsg:32610'}
     tog_dat = gpd.GeoDataFrame(together,crs = crs,geometry=geometry_temp)
     tog_dat = tog_dat.to_crs(epsg = 3857)
+
+
+# =============================================================================
+# summarizeDat
+# Input: Dataframe with columns:
+# Output: Dataframe with the average of the log(max_ch4_ab) for each verified peak (or observed if not verified yet)
+# 
+# =============================================================================
+
+def summarizeDat(totalData):
+    pkRed = totalData.loc[:,['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']].drop_duplicates().reset_index().loc[:,['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']]
+    verLoc = weightedLoc(pkRed,'pk_LAT','pk_LON','min_read','pk_maxCH4_AB').rename(columns = {'pk_LAT':'overallLAT','pk_LON':'overallLON'})
+    pkRed['logCH4'] = pkRed.apply(lambda y: log(y.pk_maxCH4_AB),axis = 1)
+    mnVals = pkRed.groupby('min_read',as_index=False).logCH4.mean().rename(columns ={'logCH4':'mnlogCH4'}).loc[:,['min_read','mnlogCH4']]
+    together = pd.merge(verLoc,mnVals,on = ['min_read'])
+    final = pd.merge(together,totalData,on=['min_read'])
+    return(final)
+    
 
 
 def estEmissions(excessCH4):
