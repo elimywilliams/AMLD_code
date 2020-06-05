@@ -12,10 +12,10 @@ functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## what you want the car to be named
 xCar = 'SCcar' # might need to be 5 letters? need to check into that
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
 
 ############################################################################################
 
@@ -32,6 +32,7 @@ shpFileLocName = finRes + 'verifiedPKs.json'
 processedFileLoc = resFolder + 'ProcessedData/'
 OPshpFileLocName = finRes + "OP_Final.json"
 allPksCSVLoc = finRes + 'overallPeaks.csv'
+finalInfoLoc = finRes + 'summaryInfo.csv'
 ## replace inDir with opDir
 
 #inDir = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
@@ -145,6 +146,8 @@ listthing = os.listdir(opDir).copy()
 for file in listthing:
     if file.startswith(s2) and file.endswith('.csv') and not file.endswith('info.csv'):
         file_loc = opDir + file
+        csv_loc = opDir + "/" + file[:-4] + '_info.csv'
+        
         nonempt = False
         if pd.read_csv(file_loc).size != 0:
             index += 1
@@ -153,11 +156,16 @@ for file in listthing:
         if index == 1 and nonempt:
             mainThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
             numproc += 1
+            mainInfo = pd.read_csv(csv_loc)
+            #mainInfo = mainInfo1.copy()
 
         if index != 1 and nonempt:
             secondThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
             mainThing = passCombine(mainThing,secondThing)
-
+            tempInfo = pd.read_csv(csv_loc)
+            mainInfo = pd.concat([mainInfo, tempInfo], axis=0)
+            
+mainInfo.reset_index().FILENAME.to_csv(finalInfoLoc)
         
 print("I processed "+ str(index) + ' days of driving. The processed files are now stored in the folder: ' + str(filtopDir))
 
