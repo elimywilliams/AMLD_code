@@ -143,7 +143,7 @@ numproc = 0
 listthing = os.listdir(opDir).copy()
 
 for file in listthing:
-    if file.startswith(s2) and file.endswith('.csv'):
+    if file.startswith(s2) and file.endswith('.csv') and not file.endswith('info.csv'):
         file_loc = opDir + file
         nonempt = False
         if pd.read_csv(file_loc).size != 0:

@@ -154,6 +154,7 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
 ## POTENTIALLY GOOD ONE    
 def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1'):
     import csv, numpy    
+    import shutil 
     try:
         xABThreshold = float(threshold)
 
@@ -165,17 +166,17 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
         xTimeThreshold = 5.0
         
         fn = xDir + "/" + xFilename      #set raw text file to read in
-        #fn = fileloc
         fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"       #set CSV format output for observed peaks for a given car, day, city
         fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".shp"
         fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".log"       #set CSV output for observed peaks for a given car, day, city
         pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + "_info.csv"       #set CSV output for observed peaks for a given car, day, city
         
         infOut = processedFileLoc + xCar + "_" + xDate.replace("-","") + "_info.csv"
-        pkInfo = pd.read_csv(infOut)
+        print(str(outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + "_info.csv"))
         
-        fLog = open(fnLog, 'w')
-        pkLog = open(pkLog, 'w')
+        fLog = open(fnLog, 'w')        
+        shutil.copy(infOut,pkLog)
+
 
         #field column indices for various variables
         fDate = 0; 
@@ -241,7 +242,7 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
         
         fLog.write ( "Day CH4_mean = " + str(numpy.mean(aCH4)) + ", Day CH4_SD = " + str(numpy.std(aCH4)) + "\n")
         fLog.write( "Center lon/lat = " + str(xLonMean) + ", " + str(xLatMean) + "\n")
-        pkLog.write('hi \n')
+        #pkLog.write('hi')
         lstCH4_AB = []
 
         #generate list of the index for observations that were above the threshold
@@ -356,11 +357,18 @@ def makeGPD(df,lat,lon,cps = 'epsg:4326'):
 def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
     import pandas as pd #
     import geopandas as gpd
+    import shutil
     from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
 
     file_loc = xDir + xFilename
     new_loc = outFolder + "Filtered" + xFilename
     new_loc_json = new_loc[:-3] + 'json'
+
+    oldInfo = xDir + 'Peaks_' + xCar + "_" + xDate.replace("-","") + "_info.csv"
+    newInfo = outFolder + 'FilteredPeaks_' + xCar + "_" + xDate.replace("-","") + "_info.csv"
+    
+    shutil.copy(oldInfo,newInfo)
+
 
     datFram = pd.read_csv(file_loc)
     datFram_cent =  datFram.loc[:,:]  
