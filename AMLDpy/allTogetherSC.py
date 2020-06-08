@@ -12,10 +12,10 @@ functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## what you want the car to be named
 xCar = 'SCcar' # might need to be 5 letters? need to check into that
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/June3SideBySide" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/June3SideBySide/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
 
 ############################################################################################
 
