@@ -11,11 +11,12 @@ Created on Wed Mar 18 09:21:43 2020
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## what you want the car to be named
 xCar = 'SCcar' # might need to be 5 letters? need to check into that
+
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/June3SideBySide" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/CoDrive1" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/June3SideBySide/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/CoDrive1/"
 
 ############################################################################################
 
@@ -49,7 +50,7 @@ s1 = xCar
 s2 = "Peaks_" + str(s1)
 s3 = "Filtered" + str()
 
-threshold = '0.1'
+threshold = '0.05'
 ##################################
 ### IMPORTING NECESSARY MODULES
 ##################################
