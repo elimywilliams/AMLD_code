@@ -12,10 +12,10 @@ functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## what you want the car to be named
 xCar = 'SCcar' # might need to be 5 letters? need to check into that
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/June3SideBySide" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/June3SideBySide/"
 
 ############################################################################################
 
@@ -189,10 +189,16 @@ allTog['em'] = allTog.apply(lambda y: estEmissions(y['mnlogCH4']),axis=1)
 
 ##### SPLITTING IF THE PEAKS WERE VERIFIED OR NOT
 verTog = allTog.loc[allTog.numtimes!= 1,:]
+if verTog.size > 0:
+    verTog.drop(columns=['recombine']).to_file(shpFileLocName, driver="GeoJSON")
+if verTog.size ==0:
+    print("Sorry, no verified peaks were found.")  
+if allTog.size> 0:
+    allTog.drop(columns=['recombine']).to_file(OPshpFileLocName, driver="GeoJSON")
+    allTog.to_csv(allPksCSVLoc)
 
-verTog.drop(columns=['recombine']).to_file(shpFileLocName, driver="GeoJSON")
-allTog.drop(columns=['recombine']).to_file(OPshpFileLocName, driver="GeoJSON")
-allTog.to_csv(allPksCSVLoc)
-
+if allTog.size == 0:
+    print("Sorry, no observed peaks were found in the given data")
+    
 end = time.time()
 print("I created three summary files located here: " + str(finRes) + ". The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
