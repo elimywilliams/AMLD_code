@@ -119,11 +119,18 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
                 
                 ## choosing what to write in the .csv
 
-
-                csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S'))  + ',' + str(int(pd.to_numeric(dateob.strftime('%S.%f')))) + ',' + str(pd.to_numeric(dateob.strftime('%f')) *1000) + str(',')
-                csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(lstS[4]) + ',' + str('0') + ','+  str(lstS[4]) + ','
-                csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(lstS[3]) + ',' + str(lstS[4]) + ',' + str(lstS[5]) +',' +  str(lstS[6]) + ','
-                csvWrite += str(lstS[7]) + ',' + str(lstS[8]) + ',' + str(lstS[9]) + ',' + str(lstS[10]) + ','+ str(lstS[11]) + ',' + str(lstS[12]) + ',' + str(lstS[13]) + str(',') + str(lstS[14]) 
+                import sys
+                if sys.platform.startswith('win'):
+                    csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S'))  + ',' + str(int(pd.to_numeric(dateob.strftime('%S.%f')))) + ',' + str(pd.to_numeric(dateob.strftime('%f')) *1000) + str(',')
+                    csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(lstS[4]) + ',' + str('0') + ','+  str(lstS[4]) + ','
+                    csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(lstS[3]) + ',' + str(lstS[4]) + ',' + str(lstS[5]) +',' +  str(lstS[6]) + ','
+                    csvWrite += str(lstS[7]) + ',' + str(lstS[8]) + ',' + str(lstS[9]) + ',' + str(lstS[10]) + ','+ str(lstS[11]) + ',' + str(lstS[12]) + ',' + str(lstS[13]) + str(',') + str(lstS[14]) 
+                if not sys.platform.startswith('win'):
+                    csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S'))  + ',' + str(int(pd.to_numeric(dateob.strftime('%s.%f')))) + ',' + str(pd.to_numeric(dateob.strftime('%f')) *1000) + str(',')
+                    csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(lstS[4]) + ',' + str('0') + ','+  str(lstS[4]) + ','
+                    csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(lstS[3]) + ',' + str(lstS[4]) + ',' + str(lstS[5]) +',' +  str(lstS[6]) + ','
+                    csvWrite += str(lstS[7]) + ',' + str(lstS[8]) + ',' + str(lstS[9]) + ',' + str(lstS[10]) + ','+ str(lstS[11]) + ',' + str(lstS[12]) + ',' + str(lstS[13]) + str(',') + str(lstS[14]) 
+           
                 fOut.write(csvWrite)
 #                xCntGoodValues += 1
                 
