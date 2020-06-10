@@ -13,10 +13,10 @@ functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 xCar = 'SCcar' # might need to be 5 letters? need to check into that
 
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/CoDrive1" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/CoDrive1/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
 
 ############################################################################################
 
@@ -51,6 +51,7 @@ s2 = "Peaks_" + str(s1)
 s3 = "Filtered" + str()
 
 threshold = '0.05'
+timethresh = '5.0'
 ##################################
 ### IMPORTING NECESSARY MODULES
 ##################################
@@ -138,7 +139,7 @@ if __name__ == '__main__':
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[6:14]
-            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold)
+            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh)
 
 index = 0
 numproc = 0

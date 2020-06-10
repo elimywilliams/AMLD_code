@@ -159,7 +159,7 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
     
     
 ## POTENTIALLY GOOD ONE    
-def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1'):
+def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0'):
     import csv, numpy    
     import shutil 
     try:
@@ -170,7 +170,7 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
         xSDF = 4                    # multiplier times standard deviation for floating baseline added to mean
         xB = 1020       # the number of records that constitutes the floating baseline time -- 7200 = 1 hour (assuming average of 0.5 seconds per record)
         #xB = 300 #five min?
-        xTimeThreshold = 5.0
+        xTimeThreshold = float(xTimeThreshold)
         
         fn = xDir + "/" + xFilename      #set raw text file to read in
         fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"       #set CSV format output for observed peaks for a given car, day, city
