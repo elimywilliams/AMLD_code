@@ -34,6 +34,7 @@ processedFileLoc = resFolder + 'ProcessedData/'
 OPshpFileLocName = finRes + "OP_Final.json"
 allPksCSVLoc = finRes + 'overallPeaks.csv'
 finalInfoLoc = finRes + 'summaryInfo.csv'
+finalMain = finRes + 'mainThing.csv'
 ## replace inDir with opDir
 
 #inDir = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
@@ -51,12 +52,12 @@ s2 = "Peaks_" + str(s1)
 s3 = "Filtered" + str()
 
 threshold = '0.05'
-timethresh = '5.0'
+timethresh = '1.7' ## time to include in background calculation (minutes)
 ##################################
 ### IMPORTING NECESSARY MODULES
 ##################################
 
-import contextily as ctx
+#import contextily as ctx
 import pandas as pd
 import os, sys, datetime, time, math, csv, numpy,gzip,shutil
 sys.path.insert(1, functionFileLoc) ##change this to location of the "allFunctions.py" file
@@ -88,7 +89,7 @@ for x in foldList:
             print ("Creation of the directory %s failed" % x)
         else:
             print ("Successfully created the directory %s " % x)
-
+            
 ### MOVING RAW FILES TO THE RAW DATA FILE FOLDER
 listthing = os.listdir(rawDatLoc)
 
@@ -98,7 +99,31 @@ for file in listthing:
 
 ########################################################################################
 
+##### THIS PORTION OF THE CODE ALLOWS US TO ITERATIVELY ADD IN MORE DATA
+#        PUT THE NEW TEXT FILES INTO THE OVERALL FOLDER AND IT WILL DO THE REST
+rawTexts = pd.DataFrame(os.listdir(rawDir)).loc[pd.DataFrame(os.listdir(rawDir))[0].str.endswith('.txt')]
 
+
+### DONT ADD NEW FILE WITH PRE-EXISTING DATE [NEED TO WRITE CODE TO DEAL WITH THAT]
+toAnalyse = []
+toIdentify = []
+toFilter = []
+
+if os.path.exists(finalInfoLoc):
+    analysed = pd.read_csv(finalInfoLoc)
+    for index,row in rawTexts.reset_index().iterrows():
+        text = rawTexts[0].iloc[index]
+        if analysed[analysed['FILENAME'].astype(str).str.contains(text)].shape[0] < 1:
+            toAnalyse.append(text)
+            toIdentify.append(s1 + '_20' + text[11:17] + '_dat.csv')
+            toFilter.append(s2 + '_20' + text[11:17] + '.csv')
+elif not os.path.exists(finalInfoLoc):
+    for index,row in rawTexts.reset_index().iterrows():
+        text = rawTexts[0].iloc[index]
+        toAnalyse.append(text)
+        toIdentify.append(s1 + '_20' + text[11:17] + '_dat.csv')
+        toFilter.append(s2 + '_20' + text[11:17] + '.csv')
+        
 
 ##### START OF THE ALGORITHM
 start = time.time()
@@ -108,7 +133,8 @@ if __name__ == '__main__':
     dateList = []
     x1=""
     count = 0
-    listthing = os.listdir(rawDir)
+    #listthing = os.listdir(rawDir)
+    listthing = toAnalyse ## changing to include the files we have to analyse?
     for file in listthing:
         #print (file)
         if file.endswith(".txt"):
@@ -135,39 +161,65 @@ if __name__ == '__main__':
 
 
 if __name__ == '__main__':
-    listthing = os.listdir(processedFileLoc).copy() 
+    #listthing = os.listdir(processedFileLoc).copy() 
+    listthing = toIdentify.copy()
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[6:14]
             theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh)
 
-index = 0
-numproc = 0
-listthing = os.listdir(opDir).copy()
-
-for file in listthing:
-    if file.startswith(s2) and file.endswith('.csv') and not file.endswith('info.csv'):
-        file_loc = opDir + file
-        csv_loc = opDir + "/" + file[:-4] + '_info.csv'
-        
-        nonempt = False
-        if pd.read_csv(file_loc).size != 0:
-            index += 1
-            nonempt = True
-        xDate = file[12:20]
-        if index == 1 and nonempt:
-            mainThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
-            numproc += 1
-            mainInfo = pd.read_csv(csv_loc)
-            #mainInfo = mainInfo1.copy()
-
-        if index != 1 and nonempt:
-            secondThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
-            mainThing = passCombine(mainThing,secondThing)
-            tempInfo = pd.read_csv(csv_loc)
-            mainInfo = pd.concat([mainInfo, tempInfo], axis=0)
+if not os.path.exists(finalMain):
+    index = 0
+    numproc = 0
+    listthing = os.listdir(opDir).copy()
+    for file in listthing:
+        if file.startswith(s2) and file.endswith('.csv') and not file.endswith('info.csv'):
+            file_loc = opDir + file
+            csv_loc = opDir + "/" + file[:-4] + '_info.csv'
             
+            nonempt = False
+            if pd.read_csv(file_loc).size != 0:
+                index += 1
+                nonempt = True
+            xDate = file[12:20]
+            if index == 1 and nonempt:
+                mainThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
+                numproc += 1
+                mainInfo = pd.read_csv(csv_loc)
+                #mainInfo = mainInfo1.copy()
+    
+            if index != 1 and nonempt:
+                secondThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
+                mainThing = passCombine(mainThing,secondThing)
+                tempInfo = pd.read_csv(csv_loc)
+                mainInfo = pd.concat([mainInfo, tempInfo], axis=0)
+elif os.path.exists(finalMain):
+    index = 0
+    numproc = 0
+    listthing = toFilter
+    main = pd.read_csv(finalMain)
+    mainGeo = main.loc[:,'geometry']
+    mainThing = makeGPD(main.drop(columns = ['geometry']).copy(),'pk_LAT','pk_LON')
+    
+    mainInfo = pd.read_csv(finalInfoLoc)
+    for file in listthing:
+        if file.startswith(s2) and file.endswith('.csv') and not file.endswith('info.csv'):
+            file_loc = opDir + file
+            csv_loc = opDir + "/" + file[:-4] + '_info.csv'
+            nonempt = False
+            if pd.read_csv(file_loc).size != 0:
+                index += 1
+                nonempt = True
+            xDate = file[12:20]
+            if  nonempt:
+                secondThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
+                mainThing = passCombine(mainThing,secondThing)
+                tempInfo = pd.read_csv(csv_loc)
+                mainInfo = pd.concat([mainInfo, tempInfo], axis=0)
+                
+          
 mainInfo.reset_index().FILENAME.to_csv(finalInfoLoc)
+mainThing.to_csv(finalMain)
         
 print("I processed "+ str(index) + ' days of driving. The processed files are now stored in the folder: ' + str(filtopDir))
 
