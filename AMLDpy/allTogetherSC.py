@@ -13,10 +13,10 @@ functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 xCar = 'SCcar' # might need to be 5 letters? need to check into that
 
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/CoDrive" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/CoDrive/"
 
 ############################################################################################
 
