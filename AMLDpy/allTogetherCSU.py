@@ -10,13 +10,13 @@ Created on Wed Mar 18 09:21:43 2020
 ## WHERE THE allFunctionsSC.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## what you want the car to be named
-xCar = 'SCCar' # might need to be 5 letters? need to check into that
+xCar = 'CSULi' # might need to be 5 letters? need to check into that
 
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/CoDrive3" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/aCoDrive" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/CoDrive3/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/aCoDrive/"
 
 ############################################################################################
 
@@ -161,8 +161,8 @@ if __name__ == '__main__':
 
 
 if __name__ == '__main__':
-    #listthing = os.listdir(processedFileLoc).copy() 
-    listthing = toIdentify.copy()
+    listthing = os.listdir(processedFileLoc).copy() 
+    #listthing = toIdentify.copy()
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[6:14]
@@ -245,6 +245,7 @@ allTog['em'] = allTog.apply(lambda y: estEmissions(y['mnlogCH4']),axis=1)
 verTog = allTog.loc[allTog.numtimes!= 1,:]
 if verTog.size > 0:
     verTog.drop(columns=['recombine']).to_file(shpFileLocName, driver="GeoJSON")
+    verTog.drop(columns=['recombine']).to_file('/Users/emilywilliams/Documents/DrivingData/aCoDrive/' + 'FinalShpFiles/verifiedPKs.csv')
 if verTog.size ==0:
     print("Sorry, no verified peaks were found.")  
 if allTog.size> 0:

@@ -2,7 +2,34 @@
 library(readr)
 
 ### CHOOSE DF
-df <- read_csv("~/Documents/MobileSurveyRaw/CSULi_20191118_dat.csv")
+df1 <- read_csv("~/Documents/MobileSurveyRaw/CSULi_20191118_dat.csv")
+df2 <- read_csv("~/Documents/MobileSurveyRaw/CSULi_20191022_dat.csv")
+df3 <- read_csv("~/Documents/MobileSurveyRaw/CSULi_20191115_dat.csv")
+df4 <- read_csv("~/Documents/MobileSurveyRaw/CSULi_20191113_dat.csv")
+df5 <- read_csv("~/Documents/MobileSurveyRaw/CSULi_20191124_dat.csv")
+
+df <- plyr::join(df1,df2,type='full')
+df <- plyr::join(df,df3,type='full')
+df <- plyr::join(df,df4,type='full')
+df <- plyr::join(df,df5,type='full')
+
+##combining all of the datasets
+list <- list.files('/Users/emilywilliams/Documents/MobileSurveyRaw')
+nlist <- length(list)
+index <- 0
+for (file in list) {
+  if (endsWith(file,'dat.csv')) {
+    if(index == 0){
+      df <- read_csv(paste('/Users/emilywilliams/Documents/MobileSurveyRaw/',file,sep=''))
+    }
+    if(index !=0){
+      df1 <- read_csv(paste('/Users/emilywilliams/Documents/MobileSurveyRaw/',file,sep=''))
+      df <- plyr::join(df,df1,type='full')
+    }
+    index <-index + 1
+  }
+}
+
 
 #### LIBRARIES
 library(tidyr)
@@ -56,20 +83,65 @@ correctedDf <- addWindDat2(df2,"U","V","W",F,T,T,T) %>%
 
 #### LOOK AT HISTOGRAM OF VERTICAL WIND
 hist(abs(correctedDf$W* (180/pi)%% 180),main="Vertical wind (degrees) in drive")
-correctedDf$w_cor <- abs(correctedDf$W* (180/pi)%% 180)
-windRose(correctedDf,ws = 'r',wd='phi')
+correctedDf$r_vert <- correctedDf$r*sin((correctedDf$phi)*(pi/180))
+windRose(correctedDf,ws = 'r_vert',wd='phi')
 
 hist(correctedDf$phi)
 
 correctedDf %>% 
   mutate(num = 1:n()) %>% 
-  ggplot(aes(x=num,y=phi,col=r)) + geom_point()
+  ggplot(aes(x=num,y=phi,col=log(r))) + geom_point()
+
+hist(correctedDf$phi,prob=T,ylim=c(0,.06),main="Distribution of Vertical Wind \n (0 degrees= horizontal)",col='gray',xlab='Vertical Direction (degrees)')
+lines(density(correctedDf2$phi),col='forestgreen',lwd = 2)
+
+quantile(correctedDf$phi,c(0.80))
+
+correctedDf %>% 
+  filter(phi > 20) %>% 
+  mutate(num = 1:n()) %>% 
+  ggplot(aes(x=num,y=phi,col=log(VELOCITY))) + geom_point()
 
 
+plot(correctedDf$phi,correctedDf$VELOCITY,main="Car velocity vs. Vertical Wind Component")
+
+par(mfrow = c(1,2))
+plot(y=correctedDf$r*cos(correctedDf$phi*(pi/180)),
+     x=correctedDf$VELOCITY,main = "Car Velocity vs. Vertical Wind Speed",
+     xlab= "Car Velocity (m/s)",ylab="Vertical Wind Component (m/s)")
+plot(y=correctedDf$phi,
+     x=correctedDf$VELOCITY,main = "Car Velocity vs. Vertical Wind Direction",
+     xlab= "Car Velocity (m/s)",ylab="Vertical Wind Component (degrees)")
+
+fastwind <- correctedDf[correctedDf$r*cos(correctedDf$phi*(pi/180))>median(correctedDf$VELOCITY),]
 
 
+par(mfrow=c(1,2))
+plot(y = fastwind$r*cos(fastwind$phi*(pi/180)),x= fastwind$VELOCITY,xlab = "Velocity (m/s)", ylab="Vertical Wind Speed (m/s)",
+     main = "Wind speeds (Vertical and Horizontal) \n vs. Car Velocity")
+plot(y=fastwind$r*sin(fastwind$phi*(pi/180)),x= fastwind$VELOCITY, ylab="Horizontal Wind Speed (m/s)",xlab='Velocity (m/s)')
 
 
+nohorz <- correctedDf[correctedDf$r*cos(correctedDf$phi*(pi/180)) <.75,]
+par(mfrow=c(1,2))
+plot(y = nohorz$r*cos(nohorz$phi*(pi/180)),x= nohorz$VELOCITY,xlab = "Velocity (m/s)", ylab="Vertical Wind Speed (m/s)",
+     main = "Wind speeds (Vertical and Horizontal) \n vs. Car Velocity")
+plot(y=nohorz$r*sin(nohorz$phi*(pi/180)),x= nohorz$VELOCITY, ylab="Horizontal Wind Speed (m/s)",xlab='Velocity (m/s)')
+
+
+plot(fastwind$ab_base_perc)
+
+plot(correctedDf$ab_base_perc)
+
+plot(correctedDf$ab_base_perc,correctedDf$r)
+
+hist(correctedDf$VELOCITY)
+
+correctedDf %>% 
+  ggplot(aes(x=r,y=ab_base_perc,col=log(VELOCITY))) + geom_point() +
+  ggtitle("CH4 (percentage above baseline) vs. Wind Speed (r)")+
+  ylab("CH4 (percentage above baseline)") + xlab("Wind Speed (m/s)") + 
+  ggthemes::theme_clean() + geom_hline(yintercept = 1.1) 
 
 
 

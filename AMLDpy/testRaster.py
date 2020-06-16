@@ -25,15 +25,15 @@ df['row'] = np.searchsorted(rows, df['LAT'])
 
 ## trying another thing
 
-listthing = os.listdir(processedFileLoc).copy() 
+listthing = os.listdir('/Users/emilywilliams/Documents/DrivingData/ColDat/ProcessedData/').copy() 
 index = 0
 for file in listthing:
     if file.startswith(s1) and file.endswith("dat.csv"):
         if index == 0:
-            first = pd.read_csv(processedFileLoc + file)
+            first = pd.read_csv('/Users/emilywilliams/Documents/DrivingData/ColDat/ProcessedData/' + file)
             index += 1
         elif index != 0:
-            second = pd.read_csv(processedFileLoc + file)
+            second = pd.read_csv('/Users/emilywilliams/Documents/DrivingData/ColDat/ProcessedData/' + file)
             first = pd.concat([first, second], axis=0)
             index += 1
 

@@ -212,6 +212,35 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
         SOCPER = 23;
         fLat = 24; 
         fLon = 25; 
+        
+        ### IF ITS CSU
+        #field column indices for various variables
+        fDate = 0+1; 
+        fTime = 1+1; 
+        fEpochTime = 2+1; 
+        fNanoSeconds = 3+1; 
+        fVelocity = 4+1; 
+        fU = 5+1; 
+        fV = 6+1; 
+        fW = 7+1;
+        fBCH4 = 10+1;#fBCH4 = 8; 
+        #fBRSSI = 9;
+        fTCH4 = 10+1;
+        TRSSI = 11+1;
+        PRESS = 12+1;
+        INLET = 13+1;
+        TEMP = 14+1;
+        CH4 = 15+1;
+        H20 = 16+1;
+        C2H6 = 17+1;
+        R = 18+1;
+        C2C1 = 19+1;
+        BATT = 20+1;
+        POWER = 21+1;
+        CURR = 22+1;
+        SOCPER = 23+1;
+        fLat = 24+1; 
+        fLon = 25+1; 
 
         #read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
         x1 = []; x2 = []; x3 = []; x4 = []; x5 = []; x6 = []; x7 = []; x8 = []
