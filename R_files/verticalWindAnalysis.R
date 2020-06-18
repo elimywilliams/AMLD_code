@@ -13,6 +13,15 @@ df <- plyr::join(df,df3,type='full')
 df <- plyr::join(df,df4,type='full')
 df <- plyr::join(df,df5,type='full')
 
+df_all <- df
+
+df <- read_delim("~/Downloads/2020-06-09_12h44m07s.txt", 
+                 "\t", escape_double = FALSE, col_types = cols(DATAH = col_skip()), 
+                 trim_ws = TRUE) %>% 
+  dplyr::rename(LAT = GPS_LAT,LONG = GPS_LONG) %>% 
+  mutate(TCH4 = CH4) %>% 
+  rename(U = SONIC_U,V=SONIC_V,W=SONIC_W)
+
 ##combining all of the datasets
 list <- list.files('/Users/emilywilliams/Documents/MobileSurveyRaw')
 nlist <- length(list)
@@ -80,7 +89,8 @@ correctedDf <- addWindDat2(df2,"U","V","W",F,T,T,T) %>%
   )
 
 ###################################
-
+correctedDf_stat <- correctedDf
+correctedDf_all <- correctedDf
 #### LOOK AT HISTOGRAM OF VERTICAL WIND
 hist(abs(correctedDf$W* (180/pi)%% 180),main="Vertical wind (degrees) in drive")
 correctedDf$r_vert <- correctedDf$r*sin((correctedDf$phi)*(pi/180))
@@ -88,7 +98,7 @@ windRose(correctedDf,ws = 'r_vert',wd='phi')
 
 hist(correctedDf$phi)
 
-correctedDf %>% 
+correctedDf_stat %>% 
   mutate(num = 1:n()) %>% 
   ggplot(aes(x=num,y=phi,col=log(r))) + geom_point()
 
@@ -103,14 +113,45 @@ correctedDf %>%
   ggplot(aes(x=num,y=phi,col=log(VELOCITY))) + geom_point()
 
 
-plot(correctedDf$phi,correctedDf$VELOCITY,main="Car velocity vs. Vertical Wind Component")
+plot(correctedDf$phi,correctedDf$GPS_VELOCITY,main="Car velocity vs. Vertical Wind Component")
+
+hist(correctedDf_stat$r * cos(correctedDf_stat$phi * pi/180),main='Hist of vertical wind speed (stationary)',prob=T,ylim=c(0,.4),col='gray')
+hist(correctedDf_all$r * cos(correctedDf_all$phi * pi/180),add=T,prob=T,col='lightblue')
+
+par(mfrow = c(1,2))
+boxplot(correctedDf_all$r * cos(correctedDf_all$phi * pi/180),main='All Data',ylab='Vert WS (m/s)',ylim=c(0,25))
+boxplot(correctedDf_stat$r * cos(correctedDf_stat$phi * pi/180),main = "Stationary Data",ylab='Vert WS (m/s)',ylim=c(0,25))
+
+
+correctedDf_stat %>% 
+  mutate(num = 1:n()) %>% 
+  ggplot(aes(x=num,y = r*cos(phi*pi/180)/r)) + geom_point()
+
+correctedDf_all %>% 
+  mutate(num = 1:n()) %>% 
+  ggplot(aes(x=num,y = r*cos(phi*pi/180)/r)) + geom_point()
+
+par(mfrow=c(1,2))
+hist((cos(correctedDf_all$phi*pi/180)),prob=T,main="All Drives",xlab='Proportion of wind from vertical:total')
+hist((cos(correctedDf_stat$phi*pi/180)),prob=T,main="Stationary",xlab='Proportion of wind from vertical:total')
+
+par(mfrow=c(1,2))
+boxplot((cos(correctedDf_all$phi*pi/180)),main="All Drives",xlab='Proportion of wind from vertical:total')
+boxplot((cos(correctedDf_stat$phi*pi/180)),main="Stationary",xlab='Proportion of wind from vertical:total')
+
+par(mfrow=c(1,2))
+boxplot(exp(cos(correctedDf_all$phi*pi/180)),main="All Drives",ylab='Proportion of wind from vertical:total')
+boxplot(exp(cos(correctedDf_stat$phi*pi/180)),main="Stationary",ylab='Proportion of wind from vertical:total')
+
+
+plot(correctedDf$phi)
 
 par(mfrow = c(1,2))
 plot(y=correctedDf$r*cos(correctedDf$phi*(pi/180)),
-     x=correctedDf$VELOCITY,main = "Car Velocity vs. Vertical Wind Speed",
+     x=correctedDf$GPS_VELOCITY,main = "Car Velocity vs. Vertical Wind Speed",
      xlab= "Car Velocity (m/s)",ylab="Vertical Wind Component (m/s)")
 plot(y=correctedDf$phi,
-     x=correctedDf$VELOCITY,main = "Car Velocity vs. Vertical Wind Direction",
+     x=correctedDf$GPS_VELOCITY,main = "Car Velocity vs. Vertical Wind Direction",
      xlab= "Car Velocity (m/s)",ylab="Vertical Wind Component (degrees)")
 
 fastwind <- correctedDf[correctedDf$r*cos(correctedDf$phi*(pi/180))>median(correctedDf$VELOCITY),]
@@ -142,6 +183,10 @@ correctedDf %>%
   ggtitle("CH4 (percentage above baseline) vs. Wind Speed (r)")+
   ylab("CH4 (percentage above baseline)") + xlab("Wind Speed (m/s)") + 
   ggthemes::theme_clean() + geom_hline(yintercept = 1.1) 
+
+###
+plot(correctedDf_stat$W)
+points(correctedDf_stat$r * cos(correctedDf_stat$phi * (pi/180)),col='blue')
 
 
 

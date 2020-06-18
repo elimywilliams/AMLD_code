@@ -45,8 +45,15 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
 
         # reading in the data with specific headers
         #          0     1    2    3       4           5    6       7        8        9          10                 11              12           13            14      15      16      17        18         19         20         21         22         23        24   25  26       27           28       29           30       31       32       33  34        35   36   37  38   39       40       41   42       43   44   45   46   47   48   49   50   51     52     53     54
-        sHeader = "Time Stamp,Inlet Number,P (mbars),T (degC),CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Latitude,Longitude"
-        sOutHeader = "DATE,TIME,SECONDS,NANOSECONDS,VELOCITY,U,V,W,BCH4,BRSSI,TCH4,TRSSI,PRESS_MBAR,INLET,TEMPC,CH4,H20,C2H6,R,C2C1,BATTV,POWMV,CURRMA,SOCPER,LAT,LONG\n"
+        #sHeader = "Time Stamp,Inlet Number,P (mbars),T (degC),CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Latitude,Longitude"
+        #sHeader = "Time Stamp,Inlet Number,P (mbars),T (degC),CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Latitude,Longitude"
+        sHeader = "Time Stamp,Inlet Number,P (mbars),T0 (degC),T5 (degC), Laser PID Readout,Det PID Readout,win0Fit0,win0Fit1,win0Fit3,win1Fit4,win0Fit5,win0Fit6,win0Fit7,win0Fit8,win0Fit9,win1Fit0,win1Fit1,win1Fit2,win1Fit3,win1Fit4,win1Fit5,win1Fit6,Det Bkgd,Ramp Ampl,CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Battery T (degC),FET T (degC),GPS Time,Latitude,Longitude"
+        
+        
+        
+        sOutHeader = "DATE,TIME,SECONDS,NANOSECONDS,VELOCITY,U,V,W,BCH4,BRSSI,TCH4,TRSSI,PRESS_MBAR,INLET,TEMPC,CH4,H20,C2H6,R,C2C1,BATTV,POWMV,CURRMA,SOCPER,LAT,LONG,GPS_TIME,\n"
+
+        
         infoHeader = "FILENAME\n"
         # somehow gZIP is indicating if  it is the first file name (I think if it is 0 then it is the first file)
         if gZIP == 0:
@@ -88,8 +95,16 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
                 bGood = False
                 xCntObs += 1
             if bGood:
-                lstS = row.split(",")
+                #lstS = row.split(",")
+                lstS = row.split(',')
                 dtime = lstS[0]
+                dt = lstS[1]
+                time_dt = lstS[2]
+                epoch = lstS[3]
+                nano = lstS[4]
+                
+                #dateob = datetime(int(dt[0:4]),int(dt[5:7]),int(dt[8:10]),int(time_dt[0:2]),int(time_dt[3:5]),int(time_dt[6:8]),int(float(nano)*1e-9))
+                
                 dateob = datetime(int(dtime[6:10]),int(dtime[0:2]),int(dtime[3:5]),int(dtime[11:13]),int(dtime[14:16]),int(dtime[17:19]),int(float(dtime[19:23])*1000000))
                 #epoch = dateob.strftime('%s.%f')
                 dtime = int(dateob.strftime('%Y%m%d%H%M%S'))
@@ -121,10 +136,15 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
 
                 import sys
                 if sys.platform.startswith('win'):
-                    csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S'))  + ',' + str(int(pd.to_numeric(dateob.strftime('%S.%f')))) + ',' + str(pd.to_numeric(dateob.strftime('%f')) *1000) + str(',')
-                    csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(lstS[4]) + ',' + str('0') + ','+  str(lstS[4]) + ','
-                    csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(lstS[3]) + ',' + str(lstS[4]) + ',' + str(lstS[5]) +',' +  str(lstS[6]) + ','
-                    csvWrite += str(lstS[7]) + ',' + str(lstS[8]) + ',' + str(lstS[9]) + ',' + str(lstS[10]) + ','+ str(lstS[11]) + ',' + str(lstS[12]) + ',' + str(lstS[13]) + str(',') + str(lstS[14]) 
+                    ## DATE, TIME, SECONDS,NANOSECONDS
+                    csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S'))  + ',' + str(float(pd.to_numeric(dateob.strftime('%S.%f')))) + ',' + str(pd.to_numeric(dateob.strftime('%f')) *1000) + str(',')
+                    ## VELOCITY, U,V,W,BCH4,BRSSI,TCH4
+                    csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(lstS[25]) + ',' + str('0') + ','+  str(lstS[25]) + ','
+                    ## TRSSI, PRESS_MBAR, INLET, TEMPC, CH4, H20,C2H6
+                    csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(lstS[3]) + ',' + str(lstS[25]) + ',' + str(lstS[26]) +',' +  str(lstS[27]) + ','
+                    # R, C2C1, BATTV, POWMV,CURRMA, SOCPER,LAT,LONG,GPS_TIME
+                    csvWrite += str(lstS[28]) + ',' + str(lstS[29]) + ',' + str(lstS[30]) + ',' + str(lstS[31]) + ','+ str(lstS[32]) + ',' + str(lstS[33]) + ',' + str(lstS[38]) + str(',') + str(lstS[39])[:-1] + str(',') + str(lstS[37]) 
+                
                 if not sys.platform.startswith('win'):
                     csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S'))  + ',' + str(int(pd.to_numeric(dateob.strftime('%s.%f')))) + ',' + str(pd.to_numeric(dateob.strftime('%f')) *1000) + str(',')
                     csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(lstS[4]) + ',' + str('0') + ','+  str(lstS[4]) + ','
@@ -213,6 +233,34 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
         fLat = 24; 
         fLon = 25; 
         
+        ### IF ITS CSU
+        #field column indices for various variables
+        fDate = 0+1; 
+        fTime = 1+1; 
+        fEpochTime = 2+1; 
+        fNanoSeconds = 3+1; 
+        fVelocity = 4+1; 
+        fU = 5+1; 
+        fV = 6+1; 
+        fW = 7+1;
+        fBCH4 = 10+1;#fBCH4 = 8; 
+        #fBRSSI = 9;
+        fTCH4 = 10+1;
+        TRSSI = 11+1;
+        PRESS = 12+1;
+        INLET = 13+1;
+        TEMP = 14+1;
+        CH4 = 15+1;
+        H20 = 16+1;
+        C2H6 = 17+1;
+        R = 18+1;
+        C2C1 = 19+1;
+        BATT = 20+1;
+        POWER = 21+1;
+        CURR = 22+1;
+        SOCPER = 23+1;
+        fLat = 24+1; 
+        fLon = 25+1; 
 
         #read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
         x1 = []; x2 = []; x3 = []; x4 = []; x5 = []; x6 = []; x7 = []; x8 = []

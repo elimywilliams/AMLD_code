@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jun 17 11:58:05 2020
+
+@author: emilywilliams
+"""
+
+def haversine(lat1, lon1, lat2, lon2, radius=6371): # 6372.8 = earth radius in kilometers
+    from math import radians, sin, cos, sqrt, asin
+
+    dLat = radians(lat2 - lat1)
+    dLon = radians(lon2 - lon1)
+    lat1 = radians(lat1)
+    lat2 = radians(lat2)
+    c = 2*asin(sqrt(sin(dLat/2)**2 + cos(lat1)*cos(lat2)*sin(dLon/2)**2))
+
+    return radius*c*1000 #return in meters
+
+
+
+import pandas as pd
+import numpy as np
+
+radians = False
+df = pd.read_csv('/Users/emilywilliams/Documents/DrivingData/aCoDrive/ProcessedData/CSULi_20200504_dat.csv')
+df.head()
+wind_df = df.loc[:,['DATE','TIME','SECONDS','NANOSECONDS','VELOCITY','U','V','W','BCH4','LAT',"LONG"]]
+
+wind_df['QUADRANT'] = wind_df.apply(lambda row: getQuad(row['U'],row['V']),axis=1)
+wind_df['secnan'] = wind_df.apply(lambda row: row['SECONDS'] + row['NANOSECONDS']*1e-9,axis=1)
+wind_df['prev_LAT'] = wind_df.LAT.shift(periods = 1)
+wind_df['next_LAT'] = wind_df.LAT.shift(periods = -1)
+wind_df['prev_LONG'] = wind_df.LONG.shift(periods = 1)
+wind_df['next_LONG'] = wind_df.LONG.shift(periods = -1)
+wind_df['prev_TIME'] = wind_df.secnan.shift(periods = 1)
+wind_df['next_TIME'] = wind_df.secnan.shift(periods = -1)
+wind_df['distance'] = wind_df.apply(lambda row: haversine(row['prev_LAT'],row['prev_LONG'],row['next_LAT'],row['next_LONG']),axis=1)
+wind_df['bearing'] = wind_df.apply(lambda row: calcBearing(row['prev_LAT'],row['next_LAT'],row['prev_LONG'],row['next_LONG'],radians),axis=1)
+wind_df['timediff'] = wind_df.apply(lambda row: row['next_TIME'] - row['prev_TIME'],axis = 1)
+wind_df['speed'] = wind_df.apply(lambda row:row['distance']/row['timediff'],axis = 1)
+wind_df['U_cor'] = wind_df.apply(lambda row:row['U'] + row['speed'],axis = 1)
+wind_df['horz_length'] = wind_df.apply(lambda row: np.sqrt(row['U_cor']**2 + row['V']**2),axis=1)
+wind_df['uncor_theta'] = wind_df.apply(lambda row :calcBearing(row['U_cor'],row['V'],row['QUADRANT'],row['horz_length'],radians),axis = 1)
+wind_df['adj_theta'] = wind_df.apply(lambda row: (row['uncor_theta'] + row['bearing'])%360,axis =1)
+wind_df['totalWind'] = wind_df.apply(lambda row: np.sqrt(row['horz_length']**2 + row['W']**2),axis = 1)
+wind_df['phi'] = wind_df.apply(lambda row: np.arctan(row['horz_length']),axis=1)
+
+def getQuad(x,y):
+    try:
+        x = int(x)
+        y = int(y)
+    except ValueError:
+        return(0)
+    
+    if y>=0 and x>0:
+        return(1)
+    elif y>=0 and x<0:
+        return(2)
+    elif y<0 and x<0:
+        return(3)
+    else:
+        return(4)
+        
+
+
+def calcBearing(lat1,lat2,long1,long2,radians):
+    from math import atan2
+    lat1r = lat1* (pi/180)
+    lat2r = lat2*(pi/180)
+    long1r = long1*(pi/180)
+    long2r = long2*(pi/180)
+    X =cos(lat2r)*sin(long2r-long1r)
+    Y = cos(lat1r)*sin(lat2r) - (sin(lat1r)*cos(lat2r)*cos(long2r-long1r))
+  
+    theta = atan2(X,Y)
+    theta = theta % (2*pi)
+    
+    if not radians:
+        return (theta * 180/pi)
+    elif radians:
+        return(theta)
+        
+def calcTheta(U,V,quad,h_length,radians):
+    theta = np.arcsin(U/h_length)
+    if quad == 1:
+        theta = theta
+    elif quad == 2:
+        theta = -theta + np.pi/2
+    elif quad -- 3:
+        theta = np.pi/2 + theta + np.pi
+    elif quad == 4:
+        theta = 3*np.pi/2
+    theta = 2*np.pi - theta
+    if not radians:
+        theta = theta * 180/np.pi
+        
+    return(theta)
+    
+    
