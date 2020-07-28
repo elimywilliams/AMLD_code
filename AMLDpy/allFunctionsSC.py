@@ -34,6 +34,8 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
     #import os
     import gzip
     import csv
+    shift = 0
+    import os
     try:
         
         #xOutDir = xDir 
@@ -65,10 +67,11 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
         fnOut = xOut  + xCar + "_" + xdat + "_dat.csv"       #set CSV output for raw data
         fnLog =  xOut  + xCar + "_" + xdat + "_log.csv"       #output for logfile
         infOut = xOut + xCar + "_" + xdat + "_info.csv"
-        
+        fnOutTemp = xOut  + xCar + "_" + xdat + "temp_dat.csv"       #
+
         if bFirst:
-            fOut = open(fnOut, 'w')
-            fOut.write(sOutHeader)
+            #fOut = open(fnOut, 'w')
+            #fOut.write(sOutHeader)
             fLog = open(fnLog, 'w')
             infOut = open(infOut,'w')
             infOut.write(infoHeader)
@@ -78,6 +81,9 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
             fLog = open(fnLog, 'a')
             infOut = open(infOut,'a')
         
+        fOut = open(fnOutTemp, 'w')
+        fOut.write(sOutHeader)
+
         #read all lines
         xCntObs = -1
         xCntGoodValues = 0
@@ -152,11 +158,66 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut):
         
 
         print (xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(gZIP))
+        from numpy import pi
+        import numpy as np
+        def calcVel(timediff,distance):
+            if timediff == 0:
+                return(0)
+            elif timediff != 0:
+                return(distance/timediff)
+                
+        radians = False
+        wind_df = pd.read_csv(fnOutTemp)        
+        #wind_df['QUADRANT'] = wind_df.apply(lambda row: getQuad(row['U'],row['V']),axis=1)
+        wind_df['secnan'] = wind_df.apply(lambda row: row['SECONDS'],axis=1) # + row['NANOSECONDS']*1e-9,axis=1)
+        wind_df['prev_LAT'] = wind_df.LAT.shift(periods = 1)
+        wind_df['next_LAT'] = wind_df.LAT.shift(periods = -1)
+        wind_df['prev_LONG'] = wind_df.LONG.shift(periods = 1)
+        wind_df['next_LONG'] = wind_df.LONG.shift(periods = -1)
+        wind_df['prev_TIME'] = wind_df.secnan.shift(periods = 1)
+        wind_df['next_TIME'] = wind_df.secnan.shift(periods = -1)
+        wind_df['distance'] = wind_df.apply(lambda row: haversine(row['prev_LAT'],row['prev_LONG'],row['next_LAT'],row['next_LONG']),axis=1)
+        #wind_df['bearing'] = wind_df.apply(lambda row: calcBearing(row['prev_LAT'],row['next_LAT'],row['prev_LONG'],row['next_LONG'],radians),axis=1)
+        wind_df['timediff'] = wind_df.apply(lambda row: row['next_TIME'] - row['prev_TIME'],axis = 1)
+        wind_df['VELOCITY'] = wind_df.apply(lambda row:calcVel(row['timediff'],row['distance']),axis=1)
+        #wind_df['U_cor'] = wind_df.apply(lambda row:row['U'] + row['VELOCITY'],axis = 1)
+        #wind_df['horz_length'] = wind_df.apply(lambda row: np.sqrt(row['U_cor']**2 + row['V']**2),axis=1)
+        #wind_df['uncor_theta'] = wind_df.apply(lambda row :calcBearing(row['U_cor'],row['V'],row['QUADRANT'],row['horz_length'],radians),axis = 1)
+        #wind_df['adj_theta'] = wind_df.apply(lambda row: (row['uncor_theta'] + row['bearing'])%360,axis =1)
+        #wind_df['totalWind'] = wind_df.apply(lambda row: np.sqrt(row['horz_length']**2 + row['W']**2),axis = 1)
+        #wind_df['phi'] = wind_df.apply(lambda row: np.arctan(row['horz_length']),axis=1)
+        wind_df['shift_CH4'] = wind_df.CH4.shift(periods = int(float(shift)))
+        wind_df['raw_CH4'] = wind_df.apply(lambda row: row['BCH4'],axis=1)
+        wind_df['BCH4']= wind_df.loc[:,['shift_CH4']]
+        wind_df['CH4']= wind_df.loc[:,['shift_CH4']]
+        wind_df['TCH4']= wind_df.loc[:,['shift_CH4']]
+        
+        wind_df2 = wind_df[wind_df.CH4.notnull()]
+        #wind_df3 = wind_df2.drop(['QUADRANT', 'secnan','prev_LAT','next_LAT','prev_LONG','next_LONG','prev_TIME','next_TIME','distance','timediff','uncor_theta','CH4'],axis = 1)
+        wind_df3 = wind_df2.drop(['secnan','prev_LAT','next_LAT','prev_LONG','next_LONG','prev_TIME','next_TIME','distance','timediff','CH4'],axis = 1)
 
+        wind_df3['CH4'] = wind_df3.loc[:,'shift_CH4']
+        wind_df3 = wind_df3.drop(['shift_CH4'],axis = 1)
+        #wind_df3 = wind_df3.loc[:,['DATE','TIME','SECONDS','NANOSECONDS','VELOCITY','U','V','W','BCH4','BRSSI','TCH4','TRSSI','PRESS_MBAR','INLET' \
+        #                           , 'TEMPC','CH4','H20','C2H6','R','C2C1','BATTV','POWMV','CURRMA','SOCPER','LAT','LONG','bearing','U_cor', \
+        #                           'horz_length','adj_theta','totalWind','phi','raw_CH4']]
+        wind_df3 = wind_df3.loc[:,['DATE','TIME','SECONDS','NANOSECONDS','VELOCITY','U','V','W','BCH4','BRSSI','TCH4','TRSSI','PRESS_MBAR','INLET' \
+                                   , 'TEMPC','CH4','H20','C2H6','R','C2C1','BATTV','POWMV','CURRMA','SOCPER','LAT','LONG', 'raw_CH4']]
+        #wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(),:]
+        wind_df4 = wind_df3.copy()
+        #firstTime = wind_df3.SECONDS.min() + 60 *(initialTimeBack)                           
+        #wind_df4 = wind_df3.loc[wind_df3.SECONDS > firstTime,:]                      
+       # wind_df3.to_csv(fnOutTemp,index=False)
+        
+        if bFirst:
+            wind_df4.to_csv(fnOut,index=False)
+        elif not bFirst:
+            norm = pd.read_csv(fnOut)
+            pd.concat([norm,wind_df4]).sort_values(by='SECONDS').reset_index(drop=True).to_csv(fnOut,index=False)
+        os.remove(fnOutTemp)
         return True
     except ValueError:
         return False
-    
     
 ## POTENTIALLY GOOD ONE    
 def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0'):
@@ -343,6 +404,27 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
                 truecount += 1
         fOut.close()
         fLog.close()
+        
+        # EXTRA INFO
+        identPks = pd.read_csv(fnOut)
+        identPks['OB_CH4_AB'] = identPks.loc[:,'OB_CH4'].sub(identPks.loc[:,'OB_CH4_BASELINE'], axis = 0) 
+        locpks = weightedLoc(identPks,'OB_LAT','OB_LON','OP_NUM','OB_CH4_AB').rename(columns = {'OB_LAT':'pk_LAT','OB_LON':'pk_LON'})
+
+        #maxch4 = identPks.groupby('OP_NUM',as_index = False).OB_CH4_AB.max().rename(columns = {'OB_CH4_AB':'pk_maxCH4_AB'})
+        #identPksWt = pd.merge(identPks,maxch4,on = ['OP_NUM'])
+
+        geo = [Point(xy) for xy in zip(locpks[('pk_LON')], locpks[('pk_LAT')])]
+        crs = {'init': 'epsg:4326'}
+        savegeo = gpd.GeoDataFrame(locpks, crs=crs, geometry=geo)
+        savegeo = savegeo.to_crs(epsg=32610).copy()
+        savegeo.to_file(fnOutjson, driver="GeoJSON")
+        
+        geo = [Point(xy) for xy in zip(identPks[('OB_LON')], identPks[('OB_LAT')])]
+        crs = {'init': 'epsg:4326'}
+        savegeo = gpd.GeoDataFrame(identPks, crs=crs, geometry=geo)
+        savegeo = savegeo.to_crs(epsg=32610).copy()
+        savegeo.to_file(fnOutjson, driver="GeoJSON")
+
 
         if truecount > 0:
             #arcpy.MakeXYEventLayer_management(fnOut,"LON","LAT",xCar + "L","GEOGCS['GCS_WGS_1984',DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]];-400 -400 1000000000;-100000 10000;-100000 10000;8.98315284119522E-09;0.001;0.001;IsHighPrecision","#")

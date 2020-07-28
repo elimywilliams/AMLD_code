@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="844887e3-c461-427f-8d6c-bc5591a21f18" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.spyproject/workspace.ini" beforeDir="false" afterPath="$PROJECT_DIR$/.spyproject/workspace.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/allFunctionsSC.py" beforeDir="false" afterPath="$PROJECT_DIR$/allFunctionsSC.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/allFunctionsSC_engineering.py" beforeDir="false" afterPath="$PROJECT_DIR$/allFunctionsSC_engineering.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/allTogetherSC.py" beforeDir="false" afterPath="$PROJECT_DIR$/allTogetherSC.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1f5saMYG4VNpSvgeaQrY0Y32K0X" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="844887e3-c461-427f-8d6c-bc5591a21f18" name="Default Changelist" comment="" />
+      <created>1595519350941</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1595519350941</updated>
+    </task>
+    <servers />
+  </component>
+</project>

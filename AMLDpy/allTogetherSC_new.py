@@ -9,17 +9,15 @@ Created on Wed Mar 18 09:21:43 2020
 
 ## WHERE THE allFunctionsSC.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
-
-
 ## what you want the car to be named
 xCar = 'SCCar' # might need to be 5 letters? need to check into that
 
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatEngShort" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatShort" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatEngShort/"
-initialTimeIgnore = '5'
+resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatShort/"
+
 ############################################################################################
 
 ################### ASSIGNING FOLDERS FOR RESULTS
@@ -52,7 +50,7 @@ finalMain = finRes + 'mainThing.csv'
 s1 = xCar
 s2 = "Peaks_" + str(s1)
 s3 = "Filtered" + str()
-
+engineer = False
 threshold = '0.1'
 timethresh = '1.7' ## time to include in background calculation (minutes)
 ##################################
@@ -62,18 +60,19 @@ timethresh = '1.7' ## time to include in background calculation (minutes)
 #import contextily as ctx
 import pandas as pd
 import os, sys, datetime, time, math, csv, numpy,gzip,shutil
+sys.path.insert(1, functionFileLoc) ##change this to location of the "allFunctions.py" file
 from math import radians, sin, cos, sqrt, asin
+from numpy import pi
 from numpy import log
 import geopandas as gpd
 import pandas as pd #
 from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
 import matplotlib.pyplot as plt
 from datetime import datetime
-sys.path.insert(0, functionFileLoc) ##change this to location of the "allFunctions.py" file
 from allFunctionsSC import IdentifyPeaks,filterPeak,unique,unIfInt,IsInPK,intersect,\
                             passCombine, weightedLoc,verPk,estEmissions,haversine,\
-                           ProcessRawData,wt_time_Locs,sumthing,makeGEO, makeGPD, summarizeDat
-from allFunctionsSC_engineering import ProcessRawDataEng,getQuad,calcTheta,calcBearing
+                           ProcessRawData,wt_time_Locs,sumthing,summarizeDat,\
+                           makeGEO, makeGPD,ProcessRawDataEng
 
 
 ### create paths
@@ -104,6 +103,7 @@ for file in listthing:
 ##### THIS PORTION OF THE CODE ALLOWS US TO ITERATIVELY ADD IN MORE DATA
 #        PUT THE NEW TEXT FILES INTO THE OVERALL FOLDER AND IT WILL DO THE REST
 rawTexts = pd.DataFrame(os.listdir(rawDir)).loc[pd.DataFrame(os.listdir(rawDir))[0].str.endswith('.txt')]
+
 
 
 ### DONT ADD NEW FILE WITH PRE-EXISTING DATE [NEED TO WRITE CODE TO DEAL WITH THAT]
@@ -157,10 +157,14 @@ if __name__ == '__main__':
             
             #xCar = "CSULi"
             xDate = file[:10]
-            
-            theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
-            
+            if engineer==True:
+                theResult = ProcessRawDataEng(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
+            elif not engineer:
+                theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
+
+                
             #del(bFirst)
+            
             count = count + 1
 
 
@@ -170,7 +174,7 @@ if __name__ == '__main__':
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[6:14]
-            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh)
+            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh,engineer)
 
 if not os.path.exists(finalMain):
     index = 0

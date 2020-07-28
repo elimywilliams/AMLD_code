@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jul 27 08:42:07 2020
+
+@author: emilywilliams
+"""
+
+if not os.path.exists(finalMain):
+    toCombine = os.listdir(filtopDir)
+    toCombineList = []
+    index = 0
+    for file in toCombine:
+        if file.startswith('Filtered') and file.endswith('.csv') and not file.endswith('info.csv'):
+            toCombineList.append(file)
+    index = 1
+    for file in toCombineList:
+        if index == 1:
+            loc = filtopDir + file
+            mainThing = (pd.read_csv(loc))
+        elif index != 1:
+            loc2 = filtopDir + file
+            secThing = pd.read_csv(loc2)
+            woo = passCombine(mainThing,secThing)
+            mainThing = woo.copy()
+        index = index + 1
+        
+x = 0
+loc = filtopDir + toCombineList[x]
+mainThing = (pd.read_csv(loc))
+
+index = 1
+loc2 = filtopDir + toCombineList[index]
+secThing = pd.read_csv(loc2)
+woo = passCombine(mainThing,secThing)
+mainThing = woo.copy()
+
+index = 2
+loc2 = filtopDir + toCombineList[index]
+secThing = pd.read_csv(loc2)
+woo = passCombine(mainThing,secThing)
+mainThing = woo.copy()
+
+index = 3
+loc2 = filtopDir + toCombineList[index]
+secThing = pd.read_csv(loc2)
+woo = passCombine(mainThing,secThing)
+mainThing = woo.copy()
+
+index = 4
+loc2 = filtopDir + toCombineList[index]
+secThing = pd.read_csv(loc2)
+woo = passCombine(mainThing,secThing)
+mainThing = woo.copy()
+
+index = 5
+loc2 = filtopDir + toCombineList[index]
+secThing = pd.read_csv(loc2)
+woo = passCombine(mainThing,secThing)
+mainThing = woo.copy()
+
+index = 6
+loc2 = filtopDir + toCombineList[index]
+secThing = pd.read_csv(loc2)
+woo = passCombine(mainThing,secThing)
+mainThing = woo.copy()
+   
+

@@ -15,11 +15,14 @@ functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 xCar = 'SCCar' # might need to be 5 letters? need to check into that
 
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/ColDatEngShort" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/CoDrive_Eng2" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/ColDatEngShort/"
-initialTimeIgnore = '5'
+resFolder = "/Users/emilywilliams/Documents/DrivingData/CoDrive_Eng2/"
+timePush = 5 #min
+timePush = 0 
+shift = -4
+engineering = True
 ############################################################################################
 
 ################### ASSIGNING FOLDERS FOR RESULTS
@@ -55,6 +58,7 @@ s3 = "Filtered" + str()
 
 threshold = '0.1'
 timethresh = '1.7' ## time to include in background calculation (minutes)
+initialTimeIgnore = '5'
 ##################################
 ### IMPORTING NECESSARY MODULES
 ##################################
@@ -68,12 +72,14 @@ import geopandas as gpd
 import pandas as pd #
 from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
 import matplotlib.pyplot as plt
+import ast
 from datetime import datetime
 sys.path.insert(0, functionFileLoc) ##change this to location of the "allFunctions.py" file
 from allFunctionsSC import IdentifyPeaks,filterPeak,unique,unIfInt,IsInPK,intersect,\
                             passCombine, weightedLoc,verPk,estEmissions,haversine,\
                            ProcessRawData,wt_time_Locs,sumthing,makeGEO, makeGPD, summarizeDat
 from allFunctionsSC_engineering import ProcessRawDataEng,getQuad,calcTheta,calcBearing
+from allFunctionsSC_newCombine1 import  IdentifyPeaks, filterPeak,passCombine, countTimes, strList
 
 
 ### create paths
@@ -157,9 +163,11 @@ if __name__ == '__main__':
             
             #xCar = "CSULi"
             xDate = file[:10]
-            
-            theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
-            
+            #theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
+            if engineering:
+                theResult = ProcessRawDataEng(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift)
+            elif not engineering:
+                theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
             #del(bFirst)
             count = count + 1
 
@@ -171,11 +179,55 @@ if __name__ == '__main__':
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[6:14]
             theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh)
+if __name__ == '__main__':
+    index = 0
+    numproc = 0
+    listthing = os.listdir(opDir)
+    for file in listthing:
+        if file.startswith(s2) and file.endswith('.csv') and not file.endswith('info.csv'):
+            print(file)
+            file_loc = opDir + file
+            csv_loc = opDir  + file[:-4]+ '_info.csv'
+            nonempt = False
+            if pd.read_csv(file_loc).size != 0:
+                index += 1
+                nonempt = True
+                xDate = file[12:20]
+                filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
+        
+end = time.time()
+#print(end - start)
+
+def strList(x):
+    x = ast.literal_eval(x)
+    x = [n.strip() for n in x]
+    return(x)
+    
+if not os.path.exists(finalMain):
+    toCombine = os.listdir(filtopDir)
+    toCombineList = []
+    index = 0
+    for file in toCombine:
+        if file.startswith('Filtered') and file.endswith('.csv') and not file.endswith('info.csv'):
+            toCombineList.append(file)
+    index = 1
+    for file in toCombineList:
+        if index == 1:
+            loc = filtopDir + file
+            mainThing = (pd.read_csv(loc))
+        elif index != 1:
+            loc2 = filtopDir + file
+            secThing = pd.read_csv(loc2)
+            woo = passCombine(mainThing,secThing)
+            mainThing = woo.copy()
+        index = index + 1
+        print(file)
+    mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine),axis=1)
 
 if not os.path.exists(finalMain):
     index = 0
     numproc = 0
-    listthing = os.listdir(opDir).copy()
+    listthing = os.listdir(opDir)
     for file in listthing:
         if file.startswith(s2) and file.endswith('.csv') and not file.endswith('info.csv'):
             file_loc = opDir + file
@@ -197,6 +249,23 @@ if not os.path.exists(finalMain):
                 mainThing = passCombine(mainThing,secondThing)
                 tempInfo = pd.read_csv(csv_loc)
                 mainInfo = pd.concat([mainInfo, tempInfo], axis=0)
+    toCombine = os.listdir(filtopDir)
+    toCombineList = []
+    for file in toCombine:
+        if file.startswith(s3) and file.endswith('.csv') and not file.endswith('info.csv'):
+            toCombineList.append(file)
+    for x in range(len(toCombineList)):
+        if x == 0: ## first thing
+            mainThing = toCombineList[x]
+            mainLoc = filtopDir + mainThing
+
+            print('first mainthing = ' + str(toCombineList[x]))
+        elif x!= 0:
+            secondThing = toCombineList[x]
+            secLoc = filtopDir + secondThing
+            print('combining = ' + 'main thing and ' + str(toCombineList[x]))
+            #mainThing = passCombine(mainThing,secondThing)
+                
 elif os.path.exists(finalMain):
     index = 0
     numproc = 0
@@ -228,20 +297,47 @@ mainThing.to_csv(finalMain)
 print("I processed "+ str(index) + ' days of driving. The processed files are now stored in the folder: ' + str(filtopDir))
 
 ################
-combined = summarizeDat(mainThing) ## finds locations and mean log ch4 for each peak (either verified or non yet)
+def sumData2(mainDF):
+    todo = mainDF.loc[:,['OP_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']].drop_duplicates().reset_index(drop=True)    
+    todo['logCH4'] = todo.apply(lambda y: log(y.pk_maxCH4_AB),axis = 1)
+    mnVals = todo.groupby('min_read',as_index = False).logCH4.mean().rename(columns={'logCH4':'mnlogCH4'}).loc[:,['min_read','mnlogCH4']]
+    verLoc = weightedLoc(todo,'pk_LAT','pk_LON','min_read','pk_maxCH4_AB').rename(columns={'pk_LAT':'overallLAT','pk_LON':'overallLON'}).reset_index(drop=True)
+    together = pd.merge(verLoc,mnVals,on=['min_read'])
+    final = pd.merge(together,mainDF,on=['min_read'])
+    return(final)
+    
+#combined = summarizeDat(mainThing) ## finds locations and mean log ch4 for each peak (either verified or non yet)
+combined = sumData2(mainThing) ## finds locations and mean log ch4 for each peak (either verified or non yet)
+
+
+def summarizeDat(totalData):
+    pkRed = totalData.loc[:,['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']]. \
+        drop_duplicates().reset_index().loc[:,['PEAK_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','numtimes','min_read']]
+    verLoc = weightedLoc(pkRed,'pk_LAT','pk_LON','min_read','pk_maxCH4_AB').rename(columns = {'pk_LAT':'overallLAT','pk_LON':'overallLON'}).reset_index(drop = True)
+    pkRed['logCH4'] = pkRed.apply(lambda y: log(y.pk_maxCH4_AB),axis = 1)
+    mnVals = pkRed.groupby('min_read',as_index=False).logCH4.mean().rename(columns ={'logCH4':'mnlogCH4'}).loc[:,['min_read','mnlogCH4']]
+    together = pd.merge(verLoc,mnVals,on = ['min_read'])
+    final = pd.merge(together,totalData,on=['min_read'])
+    return(final)
+    
+
 
 ## combined so only with the same overall peak
-uniquePk = combined.loc[:,'min_read'].drop_duplicates()
+uniquePk = combined.loc[:,['min_read']].drop_duplicates()
 uniqueList = combined.loc[uniquePk.index,['min_read','recombine']]
-uniqueOther = combined.loc[:,['min_read','overallLON','overallLAT','mnlogCH4',
+uniqueOther = combined.loc[:,['min_read','overallLON','overallLAT','mnlogCH4',\
                              'verified','numtimes']].drop_duplicates()
 
-unique_gdf = makeGPD(combined.loc[:,['min_read','pk_LAT','pk_LON']],'pk_LAT','pk_LON')
-combinedGeo = unique_gdf.dissolve(by='min_read',as_index = False)
+unique_gdf = makeGPD(uniqueOther,'overallLAT','overallLON')
+unique_gdf2 = pd.merge(unique_gdf,uniqueList,on = ['min_read'])
+
+#unique_gdf = makeGPD(combined.loc[:,['min_read','pk_LAT','pk_LON']],'pk_LAT','pk_LON')
+#combinedGeo = unique_gdf.dissolve(by='min_read',as_index = False)
 
 
-allTog = pd.merge(combinedGeo,uniqueOther,on=['min_read'])
-allTog = pd.merge(allTog,uniqueList,on=['min_read'])
+#allTog = pd.merge(combinedGeo,uniqueOther,on=['min_read'])
+#allTog = pd.merge(allTog,uniqueList,on=['min_read'])
+allTog = unique_gdf2.copy()
 allTog['em'] = allTog.apply(lambda y: estEmissions(y['mnlogCH4']),axis=1)
 
 
