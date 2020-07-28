@@ -6,29 +6,9 @@ Created on Tue Jul 28 10:51:28 2020
 @author: emilywilliams
 """
 
-######### ALL FUNCTIONS NECESSARY TO RUN CODE:
+######### ALL FUNCTIONS NECESSARY TO RUN AMLD CODE ####################################
 
-########################################################################
-#### importModules
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
-
-
-def global_imports(modulename,shortname = None, asfunction = False):
-    if shortname is None: 
-        shortname = modulename
-    if asfunction is False:
-        globals()[shortname] = __import__(modulename)
-    else:        
-        globals()[shortname] = eval(modulename + "." + shortname)
-
-
-
-
-  
-    
-
-    
+ 
 
 ########################################################################
 #### unique
@@ -152,9 +132,9 @@ def verPk(totalData):
 
 
 ########################################################################
-#### ProcessRawDataEng
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
+#### estEmissions
+# Input: excess CH4 value
+# Output: estimated emission
 
 def estEmissions(excessCH4):
     import math
@@ -176,9 +156,9 @@ def estEmissions(excessCH4):
     
     
 ########################################################################
-#### ProcessRawDataEng
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
+#### haversine
+# Input: two locations (lat,long), radius of earth
+# Output: distance (m) between points
 
 def haversine(lat1, lon1, lat2, lon2, radius=6371): # 6372.8 = earth radius in kilometers
     from math import radians, sin, cos, sqrt, asin
@@ -192,25 +172,25 @@ def haversine(lat1, lon1, lat2, lon2, radius=6371): # 6372.8 = earth radius in k
     return radius*c*1000 #return in meters
     
 ########################################################################
-#### ProcessRawDataEng
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
+#### wt_time_Locs
+# Input: weight, location
+# Output: wt*location
 
 def wt_time_Locs(wt,loc):
     return(wt*loc)
     
 ########################################################################
-#### ProcessRawDataEng
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
+#### sumthing
+# Input: values
+# Output: sum of values
     
 def sumthing(thing):
     return(sum(thing))
     
 ########################################################################
-#### ProcessRawDataEng
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
+#### makeGEO
+# Input: dataframe, lat,long columns
+# Output: converts lat long to points (useful for geodataframes)
 
 
 def makeGEO(df,lat,lon):
@@ -219,9 +199,9 @@ def makeGEO(df,lat,lon):
     return (geo)
 
 ########################################################################
-#### ProcessRawDataEng
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
+#### makeGPD
+# Input: dataframe, lat,long locations, crs to use
+# Output: returns a geodataframe with the lat longs as points
 
 def makeGPD(df,lat,lon,cps = 'epsg:4326'):
     import geopandas as gpd
@@ -229,9 +209,9 @@ def makeGPD(df,lat,lon,cps = 'epsg:4326'):
     return(gdf)
     
 ########################################################################
-#### ProcessRawDataEng
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
+#### summarizeDat
+# Input: data from all analyses
+# Output: summary information with the weighted locations
 
 
     
@@ -248,8 +228,8 @@ def summarizeDat(totalData):
     
 ########################################################################
 #### getQuad
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
+# Input: x,y values
+# Output: which quadrant of a xy plot it is in (useful for wind info)
 
 def getQuad(x,y):
     try:
@@ -269,8 +249,8 @@ def getQuad(x,y):
         
 ########################################################################
 #### calcTheta
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
+# Input: u,v (wind), quadrant, length of horizontal wind, radians (t/f)
+# Output: calculates theta value
 
 def calcTheta(U,V,quad,h_length,radians):
     import numpy as np
@@ -292,8 +272,8 @@ def calcTheta(U,V,quad,h_length,radians):
 
 ########################################################################
 #### calcBearing
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
+# Input: two gps coordinates, radians(t/f)
+# Output: direction (degrees/radians) of motion
 
 def calcBearing(lat1,lat2,long1,long2,radians):
     from math import atan2

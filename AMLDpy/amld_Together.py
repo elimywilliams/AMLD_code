@@ -15,10 +15,10 @@ functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 xCar = 'SCCar' # might need to be 5 letters? need to check into that
 
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/coDriveEng_5pc" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/coDriveEng_1pt5pc" 
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/coDriveEng_5pc/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/coDriveEng_1pt5pc/"
 timePush = 5 #min
 timePush = 0 
 shift = -4
@@ -56,7 +56,7 @@ s1 = xCar
 s2 = "Peaks_" + str(s1)
 s3 = "Filtered" + str()
 
-threshold = '0.05'
+threshold = '0.015'
 timethresh = '1.7' ## time to include in background calculation (minutes)
 initialTimeIgnore = '5'
 ##################################
@@ -318,11 +318,11 @@ unique_gdf2 = pd.merge(unique_gdf,uniqueList,on = ['min_read'])
 #allTog = pd.merge(allTog,uniqueList,on=['min_read'])
 allTog = unique_gdf2.copy()
 allTog['em'] = allTog.apply(lambda y: estEmissions(y['mnlogCH4']),axis=1)
+allTog['threshold'] = allTog.apply(lambda x: threshold,axis =1 )
 
 
 ##### SPLITTING IF THE PEAKS WERE VERIFIED OR NOT
 verTog = allTog.loc[allTog.numtimes!= 1,:]
-verTog.loc[:,'threshold'] = verTog.apply(lambda x: threshold,axis =1 )
 
 if verTog.size > 0:
     verTog.drop(columns=['recombine']).to_file(shpFileLocName, driver="GeoJSON")
