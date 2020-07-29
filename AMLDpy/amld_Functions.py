@@ -32,18 +32,7 @@ def unIfInt(a,b):
         return( list(set(a).union(b)))
 
 
-########################################################################
-#### IsInPk
-# helper function to find if in thing
-# Input: a list of peak times included in a given combined peak
-# Output: counts number of times the peak was seen (not in same 5 min period)
 
-def IsInPK (peakNumRow,listPksRow):
-    if peakNumRow.PEAK_NUM in listPksRow.combined:
-        return(True)
-    else:
-        return(False)
- 
 ########################################################################
 #### intersect
 # helper function to find the intersection of 2 lists
@@ -278,7 +267,7 @@ def calcTheta(U,V,quad,h_length,radians):
 def calcBearing(lat1,lat2,long1,long2,radians):
     from math import atan2
     from numpy import pi
-    from math import radians, sin, cos, sqrt, asin
+    from math import radians, sin, cos
 
     lat1r = lat1* (pi/180)
     lat2r = lat2*(pi/180)
@@ -305,7 +294,6 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
     import pandas as pd
     from datetime import datetime
     import os
-    #import os
     import gzip
     import csv
     from math import floor
@@ -540,13 +528,27 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
         wind_df3 = wind_df2.drop(['QUADRANT', 'secnan','prev_LAT','next_LAT','prev_LONG','next_LONG','prev_TIME','next_TIME','distance','timediff','uncor_theta','CH4'],axis = 1)
         wind_df3['CH4'] = wind_df3.loc[:,'shift_CH4']
         wind_df3 = wind_df3.drop(['shift_CH4'],axis = 1)
+        
         wind_df3 = wind_df3.loc[:,['DATE','TIME','SECONDS','NANOSECONDS','VELOCITY','U','V','W','BCH4','BRSSI','TCH4','TRSSI','PRESS_MBAR','INLET' \
                                    , 'TEMPC','CH4','H20','C2H6','R','C2C1','BATTV','POWMV','CURRMA','SOCPER','LAT','LONG','bearing','U_cor', \
                                    'horz_length','adj_theta','totalWind','phi','raw_CH4']]
         wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(),:]
+        
+        wind_df7 = addOdometer(wind_df4,'LAT','LONG')
+        wind_df4 = wind_df7.copy()
+        wind_df5 = wind_df4.loc[wind_df4.VELOCITY > xMinCarSpeed,: ]
+        wind_df6 = wind_df5.loc[wind_df5.VELOCITY < xMaxCarSpeed,: ]
+        
+        del(wind_df4)
+        
+        #wind_df7 = addOdometer(wind_df6,'LAT','LONG')
+        wind_df4 = wind_df6.copy().drop_duplicates()
+        #del(wind_df7)
+        
         #firstTime = wind_df3.SECONDS.min() + 60 *(initialTimeBack)                           
         #wind_df4 = wind_df3.loc[wind_df3.SECONDS > firstTime,:]                      
        # wind_df3.to_csv(fnOutTemp,index=False)
+     
         
         if bFirst:
             wind_df4.to_csv(fnOut,index=False)
@@ -559,6 +561,36 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
         return False
 
 ########################################################################
+#### addOdometer
+# function to add column to dataframe with Odometer reading (in kms)
+# Input: df, lat, lon
+# Output: df with the odometer reading
+
+def addOdometer(df,lat,lon):
+    import pandas as pd
+    import math
+    df_use = df.loc[:,[(lat),(lon)]]
+    df_use['prev_LAT'] = df_use.loc[:,(lat)].shift(periods = 1)
+    df_use['prev_LON'] = df_use.loc[:,(lon)].shift(periods = 1)
+    df_use['distance2'] = df_use.apply(lambda row: haversine(row['prev_LAT'],row['prev_LON'],row[(lat)],row[(lon)]),axis=1)
+    df_use = df_use.reset_index(drop=True)
+    def nanthing(thing):
+        if(math.isnan(thing) == True):
+            return(0)
+        else:
+            return(thing)
+    df_use.loc[:,'distance']= df_use.apply(lambda x: nanthing(x.distance2),axis=1)
+    df_use['prev_dist'] = df_use.loc[:,'distance'].shift(periods = 1)
+    #df_use['od'] = df
+    df_use['odometer'] = df_use['distance'].cumsum()
+    df_use['prevod'] = df_use.loc[:,'odometer'].shift(periods=1)
+    df_use['dif'] = df_use.apply(lambda x: x.odometer - x.prevod,axis=1)
+    df_use['dif'] = df_use.apply(lambda x: nanthing(x.dif),axis=1)
+    return(pd.merge(df,df_use.loc[:,[(lat),(lon),'odometer','distance']],on=[(lat),(lon)]))
+
+
+
+########################################################################
 #### strList
 # helper function to convert a string of a list to just a list
 # Input: string of a list thing to 
@@ -569,8 +601,8 @@ def strList(x):
     x = ast.literal_eval(x)
     x = [n.strip() for n in x]
     return(x)  
-
-
+    
+    
 
 ########################################################################
 #### COUNTTIMES
@@ -614,13 +646,13 @@ def countTimes(opList):
 # Input: a .csv file with processed data (already have gone through 'processRawDataEng')
 # Output: saves many files, but finds elevated readings
 
-def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0'):
+def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2'):
     import csv, numpy    
     import geopandas as gpd
     import shutil 
     try:
         xABThreshold = float(threshold)
-
+        minElevated = float(minElevated)
         #xABThreshold = 0.1                 # above baseline threshold above the mean value
         xDistThreshold = 160.0                 # find the maximum CH4 reading of observations within street segments of this grouping distance in meters
         xSDF = 4                    # multiplier times standard deviation for floating baseline added to mean
@@ -807,20 +839,31 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
         openFile = pd.read_csv(fnOut)
         from shapely.geometry import Point
         if openFile.shape[0] != 0:
-            openFile['OB_CH4_AB'] = openFile.loc[:,'OB_CH4'].sub(openFile.loc[:,'OB_CH4_BASELINE'], axis = 0) 
-            fileWt = weightedLoc(openFile,'OB_LAT','OB_LON','OP_NUM','OB_CH4_AB').loc[:,:].rename(columns = {'OB_LAT':'pk_LAT','OB_LON':'pk_LON'}).reset_index(drop = True)
-            geometry_temp = [Point(xy) for xy in zip(fileWt['pk_LON'], fileWt['pk_LAT'])]
-            crs = {'init': 'epsg:4326'}
+            tempCount = openFile.groupby('OP_NUM',as_index=False).OP_EPOCHSTART.count().rename(columns={'OP_EPOCHSTART':'Frequency'})
+            tempCount = tempCount.loc[tempCount.Frequency>=minElevated,:]
+            if tempCount.shape[0]==0:
+             print("No Observed Peaks with enough Elevated Readings Found in the file: " + str(xFilename) )
+            elif tempCount.shape[0]!=0:
+                oFile = pd.merge(openFile,tempCount,on=['OP_NUM'])
+                openFile = oFile.copy()
+                del(oFile)
+                openFile['minElevated'] = openFile.apply(lambda x: int(minElevated),axis=1)
+                openFile.to_csv(fnOut,index=False)
+                openFile['OB_CH4_AB'] = openFile.loc[:,'OB_CH4'].sub(openFile.loc[:,'OB_CH4_BASELINE'], axis = 0) 
                 
-                #geometry is the point of the lat/lon
-            #gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
-            
-            ## BUFFER AROUND EACH 'OP_NUM' OF 30 M
-            gdf_buff = gpd.GeoDataFrame(fileWt, crs=crs, geometry=geometry_temp)
-            #gdf_buff = makeGPD(datFram,'LON','LAT')
-            gdf_buff = gdf_buff.to_crs(epsg=32610)
-            gdf_buff['geometry'] = gdf_buff.loc[:,'geometry'].buffer(30) 
-            gdf_buff.to_file(jsonOut, driver="GeoJSON")
+                fileWt = weightedLoc(openFile,'OB_LAT','OB_LON','OP_NUM','OB_CH4_AB').loc[:,:].rename(columns = {'OB_LAT':'pk_LAT','OB_LON':'pk_LON'}).reset_index(drop = True)
+                geometry_temp = [Point(xy) for xy in zip(fileWt['pk_LON'], fileWt['pk_LAT'])]
+                crs = {'init': 'epsg:4326'}
+                    
+                    #geometry is the point of the lat/lon
+                #gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
+                
+                ## BUFFER AROUND EACH 'OP_NUM' OF 30 M
+                gdf_buff = gpd.GeoDataFrame(fileWt, crs=crs, geometry=geometry_temp)
+                #gdf_buff = makeGPD(datFram,'LON','LAT')
+                gdf_buff = gdf_buff.to_crs(epsg=32610)
+                gdf_buff['geometry'] = gdf_buff.loc[:,'geometry'].buffer(30) 
+                gdf_buff.to_file(jsonOut, driver="GeoJSON")
         elif openFile.shape[0] == 0:
             print("No Observed Peaks Found in the file: " + str(xFilename) )
 
@@ -1651,3 +1694,17 @@ def passCombine (firstgroup, secondgroup):
 #     return(final)
 # =============================================================================
     
+# =============================================================================
+# ########################################################################
+# #### IsInPk
+# # helper function to find if in thing
+# # Input: a list of peak times included in a given combined peak
+# # Output: counts number of times the peak was seen (not in same 5 min period)
+# 
+# def IsInPK (peakNumRow,listPksRow):
+#     if peakNumRow.PEAK_NUM in listPksRow.combined:
+#         return(True)
+#     else:
+#         return(False)
+# =============================================================================
+ 

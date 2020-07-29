@@ -7,25 +7,44 @@ Created on Tuesday July 28
 
 ############## ALL THAT NEEDS TO BE CHANGED ##############################################
 
-## WHERE THE allFunctionsSC.py file is located
+## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
-
-
-## what you want the car to be named
-xCar = 'SCCar' # might need to be 5 letters? need to check into that
-
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/coDriveEng_1pt5pc" 
-
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allCoDriveEng" 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/coDriveEng_1pt5pc/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allCoDriveEng/"
+
+## CarID 
+xCar = 'SCCar' # might need to be 5 letters? Need to check that!
+
+## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
+threshold = '0.05'
+
+## How many minutes to include in background calculation (minutes)
+timethresh = '1.7' 
+
+## How many minutes to skip at the beginning of the dataset (i.e. if Colin is at his house)
+initialTimeIgnore = '5'
+
+# minimum number of elevated readings required for an observed peak
+minElevated = '2'
+
+## Lag time for CH4 to reach sensor (in seconds)
+shift = -4
+
+## Is this an engineering file?
+engineering = True
+
+# Not super sure what timePush is but thats cool
 timePush = 5 #min
 timePush = 0 
-shift = -4
-engineering = True
-############################################################################################
 
-################### ASSIGNING FOLDERS FOR RESULTS
+
+###############################################################################
+###### DON'T CHANGE ANYTHING BELOW THIS (UNLESS YOU CAN FIX IT) ###############
+###############################################################################
+
+# STARTING ALGORITHM (NAMING FOLDERS AND SUCH) 
 ## WHERE TO PUT LEAKS
 rawDir =  resFolder + 'RawData/'
 #inDir = resFolder + 'ObservedPeaks/'
@@ -56,38 +75,20 @@ s1 = xCar
 s2 = "Peaks_" + str(s1)
 s3 = "Filtered" + str()
 
-threshold = '0.015'
-timethresh = '1.7' ## time to include in background calculation (minutes)
-initialTimeIgnore = '5'
+
 ##################################
 ### IMPORTING NECESSARY MODULES
 ##################################
 
-#import contextily as ctx
-
-#import pandas as pd
-#import os, sys, datetime, time, math, csv, numpy,gzip,shutil
-#from math import radians, sin, cos, sqrt, asin
-#from numpy import log
-#import geopandas as gpd
-#import pandas as pd #
-#from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
-#import matplotlib.pyplot as plt
-#import ast
-#from datetime import datetime
-
 import sys
-sys.path.insert(0, functionFileLoc) ##change this to location of the "allFunctions.py" file
-
-from amld_Functions import unique,unIfInt,IsInPK,\
+sys.path.insert(0, functionFileLoc) # FINDING FUNCTIONS FOLDER TO IMPORT FROM
+from amld_Functions import unique,unIfInt,\
                             intersect,weightedLoc,verPk,estEmissions,\
                             haversine,wt_time_Locs,sumthing,makeGEO,\
                             makeGPD,summarizeDat,getQuad,calcTheta,\
                             calcBearing,ProcessRawDataEng,strList,\
                             countTimes,IdentifyPeaks,filterPeak,\
-                            passCombine,sumData2
-
-
+                            passCombine,sumData2,addOdometer
 import numpy as np
 import os
 import pandas as pd
@@ -102,10 +103,6 @@ import ast
 from datetime import datetime
 import time
 
-      
-### create paths
-
-#### move files to new path
 
 #### CREATING NECESSARY FOLDERS
 
@@ -199,7 +196,7 @@ if __name__ == '__main__':
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[6:14]
-            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh)
+            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh,minElevated)
 if __name__ == '__main__':
     index = 0
     numproc = 0
@@ -219,10 +216,6 @@ if __name__ == '__main__':
 end = time.time()
 #print(end - start)
 
-def strList(x):
-    x = ast.literal_eval(x)
-    x = [n.strip() for n in x]
-    return(x)
     
 if not os.path.exists(finalMain):
     toCombine = os.listdir(filtopDir)
