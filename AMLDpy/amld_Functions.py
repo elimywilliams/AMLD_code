@@ -290,7 +290,7 @@ def calcBearing(lat1,lat2,long1,long2,radians):
 # Input: a .txt file with raw data
 # Output: saves a log, and .csv file with processed data (removes unwanted)
 
-def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialTimeBack,shift):
+def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialTimeBack,shift,maxSpeed = '45',minSpeed = '2'):
     import pandas as pd
     from datetime import datetime
     import os
@@ -302,12 +302,18 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
         #shift = 0
 
         #xOutDir = xDir 
+        xMaxCarSpeed = float(maxSpeed)/2.23694 #CONVERTED TO M/S
+        xMinCarSpeed = float(minSpeed)/2.23694 #CONVERTED TO M/S
+
         
-        xMaxCarSpeed = 45.0 / 2.23694     # assumes 45 mph as max, convert to meters per second 
-        xMinCarSpeed = 2.0 / 2.23694      # minimum 2 miles per hour
+        #xMaxCarSpeed = 45.0 / 2.23694     # assumes 45 mph as max, convert to meters per second 
+        #xMinCarSpeed = 2.0 / 2.23694      # minimum 2 miles per hour
+        
         xMinRSSI = 50  #if RSSI is below this we don't like it
         
-
+        #xMaxCarSpeed = 100.0 / 2.23694     # assumes 45 mph as max, convert to meters per second 
+        #xMinCarSpeed = 0.0 / 2.23694      # minimum 2 miles per hour
+   
         # reading in the data with specific headers
         #          0     1    2    3       4           5    6       7        8        9          10                 11              12           13            14      15      16      17        18         19         20         21         22         23        24   25  26       27           28       29           30       31       32       33  34        35   36   37  38   39       40       41   42       43   44   45   46   47   48   49   50   51     52     53     54
         #sHeader = "Time Stamp,Inlet Number,P (mbars),T (degC),CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Latitude,Longitude"
@@ -646,7 +652,7 @@ def countTimes(opList):
 # Input: a .csv file with processed data (already have gone through 'processRawDataEng')
 # Output: saves many files, but finds elevated readings
 
-def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2'):
+def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2',xB = '1020'):
     import csv, numpy    
     import geopandas as gpd
     import shutil 
@@ -656,7 +662,10 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
         #xABThreshold = 0.1                 # above baseline threshold above the mean value
         xDistThreshold = 160.0                 # find the maximum CH4 reading of observations within street segments of this grouping distance in meters
         xSDF = 4                    # multiplier times standard deviation for floating baseline added to mean
-        xB = 1020       # the number of records that constitutes the floating baseline time -- 7200 = 1 hour (assuming average of 0.5 seconds per record)
+        #xB = 1020       # the number of records that constitutes the floating baseline time -- 7200 = 1 hour (assuming average of 0.5 seconds per record)
+        #xB = 102 # since it is 1 record/second
+        
+        xB = int(xB)
         #xB = 300 #five min?
         xTimeThreshold = float(xTimeThreshold)
         

@@ -10,15 +10,15 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allCoDriveEng" 
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/401_test" 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allCoDriveEng/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/401_test/"
 
 ## CarID 
 xCar = 'SCCar' # might need to be 5 letters? Need to check that!
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
-threshold = '0.05'
+threshold = '0.1'
 
 ## How many minutes to include in background calculation (minutes)
 timethresh = '1.7' 
@@ -27,7 +27,7 @@ timethresh = '1.7'
 initialTimeIgnore = '5'
 
 # minimum number of elevated readings required for an observed peak
-minElevated = '2'
+minElevated = '1'
 
 ## Lag time for CH4 to reach sensor (in seconds)
 shift = -4
@@ -39,6 +39,8 @@ engineering = True
 timePush = 5 #min
 timePush = 0 
 
+###
+backObs = '102'
 
 ###############################################################################
 ###### DON'T CHANGE ANYTHING BELOW THIS (UNLESS YOU CAN FIX IT) ###############
@@ -196,7 +198,7 @@ if __name__ == '__main__':
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[6:14]
-            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh,minElevated)
+            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh,minElevated,backObs)
 if __name__ == '__main__':
     index = 0
     numproc = 0
