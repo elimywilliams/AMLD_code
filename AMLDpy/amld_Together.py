@@ -41,6 +41,8 @@ timePush = 0
 
 ###
 backObs = '102'
+maxCarSpeed = '45'
+minCarSpeed = '2'
 
 ###############################################################################
 ###### DON'T CHANGE ANYTHING BELOW THIS (UNLESS YOU CAN FIX IT) ###############
@@ -185,7 +187,7 @@ if __name__ == '__main__':
             xDate = file[:10]
             #theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
             if engineering:
-                theResult = ProcessRawDataEng(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift)
+                theResult = ProcessRawDataEng(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift,maxCarSpeed,minCarSpeed)
             elif not engineering:
                 theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
             #del(bFirst)
