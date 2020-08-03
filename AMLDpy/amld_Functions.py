@@ -295,26 +295,20 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
     from datetime import datetime
     import os
     import gzip
-    import csv
+    #import csv
     from math import floor
     try:
-        #shift = -4
-        #shift = 0
+        xMaxCarSpeed = float(maxSpeed)/2.23694 #CONVERTED TO M/S (default is 45mph)
+        xMinCarSpeed = float(minSpeed)/2.23694 #CONVERTED TO M/S (default is 2mph)
 
-        #xOutDir = xDir 
-        xMaxCarSpeed = float(maxSpeed)/2.23694 #CONVERTED TO M/S
-        xMinCarSpeed = float(minSpeed)/2.23694 #CONVERTED TO M/S
-
+        ########################################################################
+        #### WE DON'T HAVE AN RSSI INPUT 
+        ### (SO THIS IS A PLACEHOLDER FOR SOME SORT OF QA/QC VARIABLE)
+        ##  xMinRSSI = 50  #if RSSI is below this we don't like it
+        ##################################################################
         
-        #xMaxCarSpeed = 45.0 / 2.23694     # assumes 45 mph as max, convert to meters per second 
-        #xMinCarSpeed = 2.0 / 2.23694      # minimum 2 miles per hour
         
-        xMinRSSI = 50  #if RSSI is below this we don't like it
-        
-        #xMaxCarSpeed = 100.0 / 2.23694     # assumes 45 mph as max, convert to meters per second 
-        #xMinCarSpeed = 0.0 / 2.23694      # minimum 2 miles per hour
-   
-        # reading in the data with specific headers
+        # reading in the (.txt) data with specific headers --> need to change this 
         #          0     1    2    3       4           5    6       7        8        9          10                 11              12           13            14      15      16      17        18         19         20         21         22         23        24   25  26       27           28       29           30       31       32       33  34        35   36   37  38   39       40       41   42       43   44   45   46   47   48   49   50   51     52     53     54
         #sHeader = "Time Stamp,Inlet Number,P (mbars),T (degC),CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Latitude,Longitude"
         #sHeader = "Time Stamp,Inlet Number,P (mbars),T (degC),CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Latitude,Longitude"
@@ -323,11 +317,12 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
         sOutHeader = "DATE,TIME,SECONDS,NANOSECONDS,VELOCITY,U,V,W,BCH4,BRSSI,TCH4,TRSSI,PRESS_MBAR,INLET,TEMPC,CH4,H20,C2H6,R,C2C1,BATTV,POWMV,CURRMA,SOCPER,LAT,LONG\n"
         
         headerNames = sHeader.split(',')
-        GPS_loc = 37
+        GPS_loc = 37 #Where the GPS data is located (in the row)
         
         
         infoHeader = "FILENAME\n"
-        # somehow gZIP is indicating if  it is the first file name (I think if it is 0 then it is the first file)
+        
+        # gZIP is indicating if it is a ZIP file (I don't think I've written this in)
         if gZIP == 0:
             f = gzip.open(xDir + "/" + xFilename, 'r') #if in python 3, change this to "r" or just "b" can't remember but something about a bit not a string
         else:
@@ -335,9 +330,7 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
             f = open(xDir  + xFilename, 'r')
 
         
-        # process    
-        #if first time on this car/date, then write header out
-        
+        ### FIGURING OUT DATE FROM FILENAME (WILL NEED TO CHANGE THIS IF DIFFERENT FILENAME)
         xdat = str('20') + xFilename[11:17]
         
         #fnOut = xOutDir + xCar + "_" + xDate.replace("-", "") + "_dat.csv"       #set CSV output for raw data
@@ -347,7 +340,10 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
         fnLog =  xOut  + xCar + "_" + xdat + "_log.csv"       #output for logfile
         infOut = xOut + xCar + "_" + xdat + "_info.csv"
         
+        # FINDING THE FIRST TIME NOTED
         firsttime = int(float(open(xDir + xFilename).readlines().pop(1).split(',')[37][:-4]))
+        
+        ## MAKING TEMPORARY FILE (FOR IF LATER YOU HAVE TO ADD A DATE)
         fnOutTemp = xOut  + xCar + "_" + xdat + "temp_dat.csv"       #
         
         if bFirst:
@@ -367,23 +363,16 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
 
         
         
-        #read all lines
+        # READ IN THE LINES
         xCntObs = -1
         xCntGoodValues = 0
-        rownum = 0 
         for row in f:
-            woo = row
-            #print(row)
             bGood = True
             if xCntObs < 0:
                 bGood = False
                 xCntObs += 1
-                #lstSfirst = woo.split(',')
-                #gpstimefirst = lstSfirst[GPS_loc]
-                #firstseconds = floor(float(gpstimefirst))
 
             if bGood:
-                #lstS = row.split(",")
                 lstS = row.split(',')
                 gpstime = lstS[GPS_loc]
                 dtime = lstS[0]
@@ -409,7 +398,7 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
                 #dateob = datetime(int(dtime[6:10]),int(dtime[0:2]),int(dtime[3:5]),int(dtime[11:13]),int(dtime[14:16]),int(dtime[17:19]),int(float(dtime[19:23])*1000000))
                 #epoch = dateob.strftime('%s.%f')
   
-                # change this once we have QA/QC stuff
+                # THIS IS USING THE CSU METHOD. IN OUR METHOD, WE DO THE SPEED LATER IN THE ALGORITHM.
                 
 #                # if RSSI of bottome sensor is below 50
 #                if float(lstS[28]) < xMinRSSI:
@@ -471,7 +460,7 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
                     csvWrite += str(lstS[29]) + ',' + str(lstS[30]) + ',' + str(lstS[31]) + ',' + str(lstS[32]) + ','+ str(lstS[33]) + ',' + str(lstS[34]) + ',' + str(lstS[38]) + str(',') + str(lstS[39])    
                 #fOut.write('\n')
                 
-                #print( seconds > firstseconds + (60*5))
+                #### REMOVING THE FIRST BIT OF DATA (if you need to )
                 if seconds >= (firsttime + (60*float(initialTimeBack))):
                     fOut.write(csvWrite)
                 
@@ -652,11 +641,12 @@ def countTimes(opList):
 # Input: a .csv file with processed data (already have gone through 'processRawDataEng')
 # Output: saves many files, but finds elevated readings
 
-def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2',xB = '1020'):
+def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2',xB = '1020',basePerc = '50'):
     import csv, numpy    
     import geopandas as gpd
     import shutil 
     try:
+        baseCalc = float(basePerc)
         xABThreshold = float(threshold)
         minElevated = float(minElevated)
         #xABThreshold = 0.1                 # above baseline threshold above the mean value
@@ -685,34 +675,17 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
 
 
         #field column indices for various variables
-        fDate = 0; 
-        fTime = 1; 
-        fEpochTime = 2; 
-        fNanoSeconds = 3; 
-        fVelocity = 4; 
-        fU = 5; 
-        fV = 6; 
-        fW = 7;
-        fBCH4 = 10;#fBCH4 = 8; 
+        fDate = 0; fTime = 1; fEpochTime = 2; 
+        fNanoSeconds = 3; fVelocity = 4;  fU = 5; 
+        fV = 6; fW = 7;fBCH4 = 10;#fBCH4 = 8; 
         #fBRSSI = 9;
-        fTCH4 = 10;
-        TRSSI = 11;
-        PRESS = 12;
-        INLET = 13;
-        TEMP = 14;
-        CH4 = 15;
-        H20 = 16;
-        C2H6 = 17;
-        R = 18;
-        C2C1 = 19;
-        BATT = 20;
-        POWER = 21;
-        CURR = 22;
-        SOCPER = 23;
-        fLat = 24; 
+        fTCH4 = 10; TRSSI = 11;PRESS = 12;
+        INLET = 13; TEMP = 14;CH4 = 15;
+        H20 = 16;C2H6 = 17;R = 18;
+        C2C1 = 19; BATT = 20;POWER = 21;
+        CURR = 22;SOCPER = 23;fLat = 24; 
         fLon = 25; 
         
-
         #read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
         x1 = []; x2 = []; x3 = []; x4 = []; x5 = []; x6 = []; x7 = []; x8 = []
         
@@ -767,10 +740,10 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
                         botBound = b
                         break
 
-                xCH4Mean = numpy.percentile(aCH4[botBound:topBound],50)
+                xCH4Mean = numpy.percentile(aCH4[botBound:topBound],baseCalc)
                # xCH4SD = numpy.std(aCH4[botBound:topBound])
             else:
-                xCH4Mean = numpy.percentile(aCH4[0:(count-2)],50)
+                xCH4Mean = numpy.percentile(aCH4[0:(count-2)],baseCalc)
                 #xCH4SD = numpy.std(aCH4[0:(count-2)])
             xThreshold = xCH4Mean + (xCH4Mean * xABThreshold)
             

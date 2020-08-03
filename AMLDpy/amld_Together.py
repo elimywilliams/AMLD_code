@@ -10,18 +10,23 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/401_test" 
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/NewTest/coDrive_5pc_600_45_10p" 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/401_test/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/NewTest/coDrive_5pc_600_45_10p/"
+
+
+
 
 ## CarID 
 xCar = 'SCCar' # might need to be 5 letters? Need to check that!
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
-threshold = '0.1'
+threshold = '0.05'
 
 ## How many minutes to include in background calculation (minutes)
-timethresh = '1.7' 
+#timethresh = '1.7'
+timethresh = '5.0'
+#timethresh = '2.5'
 
 ## How many minutes to skip at the beginning of the dataset (i.e. if Colin is at his house)
 initialTimeIgnore = '5'
@@ -40,9 +45,14 @@ timePush = 5 #min
 timePush = 0 
 
 ###
-backObs = '102'
+backObs = '600'
+#backObs = '10'
+
 maxCarSpeed = '45'
 minCarSpeed = '2'
+
+baseLinePerc = '10' ## median
+#baseLinePerc = '25' #Q1
 
 ###############################################################################
 ###### DON'T CHANGE ANYTHING BELOW THIS (UNLESS YOU CAN FIX IT) ###############
@@ -200,7 +210,7 @@ if __name__ == '__main__':
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[6:14]
-            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh,minElevated,backObs)
+            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh,minElevated,backObs,baseLinePerc)
 if __name__ == '__main__':
     index = 0
     numproc = 0
@@ -323,6 +333,8 @@ verTog = allTog.loc[allTog.numtimes!= 1,:]
 
 if verTog.size > 0:
     verTog.drop(columns=['recombine']).to_file(shpFileLocName, driver="GeoJSON")
+    print('I found ' + str(len(verTog.min_read.unique()))+" verified peaks")
+
 if verTog.size ==0:
     print("Sorry, no verified peaks were found.")  
 if allTog.size> 0:
@@ -334,3 +346,4 @@ if allTog.size == 0:
     
 end = time.time()
 print("I created three summary files located here: " + str(finRes) + ". The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
+print("I found " + str(len(allTog.min_read.unique()))+ " Observed Peaks")
