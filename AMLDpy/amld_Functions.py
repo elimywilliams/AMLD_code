@@ -554,7 +554,221 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
         return True
     except ValueError:
         return False
+############
+### processData (not engineering file)
+        
+def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialTimeBack,shift,maxSpeed = '45',minSpeed = '2'):
+    import pandas as pd
+    from datetime import datetime
+    import os
+    import gzip
+    #import csv
+    from math import floor
+    try:
+        xMaxCarSpeed = float(maxSpeed)/2.23694 #CONVERTED TO M/S (default is 45mph)
+        xMinCarSpeed = float(minSpeed)/2.23694 #CONVERTED TO M/S (default is 2mph)
+        
+        ########################################################################
+        #### WE DON'T HAVE AN RSSI INPUT 
+        ### (SO THIS IS A PLACEHOLDER FOR SOME SORT OF QA/QC VARIABLE)
+        ##  xMinRSSI = 50  #if RSSI is below this we don't like it
+        ##################################################################
+     
 
+        # reading in the data with specific headers
+        #          0     1    2    3       4           5    6       7        8        9          10                 11              12           13            14      15      16      17        18         19         20         21         22         23        24   25  26       27           28       29           30       31       32       33  34        35   36   37  38   39       40       41   42       43   44   45   46   47   48   49   50   51     52     53     54
+        sHeader = "Time Stamp,Inlet Number,P (mbars),T (degC),CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Latitude,Longitude"
+        sOutHeader = "DATE,TIME,SECONDS,NANOSECONDS,VELOCITY,U,V,W,BCH4,BRSSI,TCH4,TRSSI,PRESS_MBAR,INLET,TEMPC,CH4,H20,C2H6,R,C2C1,BATTV,POWMV,CURRMA,SOCPER,LAT,LONG\n"
+        infoHeader = "FILENAME\n"
+        # somehow gZIP is indicating if  it is the first file name (I think if it is 0 then it is the first file)
+        if gZIP == 0:
+            f = gzip.open(xDir + "/" + xFilename, 'r') #if in python 3, change this to "r" or just "b" can't remember but something about a bit not a string
+        else:
+            f = open(xDir + "/" + xFilename, 'r')
+        
+        infoHeader = "FILENAME\n"
+
+        # process    
+        #if first time on this car/date, then write header out
+        headerNames = sHeader.split(',')
+        xdat = str('20') + xFilename[11:17]
+        
+        #fnOut = xOutDir + xCar + "_" + xDate.replace("-", "") + "_dat.csv"       #set CSV output for raw data
+        #fnLog = xOutDir + xCar + "_" + xDate.replace("-", "") + "_log.csv"       #output for logfile
+        
+        fnOut = xOut  + xCar + "_" + xdat + "_dat.csv"       #set CSV output for raw data
+        fnLog =  xOut  + xCar + "_" + xdat + "_log.csv"       #output for logfile
+        infOut = xOut + xCar + "_" + xdat + "_info.csv"
+        #
+        
+        dtime = open(xDir + xFilename).readlines().pop(1).split(',')[0]
+        firstdate = datetime(int(dtime[6:10]),int(dtime[0:2]),int(dtime[3:5]),int(dtime[11:13]),int(dtime[14:16]),int(dtime[17:19]),int(float(dtime[19:23])*1000000))
+        firsttime = firstdate.strftime('%s.%f')
+
+        #firsttime = int(float(open(xDir + xFilename).readlines().pop(1).split(',')[37][:-4]))
+  
+        fnOutTemp = xOut  + xCar + "_" + xdat + "temp_dat.csv"       #
+
+        if bFirst:
+            #fOut = open(fnOut, 'w')
+            #fOut.write(sOutHeader)
+            fLog = open(fnLog, 'w')
+            infOut = open(infOut,'w')
+            infOut.write(infoHeader)
+            print ("fnLog: "+fnOut) 
+        if not bFirst:
+            fOut = open(fnOut, 'a')
+            fLog = open(fnLog, 'a')
+            infOut = open(infOut,'a')
+        
+        fOut = open(fnOutTemp, 'w')
+        fOut.write(sOutHeader)
+
+        #read all lines
+        xCntObs = -1
+        xCntGoodValues = 0
+        for row in f:
+            #print(row)
+            bGood = True
+            if xCntObs < 0:
+                bGood = False
+                xCntObs += 1
+            if bGood:
+                lstS = row.split(",")
+                dtime = lstS[0]
+                dateob = datetime(int(dtime[6:10]),int(dtime[0:2]),int(dtime[3:5]),int(dtime[11:13]),int(dtime[14:16]),int(dtime[17:19]),int(float(dtime[19:23])*1000000))
+                #epoch = dateob.strftime('%s.%f')
+               # dtime = int(dateob.strftime('%Y%m%d%H%M%S'))
+                
+                
+                fdate = datetime(int(dtime[6:10]),int(dtime[0:2]),int(dtime[3:5]),int(dtime[11:13]),int(dtime[14:16]),int(dtime[17:19]),int(float(dtime[19:23])*1000000))
+                seconds = fdate.strftime('%s.%f')
+
+                # change this once we have QA/QC stuff
+                
+#                # if RSSI of bottome sensor is below 50
+#                if float(lstS[28]) < xMinRSSI:
+#                    fLog.write("RSSI (Bottom) value less than 50: "+ str(lstS[28]) + "\n")
+#                    continue
+#                # Car Speed
+#                if float(lstS[12]) > xMaxCarSpeed:
+#                    fLog.write("Car speed of " + str(float(lstS[12])) + " exceeds max threshold of: " + str(xMaxCarSpeed) + "\n")
+#                    continue
+#                if float(lstS[12]) < xMinCarSpeed:
+#                    fLog.write("Car speed of " + str(float(lstS[12])) + " less than min threshold of: " + str(xMinCarSpeed) + "\n")
+#                    continue
+
+                # For some reason it is producing its longitude in positive number while USA is located at negative longitude
+                # thats why we do -1 * float(lstS[7])
+                
+                # fix this when we have stuffs
+                
+#                s1 = str(lstS[1])+","+str(lstS[2])+","+str(lstS[3])+","+str(lstS[4])+","+str(lstS[6])+","
+#                s1 += str(-1 * float(lstS[7]))+","+str(lstS[12])+","+str(lstS[14])+","+str(lstS[15])+","+str(lstS[16])+","+str(lstS[25])+","
+#                s1 += str(lstS[28])+","+str(lstS[38])+","+str(lstS[41])+"\n"
+                
+                ## choosing what to write in the .csv
+
+                import sys
+                if sys.platform.startswith('win'):
+                    csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S'))  + ',' + str(int(pd.to_numeric(dateob.strftime('%S.%f')))) + ',' + str(pd.to_numeric(dateob.strftime('%f')) *1000) + str(',')
+                    csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(lstS[4]) + ',' + str('0') + ','+  str(lstS[4]) + ','
+                    csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(lstS[3]) + ',' + str(lstS[4]) + ',' + str(lstS[5]) +',' +  str(lstS[6]) + ','
+                    csvWrite += str(lstS[7]) + ',' + str(lstS[8]) + ',' + str(lstS[9]) + ',' + str(lstS[10]) + ','+ str(lstS[11]) + ',' + str(lstS[12]) + ',' + str(lstS[13]) + str(',') + str(lstS[14]) 
+                if not sys.platform.startswith('win'):
+                    csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S'))  + ',' + str(seconds[:10]) + ',' + str(pd.to_numeric(seconds[11:])*1000) + str(',')
+                    csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(lstS[4]) + ',' + str('0') + ','+  str(lstS[4]) + ','
+                    csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(lstS[3]) + ',' + str(lstS[4]) + ',' + str(lstS[5]) +',' +  str(lstS[6]) + ','
+                    csvWrite += str(lstS[7]) + ',' + str(lstS[8]) + ',' + str(lstS[9]) + ',' + str(lstS[10]) + ','+ str(lstS[11]) + ',' + str(lstS[12]) + ',' + str(lstS[13]) + str(',') + str(lstS[14]) 
+                if float(seconds) >= (float(firsttime) + (60*float(initialTimeBack))):
+                   fOut.write(csvWrite)
+                   del(seconds)
+                del(csvWrite)
+
+            xCntObs += 1
+
+        #sOut = str(gZIP) + "," + str(f) + "," + str(xCntObs) + "," + str(xCntGoodValues) + "\n"
+        #fLog.write(sOut)
+        infOut.write(str(xFilename)+'\n')
+
+        fOut.close()
+        fLog.close()
+        infOut.close()
+        
+        #xDate = dateob.strftime("%Y%m%d")
+        
+        #newfnOut = xOutDir + xCar + "_" + xDate + "_dat.csv"       #set CSV output for raw data
+        #newfnLog = xOutDir + xCar + "_" + xDate + "_log.csv"  
+        
+
+        print (xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(gZIP))
+        from numpy import pi
+        import numpy as np
+        def calcVel(timediff,distance):
+            if timediff == 0:
+                return(0)
+            elif timediff != 0:
+                return(distance/timediff)
+                
+        wind_df = pd.read_csv(fnOutTemp)        
+        radians = False
+        wind_df['QUADRANT'] = wind_df.apply(lambda row: getQuad(row['U'],row['V']),axis=1)
+        wind_df['secnan'] = wind_df.apply(lambda row: row['SECONDS'] + row['NANOSECONDS']*1e-9,axis=1) # + row['NANOSECONDS']*1e-9,axis=1)
+        wind_df['prev_LAT'] = wind_df.LAT.shift(periods = 1)
+        wind_df['next_LAT'] = wind_df.LAT.shift(periods = -1)
+        wind_df['prev_LONG'] = wind_df.LONG.shift(periods = 1)
+        wind_df['next_LONG'] = wind_df.LONG.shift(periods = -1)
+        wind_df['prev_TIME'] = wind_df.secnan.shift(periods = 1)
+        wind_df['next_TIME'] = wind_df.secnan.shift(periods = -1)
+        wind_df['distance'] = wind_df.apply(lambda row: haversine(row['prev_LAT'],row['prev_LONG'],row['next_LAT'],row['next_LONG']),axis=1)
+        wind_df['bearing'] = wind_df.apply(lambda row: calcBearing(row['prev_LAT'],row['next_LAT'],row['prev_LONG'],row['next_LONG'],radians),axis=1)
+        wind_df['timediff'] = wind_df.apply(lambda row: row['next_TIME'] - row['prev_TIME'],axis = 1)
+        wind_df['VELOCITY'] = wind_df.apply(lambda row:calcVel(row['timediff'],row['distance']),axis=1)
+        wind_df['U_cor'] = wind_df.apply(lambda row:row['U'] + row['VELOCITY'],axis = 1)
+        wind_df['horz_length'] = wind_df.apply(lambda row: np.sqrt(row['U_cor']**2 + row['V']**2),axis=1)
+        wind_df['uncor_theta'] = wind_df.apply(lambda row :calcBearing(row['U_cor'],row['V'],row['QUADRANT'],row['horz_length'],radians),axis = 1)
+        wind_df['adj_theta'] = wind_df.apply(lambda row: (row['uncor_theta'] + row['bearing'])%360,axis =1)
+        wind_df['totalWind'] = wind_df.apply(lambda row: np.sqrt(row['horz_length']**2 + row['W']**2),axis = 1)
+        wind_df['phi'] = wind_df.apply(lambda row: np.arctan(row['horz_length']),axis=1)
+        wind_df['shift_CH4'] = wind_df.CH4.shift(periods = int(float(shift)))
+        wind_df['raw_CH4'] = wind_df.apply(lambda row: row['BCH4'],axis=1)
+        wind_df['BCH4']= wind_df.loc[:,['shift_CH4']]
+        wind_df['CH4']= wind_df.loc[:,['shift_CH4']]
+        wind_df['TCH4']= wind_df.loc[:,['shift_CH4']]
+              
+        wind_df2 = wind_df[wind_df.CH4.notnull()]
+        wind_df2 = wind_df.copy()
+        wind_df3 = wind_df2.drop(['QUADRANT', 'secnan','prev_LAT','next_LAT','prev_LONG','next_LONG','prev_TIME','next_TIME','distance','timediff','uncor_theta','CH4'],axis = 1)
+        wind_df3['CH4'] = wind_df3.loc[:,'shift_CH4']
+        wind_df3 = wind_df3.drop(['shift_CH4'],axis = 1)
+        
+        wind_df3 = wind_df3.loc[:,['DATE','TIME','SECONDS','NANOSECONDS','VELOCITY','U','V','W','BCH4','BRSSI','TCH4','TRSSI','PRESS_MBAR','INLET' \
+                                   , 'TEMPC','CH4','H20','C2H6','R','C2C1','BATTV','POWMV','CURRMA','SOCPER','LAT','LONG','bearing','U_cor', \
+                                   'horz_length','adj_theta','totalWind','phi','raw_CH4']]
+        #wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(),:]
+        
+        wind_df4 = wind_df3.copy()
+        
+        #wind_df7 = addOdometer(wind_df4,'LAT','LONG')
+        
+       # wind_df4 = wind_df7.copy()
+        wind_df5 = wind_df4.loc[wind_df4.VELOCITY > xMinCarSpeed,: ]
+        wind_df6 = wind_df5.loc[wind_df5.VELOCITY < xMaxCarSpeed,: ]
+        
+        del(wind_df4)
+        wind_df4 = wind_df6.copy().drop_duplicates()
+        wind_df5 = wind_df4.loc[wind_df4.CH4.notnull(),:]
+        wind_df4 = wind_df5.copy()
+        if bFirst:
+            wind_df4.to_csv(fnOut,index=False)
+        elif not bFirst:
+            norm = pd.read_csv(fnOut)
+            pd.concat([norm,wind_df4]).sort_values(by='SECONDS').reset_index(drop=True).to_csv(fnOut,index=False)
+        os.remove(fnOutTemp)
+        return True
+    except ValueError:
+        return False
+    
 ########################################################################
 #### addOdometer
 # function to add column to dataframe with Odometer reading (in kms)
@@ -641,7 +855,251 @@ def countTimes(opList):
 # Input: a .csv file with processed data (already have gone through 'processRawDataEng')
 # Output: saves many files, but finds elevated readings
 
-def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2',xB = '1020',basePerc = '50'):
+# =============================================================================
+# def IdentifyPeaks(xCar, xDate, xDir, xFilename,outDir,processedFileLoc,Engineering,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2',xB = '1020',basePerc = '50'):
+#     import csv, numpy    
+#     import geopandas as gpd
+#     import shutil 
+#     try:
+#         baseCalc = float(basePerc)
+#         xABThreshold = float(threshold)
+#         minElevated = float(minElevated)
+#         #xABThreshold = 0.1                 # above baseline threshold above the mean value
+#         xDistThreshold = 160.0                 # find the maximum CH4 reading of observations within street segments of this grouping distance in meters
+#         xSDF = 4                    # multiplier times standard deviation for floating baseline added to mean
+#         #xB = 1020       # the number of records that constitutes the floating baseline time -- 7200 = 1 hour (assuming average of 0.5 seconds per record)
+#         #xB = 102 # since it is 1 record/second
+#         
+#         xB = int(xB)
+#         #xB = 300 #five min?
+#         xTimeThreshold = float(xTimeThreshold)
+#         
+#         fn = xDir + "/" + xFilename      #set raw text file to read in
+#         fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"       #set CSV format output for observed peaks for a given car, day, city
+#         fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".shp"
+#         fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".log"       #set CSV output for observed peaks for a given car, day, city
+#         pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + "_info.csv"       #set CSV output for observed peaks for a given car, day, city
+#         
+#         jsonOut =  outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".json"       #set CSV format output for observed peaks for a given car, day, city
+# 
+#         infOut = processedFileLoc + xCar + "_" + xDate.replace("-","") + "_info.csv"
+#         print(str(outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + "_info.csv"))
+#         
+#         fLog = open(fnLog, 'w')        
+#         shutil.copy(infOut,pkLog)
+# 
+# 
+#         #field column indices for various variables
+#         if Engineering == True:
+#             fDate = 0; fTime = 1; fEpochTime = 2; 
+#             fNanoSeconds = 3; fVelocity = 4;  fU = 5; 
+#             fV = 6; fW = 7;fBCH4 = 10;#fBCH4 = 8; 
+#             #fBRSSI = 9;
+#             fTCH4 = 10; TRSSI = 11;PRESS = 12;
+#             INLET = 13; TEMP = 14;CH4 = 15;
+#             H20 = 16;C2H6 = 17;R = 18;
+#             C2C1 = 19; BATT = 20;POWER = 21;
+#             CURR = 22;SOCPER = 23;fLat = 24; 
+#             fLon = 25; 
+#         elif not Engineering:
+#             fDate = 0; fTime = 1; fEpochTime = 2; 
+#             fNanoSeconds = 3; fVelocity = 4;  fU = 5; 
+#             fV = 6; fW = 7;fBCH4 = 8; 
+#             fBRSSI = 9;
+#             fTCH4 = 10; TRSSI = 11;PRESS = 12;
+#             INLET = 13; TEMP = 14;CH4 = 15;
+#             H20 = 16;C2H6 = 17;R = 18;
+#             C2C1 = 19; BATT = 20;POWER = 21;
+#             CURR = 22;SOCPER = 23;fLat = 24; 
+#             fLon = 25; 
+#             
+#         #read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
+#         x1 = []; x2 = []; x3 = []; x4 = []; x5 = []; x6 = []; x7 = []; x8 = []
+#         
+#         count = -1
+#         with open(fn, 'r') as f:
+#             t = csv.reader(f)
+#             for row in t:
+#                 if count < 0:
+#                     count += 1
+#                     continue
+#                 
+#                 datet= row[fDate].replace("-","")+row[fTime].replace(":","")
+# 
+#                 #x1.append(float(epoch)); 
+#                 x1.append(float(str(row[fEpochTime]) + '.' + str(row[fNanoSeconds])));
+#                 x2.append(float(int(datet)));
+#                 x3.append(float(row[fLat]));
+#                 x4.append(float(row[fLon])); 
+#                 x5.append(float(row[fBCH4]));
+#                 x6.append(float(row[fTCH4]))
+#                 x7.append(0.0); 
+#                 x8.append(0.0)
+#                 
+#                 #print (str(row[fLat])+ str(row[1]))
+#                 count += 1
+#         print ("Number of observations processed: " + str(count))
+# 
+#         #convert lists to numpy arrays
+#         aEpochTime = numpy.array(x1); aDateTime = numpy.array(x2); aLat = numpy.array(x3); aLon = numpy.array(x4); aCH4 = numpy.array(x5); aTCH4 = numpy.array(x6)
+#         aMean = numpy.array(x7); aThreshold = numpy.array(x8)
+# 
+#         xLatMean = numpy.mean(aLat)
+#         xLonMean = numpy.mean(aLon)
+#         
+#         fLog.write ( "Day CH4_mean = " + str(numpy.mean(aCH4)) + ", Day CH4_SD = " + str(numpy.std(aCH4)) + "\n")
+#         fLog.write( "Center lon/lat = " + str(xLonMean) + ", " + str(xLatMean) + "\n")
+#         #pkLog.write('hi')
+#         lstCH4_AB = []
+# 
+#         #generate list of the index for observations that were above the threshold
+#         for i in range(0,count-2):
+#             if ((count-2)>xB):
+#                 topBound = min((i+xB), (count-2))
+#                 botBound = max((i-xB), 0)
+# 
+#                 for t in range(min((i+xB), (count-2)), i, -1):
+#                     if aEpochTime[t] < (aEpochTime[i]+(xB/2)):
+#                         topBound = t
+#                         break
+#                 for b in range(max((i-xB), 0), i):
+#                     if aEpochTime[b] > (aEpochTime[i]-(xB/2)):
+#                         botBound = b
+#                         break
+# 
+#                 xCH4Mean = numpy.percentile(aCH4[botBound:topBound],baseCalc)
+#                # xCH4SD = numpy.std(aCH4[botBound:topBound])
+#             else:
+#                 xCH4Mean = numpy.percentile(aCH4[0:(count-2)],baseCalc)
+#                 #xCH4SD = numpy.std(aCH4[0:(count-2)])
+#             xThreshold = xCH4Mean + (xCH4Mean * xABThreshold)
+#             
+#             if (aCH4[i] > xThreshold):
+#                 lstCH4_AB.append(i)
+#                 aMean[i] = xCH4Mean    #insert mean + SD as upper quartile CH4 value into the array to later retreive into the peak calculation
+#                 aThreshold[i] = xThreshold
+# 
+#         # now group the above baseline threshold observations into groups based on distance threshold
+#         lstCH4_ABP = []
+#         xDistPeak = 0.0
+#         xCH4Peak = 0.0
+#         xTime = 0.0
+#         cntPeak = 0
+#         cnt = 0
+#         sID = ""
+#         sPeriod5Min = ""
+#         prevIndex = 0
+#         for i in lstCH4_AB:   
+#             if (cnt == 0):
+#                 xLon1 = aLon[i]; xLat1 = aLat[i]
+#             else:
+#                 # calculate distance between points
+#                 xDist = haversine(xLat1, xLon1, aLat[i], aLon[i])
+#                 xDistPeak += xDist
+#                 xCH4Peak += (xDist * (aCH4[i] - aMean[i]))
+#                 xLon1 = aLon[i]; xLat1 = aLat[i]
+#                 if (sID == ""):
+#                     xTime = aEpochTime[i]
+#                     sID = str(xCar) + "_" + str(xTime)
+#                     sPeriod5Min = str(int((aEpochTime[i] - 1350000000) / (30 * 1))) # 30 sec
+#                 if ((aEpochTime[i]-aEpochTime[prevIndex]) > xTimeThreshold):       #initial start of a observed peak
+#                     cntPeak += 1
+#                     xTime = aEpochTime[i]
+#                     xDistPeak = 0.0
+#                     xCH4Peak = 0.0
+#                     sID = str(xCar) + "_" + str(xTime)
+#                     sPeriod5Min = str(int((aEpochTime[i] - 1350000000) / (30 * 1))) # 30 sec
+#                     #print str(i) +", " + str(xDist) + "," + str(cntPeak) +"," + str(xDistPeak)         
+#                 lstCH4_ABP.append([sID, xTime, aEpochTime[i], aDateTime[i], aCH4[i], aLon[i], aLat[i], aMean[i] ,aThreshold[i], xDistPeak, xCH4Peak, aTCH4[i], sPeriod5Min])
+#             cnt += 1
+#             prevIndex = i
+#     
+#         # Finding peak_id larger than 160.0 m
+#         tmpsidlist = []
+#         for r in lstCH4_ABP:
+#             if (float(r[9])>160.0) and (r[0] not in tmpsidlist):
+#                 tmpsidlist.append(r[0])
+#         cntPeak-=len(tmpsidlist)
+# 
+#         fLog.write ( "Number of peaks found: " + str(cntPeak) + "\n")
+#         print (xCar + "\t" + xDate + "\t" + xFilename + "\t" + str(count) + "\t" + str(len(lstCH4_ABP)))
+#         #### calculate attribute for the area under the curve -- PPM
+#         
+#         #write out the observed peaks to a csv to be read into a GIS
+#         fOut = open(fnOut, 'w')
+#         #s = "PEAK_NUM,EPOCHSTART,EPOCH,DATETIME,CH4,LON,LAT,CH4_BASELINE,CH4_THRESHOLD,PEAK_DIST_M,PEAK_CH4,TCH4,PERIOD5MIN\n"
+#         s = "OP_NUM,OP_EPOCHSTART,OB_EPOCH,OB_DATETIME,OB_CH4,OB_LON,OB_LAT,OB_CH4_BASELINE,OB_CH4_THRESHOLD,OP_PEAK_DIST_M,OP_PEAK_CH4,OB_TCH4,OB_PERIOD5MIN\n"
+# 
+#         fOut.write(s)
+# 
+#         truecount = 0
+#         for r in lstCH4_ABP:
+#             if r[0] not in tmpsidlist:
+#                 s = ''
+#                 for rr in r:
+#                     s += str(rr) + ','
+#                 s = s[:-1]
+#                 s += '\n'
+#                 fOut.write(s)
+#                 truecount += 1
+#         fOut.close()
+#         fLog.close()
+#         import pandas as pd
+#         openFile = pd.read_csv(fnOut)
+#         from shapely.geometry import Point
+#         if openFile.shape[0] != 0:
+#             tempCount = openFile.groupby('OP_NUM',as_index=False).OP_EPOCHSTART.count().rename(columns={'OP_EPOCHSTART':'Frequency'})
+#             tempCount = tempCount.loc[tempCount.Frequency>=minElevated,:]
+#             if tempCount.shape[0]==0:
+#              print("No Observed Peaks with enough Elevated Readings Found in the file: " + str(xFilename) )
+#             elif tempCount.shape[0]!=0:
+#                 oFile = pd.merge(openFile,tempCount,on=['OP_NUM'])
+#                 openFile = oFile.copy()
+#                 del(oFile)
+#                 openFile['minElevated'] = openFile.apply(lambda x: int(minElevated),axis=1)
+#                 openFile.to_csv(fnOut,index=False)
+#                 openFile['OB_CH4_AB'] = openFile.loc[:,'OB_CH4'].sub(openFile.loc[:,'OB_CH4_BASELINE'], axis = 0) 
+#                 
+#                 fileWt = weightedLoc(openFile,'OB_LAT','OB_LON','OP_NUM','OB_CH4_AB').loc[:,:].rename(columns = {'OB_LAT':'pk_LAT','OB_LON':'pk_LON'}).reset_index(drop = True)
+#                 geometry_temp = [Point(xy) for xy in zip(fileWt['pk_LON'], fileWt['pk_LAT'])]
+#                 crs = {'init': 'epsg:4326'}
+#                     
+#                     #geometry is the point of the lat/lon
+#                 #gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
+#                 
+#                 ## BUFFER AROUND EACH 'OP_NUM' OF 30 M
+#                 gdf_buff = gpd.GeoDataFrame(fileWt, crs=crs, geometry=geometry_temp)
+#                 #gdf_buff = makeGPD(datFram,'LON','LAT')
+#                 gdf_buff = gdf_buff.to_crs(epsg=32610)
+#                 gdf_buff['geometry'] = gdf_buff.loc[:,'geometry'].buffer(30) 
+#                 gdf_buff.to_file(jsonOut, driver="GeoJSON")
+#         elif openFile.shape[0] == 0:
+#             print("No Observed Peaks Found in the file: " + str(xFilename) )
+# 
+#         if truecount > 0:
+#             #arcpy.MakeXYEventLayer_management(fnOut,"LON","LAT",xCar + 
+#             #"L","GEOGCS['GCS_WGS_1984',DATUM['D_WGS_1984',
+#             #SPHEROID['WGS_1984',6378137.0,298.257223563]],
+#             #PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]];
+#             #-400 -400 1000000000;-100000 10000;-100000 10000;
+#             #8.98315284119522E-09;0.001;0.001;IsHighPrecision","#")
+#             #arcpy.FeatureToPoint_management(xCar + "L",fnShape,"CENTROID")
+#             #arcpy.Delete_management(xCar+"L")
+#             return True
+#     except ValueError:
+#             print ("Error in Identify Peaks")
+#             return False
+# 
+# =============================================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Aug  7 13:23:50 2020
+
+@author: emilywilliams
+"""
+
+def IdentifyPeaks(xCar, xDate, xDir, xFilename,outDir,processedFileLoc,Engineering,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2',xB = '1020',basePerc = '50'):
     import csv, numpy    
     import geopandas as gpd
     import shutil 
@@ -675,17 +1133,33 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
 
 
         #field column indices for various variables
-        fDate = 0; fTime = 1; fEpochTime = 2; 
-        fNanoSeconds = 3; fVelocity = 4;  fU = 5; 
-        fV = 6; fW = 7;fBCH4 = 10;#fBCH4 = 8; 
-        #fBRSSI = 9;
-        fTCH4 = 10; TRSSI = 11;PRESS = 12;
-        INLET = 13; TEMP = 14;CH4 = 15;
-        H20 = 16;C2H6 = 17;R = 18;
-        C2C1 = 19; BATT = 20;POWER = 21;
-        CURR = 22;SOCPER = 23;fLat = 24; 
-        fLon = 25; 
-        
+        if Engineering == True:
+            fDate = 0; fTime = 1; fEpochTime = 2; 
+            fNanoSeconds = 3; fVelocity = 4;  fU = 5; 
+            fV = 6; fW = 7;fBCH4 = 10;fBCH4 = 8; 
+            fBRSSI = 9;
+            fTCH4 = 10; TRSSI = 11;PRESS = 12;
+            INLET = 13; TEMP = 14;CH4 = 15;
+            H20 = 16;C2H6 = 17;R = 18;
+            C2C1 = 19; BATT = 20;POWER = 21;
+            CURR = 22;SOCPER = 23;fLat = 24; 
+            fLon = 25; 
+            
+            
+        elif not Engineering:
+            fDate = 0; fTime = 1; fEpochTime = 2; 
+            fNanoSeconds = 3; fVelocity = 4;  fU = 5; 
+            fV = 6; fW = 7;fBCH4 = 8; 
+            
+            
+            fBRSSI = 9;
+            fTCH4 = 10; TRSSI = 11;PRESS = 12;
+            INLET = 13; TEMP = 14;CH4 = 15;
+            H20 = 16;C2H6 = 17;R = 18;
+            C2C1 = 19; BATT = 20;POWER = 21;
+            CURR = 22;SOCPER = 23;fLat = 24; 
+            fLon = 25; 
+            
         #read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
         x1 = []; x2 = []; x3 = []; x4 = []; x5 = []; x6 = []; x7 = []; x8 = []
         
@@ -698,16 +1172,26 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
                     continue
                 
                 datet= row[fDate].replace("-","")+row[fTime].replace(":","")
+                ## if not engineering
+                epoch = float(row[fEpochTime]+"."+row[fNanoSeconds][0])
 
                 #x1.append(float(epoch)); 
-                x1.append(float(str(row[fEpochTime]) + '.' + str(row[fNanoSeconds])));
-                x2.append(float(int(datet)));
-                x3.append(float(row[fLat]));
-                x4.append(float(row[fLon])); 
-                x5.append(float(row[fBCH4]));
-                x6.append(float(row[fTCH4]))
-                x7.append(0.0); 
-                x8.append(0.0)
+               
+# =============================================================================
+#                 x1.append(float(str(row[fEpochTime]) + '.' + str(row[fNanoSeconds])));
+#                 x2.append(float(int(datet)));
+#                 x3.append(float(row[fLat]));
+#                 x4.append(float(row[fLon])); 
+#                 x5.append(float(row[fBCH4]));
+#                 x6.append(float(row[fTCH4]))
+#                 x7.append(0.0); 
+#                 x8.append(0.0)
+# =============================================================================
+                
+                
+                datetime = row[fDate].replace("-","")+row[fTime].replace(":","")
+                x1.append(epoch); x2.append(datetime); x3.append(float(row[fLat])); x4.append(float(row[fLon])); x5.append(float(row[fBCH4])); x6.append(float(row[fTCH4]))
+                x7.append(0.0); x8.append(0.0)
                 
                 #print (str(row[fLat])+ str(row[1]))
                 count += 1
@@ -817,6 +1301,8 @@ def IdentifyPeaks( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshol
                 truecount += 1
         fOut.close()
         fLog.close()
+        
+        
         import pandas as pd
         openFile = pd.read_csv(fnOut)
         from shapely.geometry import Point
@@ -916,7 +1402,7 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
         gdf_pass_pks['numdays'] = 1
         gdf_pass_pks['newgeo'] = gdf_pass_pks.loc[:,'geometry']
         gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['OP_NUM']].to_numpy())].copy()
-        gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
+        gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int( x.OP_NUM[6:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'),axis=1)
         gdf_pass_pks['pk_Dates'] = [list(x) for x in list(gdf_pass_pks.loc[:,['dates']].to_numpy())]
         gdf_pass_pks['min_Date'] = gdf_pass_pks.loc[:,'dates']
         gdf_pass_pks = gdf_pass_pks.drop(columns=['dates'])
@@ -1089,8 +1575,12 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                     over['sorted']=over.sorted.apply(lambda y: ''.join(y))
                     over = over.drop_duplicates('sorted')
                     over['combined']= [list(x) for x in list(over.loc[:,['OP_NUM_1','OP_NUM_2']].to_numpy())]
-                    over['date1'] = over.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM_1'][6:-2])).strftime('%Y-%m-%d'),axis=1)
-                    over['date2'] = over.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM_2'][6:-2])).strftime('%Y-%m-%d'),axis=1)
+                    #over['date1'] = over.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM_1'][6:-2])).strftime('%Y-%m-%d'),axis=1)
+                    #over['date2'] = over.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM_2'][6:-2])).strftime('%Y-%m-%d'),axis=1)
+                    over['date1'] = over.apply(lambda x: datetime.fromtimestamp(int( x.OP_NUM_1[6:x.OP_NUM_1.find('.')])).strftime('%Y-%m-%d'),axis=1)
+                    over['date2'] = over.apply(lambda x: datetime.fromtimestamp(int( x.OP_NUM_2[6:x.OP_NUM_2.find('.')])).strftime('%Y-%m-%d'),axis=1)
+
+    
     
                     def unique(list1): 
                         # intilize a null list 
@@ -1143,7 +1633,11 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
       
                     combined = gdf_bind_pks.copy()
                     combined['recombine'] = [list(x) for x in list(combined.loc[:,['OP_NUM']].to_numpy())]
-                    combined['dates'] = combined.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
+                    #combined['dates'] = combined.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
+                    combined['dates'] = combined.apply(lambda x: datetime.fromtimestamp(int( x.OP_NUM[6:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'),axis=1)
+
+                    
+                    
                     combined['pk_Dates'] = [list(x) for x in list(combined.loc[:,['dates']].to_numpy())]
     
                     combined['min_Date'] = combined.loc[:,'dates']
@@ -1176,7 +1670,9 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
     
                gdf_pass_pks['newgeo'] = gdf_pass_pks.loc[:,'geometry']
                gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['OP_NUM']].to_numpy())].copy()
-               gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
+               #gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
+               gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int( x.OP_NUM[6:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'),axis=1)
+
                gdf_pass_pks['pk_Dates'] = [list(x) for x in list(gdf_pass_pks.loc[:,['dates']].to_numpy())]
                gdf_pass_pks['min_Date'] = gdf_pass_pks.loc[:,'dates']
                gdf_pass_pks = gdf_pass_pks.drop(columns=['dates'])
@@ -1198,7 +1694,9 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
             gdf_pass_pks['newgeo'] = gdf_pass_pks.loc[:,'geometry']
             
             gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:,['OP_NUM']].to_numpy())].copy()
-            gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
+           # gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
+            gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int( x.OP_NUM[6:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'),axis=1)
+
             gdf_pass_pks['pk_Dates'] = [list(x) for x in list(gdf_pass_pks.loc[:,['dates']].to_numpy())]
             gdf_pass_pks['min_Date'] = gdf_pass_pks.loc[:,'dates']
             gdf_pass_pks['numdays'] = 1

@@ -10,9 +10,9 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/NewTest/coDrive_5pc_600_45_10p" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/retestData/CoDrive_45_102_5pc" 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/NewTest/coDrive_5pc_600_45_10p/"
+resFolder = "/Users/emilywilliams/Documents/DrivingData/retestData/CoDrive_45_102_5pc/"
 
 
 
@@ -28,7 +28,7 @@ threshold = '0.05'
 timethresh = '5.0'
 #timethresh = '2.5'
 
-## How many minutes to skip at the beginning of the dataset (i.e. if Colin is at his house)
+## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
 initialTimeIgnore = '5'
 
 # minimum number of elevated readings required for an observed peak
@@ -38,20 +38,21 @@ minElevated = '1'
 shift = -4
 
 ## Is this an engineering file?
-engineering = True
+#engineering = True
+engineering = False
 
 # Not super sure what timePush is but thats cool
 timePush = 5 #min
 timePush = 0 
 
 ###
-backObs = '600'
+backObs = '102'
 #backObs = '10'
 
 maxCarSpeed = '45'
 minCarSpeed = '2'
 
-baseLinePerc = '10' ## median
+baseLinePerc = '50' ## median
 #baseLinePerc = '25' #Q1
 
 ###############################################################################
@@ -102,7 +103,7 @@ from amld_Functions import unique,unIfInt,\
                             makeGPD,summarizeDat,getQuad,calcTheta,\
                             calcBearing,ProcessRawDataEng,strList,\
                             countTimes,IdentifyPeaks,filterPeak,\
-                            passCombine,sumData2,addOdometer
+                            passCombine,sumData2,addOdometer,ProcessRawData
 import numpy as np
 import os
 import pandas as pd
@@ -199,7 +200,7 @@ if __name__ == '__main__':
             if engineering:
                 theResult = ProcessRawDataEng(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift,maxCarSpeed,minCarSpeed)
             elif not engineering:
-                theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
+                theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift,maxCarSpeed,minCarSpeed)
             #del(bFirst)
             count = count + 1
 
@@ -210,7 +211,7 @@ if __name__ == '__main__':
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[6:14]
-            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh,minElevated,backObs,baseLinePerc)
+            theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,engineering,threshold,timethresh,minElevated,backObs,baseLinePerc)
 if __name__ == '__main__':
     index = 0
     numproc = 0

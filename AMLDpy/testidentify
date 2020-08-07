@@ -1,0 +1,185 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Aug  6 15:40:38 2020
+
+@author: emilywilliams
+"""
+
+
+import os, sys, datetime, time, math
+import csv, numpy
+from math import radians, sin, cos, sqrt, asin
+#import arcpy
+
+def haversine(lat1, lon1, lat2, lon2, radius=6371): # 6372.8 = earth radius in kilometers
+
+    dLat = radians(lat2 - lat1)
+    dLon = radians(lon2 - lon1)
+    lat1 = radians(lat1)
+    lat2 = radians(lat2)
+    c = 2*asin(sqrt(sin(dLat/2)**2 + cos(lat1)*cos(lat2)*sin(dLon/2)**2))
+
+    return radius*c*1000 #return in meters
+
+
+def IdentifyPeaks( xCar, xDate, xDir, xFilename):
+    try:
+
+        xABThreshold = 0.1                 # above baseline threshold above the mean value
+        xDistThreshold = 160.0                 # find the maximum CH4 reading of observations within street segments of this grouping distance in meters
+        xSDF = 4                    # multiplier times standard deviation for floating baseline added to mean
+        xB = 102       # the number of records that constitutes the floating baseline time -- 7200 = 1 hour (assuming average of 0.5 seconds per record)
+        xTimeThreshold = 5.0
+        
+        fn = xDir + "/" + xFilename      #set raw text file to read in
+        fnOut = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"       #set CSV format output for observed peaks for a given car, day, city
+        fnShape = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".shp"
+        fnLog = xDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".log"       #set CSV output for observed peaks for a given car, day, city
+
+        fLog = open(fnLog, 'w')
+
+        #field column indices for various variables
+        fDate = 0; fTime = 1; fEpochTime = 2; fNanoSeconds = 3; fLat = 4; fLon = 5; fVelocity = 6; fU = 7; fV = 8; fW = 9; fBCH4 = 10; fTCH4 = 11
+
+        #read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
+        x1 = []; x2 = []; x3 = []; x4 = []; x5 = []; x6 = []; x7 = []; x8 = []
+    
+        count = -1
+        with open(fn, 'rb') as f:
+            t = csv.reader(f)
+            for row in t:
+                if count < 0:
+                    count += 1
+                    continue
+                epoch = float(row[fEpochTime]+"."+row[fNanoSeconds][0])
+                datetime = row[fDate].replace("-","")+row[fTime].replace(":","")
+                x1.append(epoch); x2.append(datetime); x3.append(float(row[fLat])); x4.append(float(row[fLon])); x5.append(float(row[fBCH4])); x6.append(float(row[fTCH4]))
+                x7.append(0.0); x8.append(0.0)
+                count += 1
+        print "Number of observations processed: " + str(count)
+
+        #convert lists to numpy arrays
+        aEpochTime = numpy.array(x1); aDateTime = numpy.array(x2); aLat = numpy.array(x3); aLon = numpy.array(x4); aCH4 = numpy.array(x5); aTCH4 = numpy.array(x6)
+        aMean = numpy.array(x7); aThreshold = numpy.array(x8)
+
+        xLatMean = numpy.mean(aLat)
+        xLonMean = numpy.mean(aLon)
+        
+        fLog.write ( "Day CH4_mean = " + str(numpy.mean(aCH4)) + ", Day CH4_SD = " + str(numpy.std(aCH4)) + "\n")
+        fLog.write( "Center lon/lat = " + str(xLonMean) + ", " + str(xLatMean) + "\n")
+        
+        lstCH4_AB = []
+
+        #generate list of the index for observations that were above the threshold
+        for i in range(0,count-2):
+            if ((count-2)>xB):
+                topBound = min((i+xB), (count-2))
+                botBound = max((i-xB), 0)
+
+                for t in range(min((i+xB), (count-2)), i, -1):
+                    if aEpochTime[t] < (aEpochTime[i]+(xB/2)):
+                        topBound = t
+                        break
+                for b in range(max((i-xB), 0), i):
+                    if aEpochTime[b] > (aEpochTime[i]-(xB/2)):
+                        botBound = b
+                        break
+
+                xCH4Mean = numpy.percentile(aCH4[botBound:topBound],50)
+                xCH4SD = numpy.std(aCH4[botBound:topBound])
+            else:
+                xCH4Mean = numpy.percentile(aCH4[0:(count-2)],50)
+                xCH4SD = numpy.std(aCH4[0:(count-2)])
+            xThreshold = xCH4Mean + (xCH4Mean * 0.1)
+            
+            if (aCH4[i] > xThreshold):
+                lstCH4_AB.append(i)
+                aMean[i] = xCH4Mean    #insert mean + SD as upper quartile CH4 value into the array to later retreive into the peak calculation
+                aThreshold[i] = xThreshold
+
+        # now group the above baseline threshold observations into groups based on distance threshold
+        lstCH4_ABP = []
+        xDistPeak = 0.0
+        xCH4Peak = 0.0
+        xTime = 0.0
+        cntPeak = 0
+        cnt = 0
+        sID = ""
+        sPeriod5Min = ""
+        prevIndex = 0
+        for i in lstCH4_AB:   
+            if (cnt == 0):
+                xLon1 = aLon[i]; xLat1 = aLat[i]
+            else:
+                # calculate distance between points
+                xDist = haversine(xLat1, xLon1, aLat[i], aLon[i])
+                xDistPeak += xDist
+                xCH4Peak += (xDist * (aCH4[i] - aMean[i]))
+                xLon1 = aLon[i]; xLat1 = aLat[i]
+                if (sID == ""):
+                    xTime = aEpochTime[i]
+                    sID = str(xCar) + "_" + str(xTime)
+                    sPeriod5Min = str(int((aEpochTime[i] - 1350000000) / (30 * 1))) # 30 sec
+                if ((aEpochTime[i]-aEpochTime[prevIndex]) > xTimeThreshold):       #initial start of a observed peak
+                    cntPeak += 1
+                    xTime = aEpochTime[i]
+                    xDistPeak = 0.0
+                    xCH4Peak = 0.0
+                    sID = str(xCar) + "_" + str(xTime)
+                    sPeriod5Min = str(int((aEpochTime[i] - 1350000000) / (30 * 1))) # 30 sec
+                    #print str(i) +", " + str(xDist) + "," + str(cntPeak) +"," + str(xDistPeak)         
+                lstCH4_ABP.append([sID, xTime, aEpochTime[i], aDateTime[i], aCH4[i], aLon[i], aLat[i], aMean[i] ,aThreshold[i], xDistPeak, xCH4Peak, aTCH4[i], sPeriod5Min])
+            cnt += 1
+            prevIndex = i
+    
+        # Finding peak_id larger than 160.0 m
+        tmpsidlist = []
+        for r in lstCH4_ABP:
+            if (float(r[9])>160.0) and (r[0] not in tmpsidlist):
+                tmpsidlist.append(r[0])
+        cntPeak-=len(tmpsidlist)
+
+        fLog.write ( "Number of peaks found: " + str(cntPeak) + "\n")
+        print xCar + "\t" + xDate + "\t" + xFilename + "\t" + str(count) + "\t" + str(len(lstCH4_ABP))
+        #### calculate attribute for the area under the curve -- PPM
+        
+        #write out the observed peaks to a csv to be read into a GIS
+        fOut = open(fnOut, 'w')
+        s = "PEAK_NUM,EPOCHSTART,EPOCH,DATETIME,CH4,LON,LAT,CH4_BASELINE,CH4_THRESHOLD,PEAK_DIST_M,PEAK_CH4,TCH4,PERIOD5MIN\n"
+        fOut.write(s)
+
+        truecount = 0
+        for r in lstCH4_ABP:
+            if r[0] not in tmpsidlist:
+                s = ''
+                for rr in r:
+                    s += str(rr) + ','
+                s = s[:-1]
+                s += '\n'
+                fOut.write(s)
+                truecount += 1
+        fOut.close()
+        fLog.close()
+
+        if truecount > 0:
+            arcpy.MakeXYEventLayer_management(fnOut,"LON","LAT",xCar + "L","GEOGCS['GCS_WGS_1984',DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]];-400 -400 1000000000;-100000 10000;-100000 10000;8.98315284119522E-09;0.001;0.001;IsHighPrecision","#")
+            arcpy.FeatureToPoint_management(xCar + "L",fnShape,"CENTROID")
+            arcpy.Delete_management(xCar+"L")
+
+        return True
+    except ValueError:
+        print "Error in Identify Peaks"
+        return False
+
+if __name__ == '__main__':
+    inDir = "C:/Users/olhaj/Desktop/Fort Collins/Fort Collins Co-Drive Threshold/Emily 10/ProcessedRawData/"
+
+    s1 = "SCcar"
+
+    for file in os.listdir(inDir):
+        if file.startswith(s1) and file.endswith("dat.csv"):
+            xCar = s1
+            xDate = file[6:14]
+
+            theResult = IdentifyPeaks(xCar, xDate, inDir, file)

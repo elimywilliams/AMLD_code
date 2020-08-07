@@ -10,31 +10,31 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/GitHub/CSU_SC/SC_Algorithm_Alex_1pc" 
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/CSU_SC/SC_Algorithm_Alex_30mph/csu_15pc_30mph_median" 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/GitHub/CSU_SC/SC_Algorithm_Alex_1pc/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/CSU_SC/SC_Algorithm_Alex_30mph/csu_15pc_30mph_median/"
 
 ## CarID 
 xCar = 'CSULi' # might need to be 5 letters? Need to check that!
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
-threshold = '0.01'
+threshold = '0.15'
 
 ## How many minutes to include in background calculation (minutes)
 #timethresh = '1.7' 
 timethresh= '5'
 
 ## How many minutes to skip at the beginning of the dataset (i.e. if Colin is at his house)
-initialTimeIgnore = '5'
+initialTimeIgnore = '0'
 
 # minimum number of elevated readings required for an observed peak
-minElevated = '1'
+minElevated = '2'
 
 ## Lag time for CH4 to reach sensor (in seconds)
-shift = -4
+shift = 0
 
 ## Is this an engineering file?
-engineering = True
+engineering = False
 
 # Not super sure what timePush is but thats cool
 timePush = 5 #min
@@ -42,8 +42,12 @@ timePush = 0
 
 ###
 backObs = '1020'
-maxCarSpeed = '45'
+maxCarSpeed = '30'
 minCarSpeed = '2'
+
+baseLinePerc = '50' 
+
+
 
 ###############################################################################
 ###### DON'T CHANGE ANYTHING BELOW THIS (UNLESS YOU CAN FIX IT) ###############
@@ -114,11 +118,12 @@ import time
 # Input: a .csv file with processed data (already have gone through 'processRawDataEng')
 # Output: saves many files, but finds elevated readings
 
-def IdentifyPeaksCSU( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2',xB = '1020'):
+def IdentifyPeaksCSU( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2',xB = '1020',basePerc = '50'):
     import csv, numpy    
     import geopandas as gpd
     import shutil 
     try:
+        baseCalc = float(basePerc)
         xABThreshold = float(threshold)
         minElevated = float(minElevated)
         #xABThreshold = 0.1                 # above baseline threshold above the mean value
@@ -203,10 +208,10 @@ def IdentifyPeaksCSU( xCar, xDate, xDir, xFilename,outDir,processedFileLoc,thres
                         botBound = b
                         break
 
-                xCH4Mean = numpy.percentile(aCH4[botBound:topBound],50)
+                xCH4Mean = numpy.percentile(aCH4[botBound:topBound],baseCalc)
                # xCH4SD = numpy.std(aCH4[botBound:topBound])
             else:
-                xCH4Mean = numpy.percentile(aCH4[0:(count-2)],50)
+                xCH4Mean = numpy.percentile(aCH4[0:(count-2)],baseCalc)
                 #xCH4SD = numpy.std(aCH4[0:(count-2)])
             xThreshold = xCH4Mean + (xCH4Mean * xABThreshold)
             
@@ -551,6 +556,8 @@ verTog = allTog.loc[allTog.numtimes!= 1,:]
 
 if verTog.size > 0:
     verTog.drop(columns=['recombine']).to_file(shpFileLocName, driver="GeoJSON")
+    print('I found ' + str(len(verTog.min_read.unique()))+" verified peaks")
+
 if verTog.size ==0:
     print("Sorry, no verified peaks were found.")  
 if allTog.size> 0:
@@ -562,3 +569,4 @@ if allTog.size == 0:
     
 end = time.time()
 print("I created three summary files located here: " + str(finRes) + ". The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
+print("I found " + str(len(allTog.min_read.unique()))+ " Observed Peaks")
