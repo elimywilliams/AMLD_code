@@ -558,7 +558,6 @@ def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialT
         return False
 ############
 ### processData (not engineering file)
-
 def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialTimeBack,shift,maxSpeed = '45',minSpeed = '2'):
     import pandas as pd
     from datetime import datetime
@@ -726,6 +725,183 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialTime
         wind_df['bearing'] = wind_df.apply(lambda row: calcBearing(row['prev_LAT'],row['next_LAT'],row['prev_LONG'],row['next_LONG'],radians),axis=1)
         wind_df['timediff'] = wind_df.apply(lambda row: row['next_TIME'] - row['prev_TIME'],axis = 1)
         wind_df['VELOCITY'] = wind_df.apply(lambda row:calcVel(row['timediff'],row['distance']),axis=1)
+        wind_df['U_cor'] = wind_df.apply(lambda row:row['U'] + row['VELOCITY'],axis = 1)
+        wind_df['horz_length'] = wind_df.apply(lambda row: np.sqrt(row['U_cor']**2 + row['V']**2),axis=1)
+        wind_df['uncor_theta'] = wind_df.apply(lambda row :calcBearing(row['U_cor'],row['V'],row['QUADRANT'],row['horz_length'],radians),axis = 1)
+        wind_df['adj_theta'] = wind_df.apply(lambda row: (row['uncor_theta'] + row['bearing'])%360,axis =1)
+        wind_df['totalWind'] = wind_df.apply(lambda row: np.sqrt(row['horz_length']**2 + row['W']**2),axis = 1)
+        wind_df['phi'] = wind_df.apply(lambda row: np.arctan(row['horz_length']),axis=1)
+        wind_df['shift_CH4'] = wind_df.CH4.shift(periods = int(float(shift)))
+        wind_df['raw_CH4'] = wind_df.apply(lambda row: row['BCH4'],axis=1)
+        wind_df['BCH4']= wind_df.loc[:,['shift_CH4']]
+        wind_df['CH4']= wind_df.loc[:,['shift_CH4']]
+        wind_df['TCH4']= wind_df.loc[:,['shift_CH4']]
+
+        wind_df2 = wind_df[wind_df.CH4.notnull()]
+        wind_df2 = wind_df.copy()
+        wind_df3 = wind_df2.drop(['QUADRANT', 'secnan','prev_LAT','next_LAT','prev_LONG','next_LONG','prev_TIME','next_TIME','distance','timediff','uncor_theta','CH4'],axis = 1)
+        wind_df3['CH4'] = wind_df3.loc[:,'shift_CH4']
+        wind_df3 = wind_df3.drop(['shift_CH4'],axis = 1)
+
+        wind_df3 = wind_df3.loc[:,['DATE','TIME','SECONDS','NANOSECONDS','VELOCITY','U','V','W','BCH4','BRSSI','TCH4','TRSSI','PRESS_MBAR','INLET' \
+                                   , 'TEMPC','CH4','H20','C2H6','R','C2C1','BATTV','POWMV','CURRMA','SOCPER','LAT','LONG','bearing','U_cor', \
+                                   'horz_length','adj_theta','totalWind','phi','raw_CH4']]
+        #wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(),:]
+
+        wind_df4 = wind_df3.copy()
+
+        #wind_df7 = addOdometer(wind_df4,'LAT','LONG')
+
+       # wind_df4 = wind_df7.copy()
+        wind_df5 = wind_df4.loc[wind_df4.VELOCITY > xMinCarSpeed,: ]
+        wind_df6 = wind_df5.loc[wind_df5.VELOCITY < xMaxCarSpeed,: ]
+
+        del(wind_df4)
+        wind_df4 = wind_df6.copy().drop_duplicates()
+        wind_df5 = wind_df4.loc[wind_df4.CH4.notnull(),:]
+        wind_df4 = wind_df5.copy()
+        if bFirst:
+            wind_df4.to_csv(fnOut,index=False)
+        elif not bFirst:
+            norm = pd.read_csv(fnOut)
+            pd.concat([norm,wind_df4]).sort_values(by='SECONDS').reset_index(drop=True).to_csv(fnOut,index=False)
+        os.remove(fnOutTemp)
+        return True
+    except ValueError:
+        return False
+
+
+def ProcessRawDataAeris( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialTimeBack,shift,maxSpeed = '45',minSpeed = '2'):
+    import pandas as pd
+    from datetime import datetime
+    import os
+    import gzip
+    from numpy import pi
+    import numpy as np
+    # import csv
+    from math import floor
+    try:
+        xMaxCarSpeed = float(maxSpeed) / 2.23694  # CONVERTED TO M/S (default is 45mph)
+        xMinCarSpeed = float(minSpeed) / 2.23694  # CONVERTED TO M/S (default is 2mph)
+
+        ########################################################################
+        #### WE DON'T HAVE AN RSSI INPUT
+        ### (SO THIS IS A PLACEHOLDER FOR SOME SORT OF QA/QC VARIABLE)
+        ##  xMinRSSI = 50  #if RSSI is below this we don't like it
+        ##################################################################
+
+        # reading in the data with specific headers
+        #          0     1    2    3       4           5    6       7        8        9          10                 11              12           13            14      15      16      17        18         19         20         21         22         23        24   25  26       27           28       29           30       31       32       33  34        35   36   37  38   39       40       41   42       43   44   45   46   47   48   49   50   51     52     53     54
+        sHeader = "Time Stamp,Inlet Number,P (mbars),T (degC),CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Latitude,Longitude"
+        sHeader = 'Time Stamp,Inlet Number,P (mbars),T (degC),CH4 (ppm),H2O (ppm),C2H6 (ppb),R,C2/C1,Battery Charge (V),Power Input (mV),Current (mA),SOC (%),Latitude,Longitude,U (m/sec),V (m/sec),W (m/sec),T (degC),Dir (deg),Speed (m/sec),Compass (deg)'
+        sOutHeader = "DATE,TIME,SECONDS,NANOSECONDS,VELOCITY,U,V,W,BCH4,BRSSI,TCH4,TRSSI,PRESS_MBAR,INLET,TEMPC,CH4,H20,C2H6,R,C2C1,BATTV,POWMV,CURRMA,SOCPER,LAT,LONG\n"
+        infoHeader = "FILENAME\n"
+        # somehow gZIP is indicating if  it is the first file name (I think if it is 0 then it is the first file)
+        if gZIP == 0:
+            f = gzip.open(xDir + "/" + xFilename,
+                          'r')  # if in python 3, change this to "r" or just "b" can't remember but something about a bit not a string
+        else:
+            f = open(xDir + xFilename, 'r')
+
+        infoHeader = "FILENAME\n"
+
+        # process - if first time on this car/date, then write header out
+        headerNames = sHeader.split(',')
+        xdat = str('20') + xFilename[11:17]
+        fnOut = xOut + xCar + "_" + xdat + "_dat.csv"  # set CSV output for raw data
+        fnLog = xOut + xCar + "_" + xdat + "_log.csv"  # output for logfile
+        infOut = xOut + xCar + "_" + xdat + "_info.csv"
+        #
+
+        dtime = open(xDir + xFilename).readlines().pop(1).split(',')[0]
+        firstdate = datetime(int(dtime[6:10]), int(dtime[0:2]), int(dtime[3:5]), int(dtime[11:13]),
+                             int(dtime[14:16]), int(dtime[17:19]), int(float(dtime[19:23]) * 1000000))
+        firsttime = firstdate.strftime('%s.%f')
+        fnOutTemp = xOut + xCar + "_" + xdat + "temp_dat.csv"  #
+
+        if bFirst:
+            fLog = open(fnLog, 'w')
+            infOut = open(infOut, 'w')
+            infOut.write(infoHeader)
+            print("fnLog: " + fnOut)
+        if not bFirst:
+            fOut = open(fnOut, 'a')
+            fLog = open(fnLog, 'a')
+            infOut = open(infOut, 'a')
+
+        fOut = open(fnOutTemp, 'w')
+        fOut.write(sOutHeader)
+
+        # read all lines
+        xCntObs = -1
+        xCntGoodValues = 0
+        for row in f:
+            # print(row)
+            bGood = True
+            if xCntObs < 0:
+                bGood = False
+                xCntObs += 1
+            if bGood:
+                lstS = row.split(",")
+                dtime = lstS[0]
+                dateob = datetime(int(dtime[6:10]), int(dtime[0:2]), int(dtime[3:5]), int(dtime[11:13]),
+                                  int(dtime[14:16]), int(dtime[17:19]), int(float(dtime[19:23]) * 1000000))
+                fdate = datetime(int(dtime[6:10]), int(dtime[0:2]), int(dtime[3:5]), int(dtime[11:13]),
+                                 int(dtime[14:16]), int(dtime[17:19]), int(float(dtime[19:23]) * 1000000))
+                seconds = fdate.strftime('%s.%f')
+
+                import sys
+                if sys.platform.startswith('win'):
+                    csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(
+                        dateob.strftime('%H:%M:%S')) + ',' + str(
+                        int(pd.to_numeric(dateob.strftime('%S.%f')))) + ',' + str(
+                        pd.to_numeric(dateob.strftime('%f')) * 1000) + str(',')
+                    csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(
+                        lstS[4]) + ',' + str('0') + ',' + str(lstS[4]) + ','
+                    csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(
+                        lstS[3]) + ',' + str(lstS[4]) + ',' + str(lstS[5]) + ',' + str(lstS[6]) + ','
+                    csvWrite += str(lstS[7]) + ',' + str(lstS[8]) + ',' + str(lstS[9]) + ',' + str(
+                        lstS[10]) + ',' + str(lstS[11]) + ',' + str(lstS[12]) + ',' + str(lstS[13]) + str(
+                        ',') + str(lstS[14])
+                if not sys.platform.startswith('win'):
+                    csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(
+                        dateob.strftime('%H:%M:%S')) + ',' + str(seconds[:10]) + ',' + str(
+                        pd.to_numeric(seconds[11:]) * 1000) + str(',')
+                    csvWrite += str(lstS[20]) + ',' + str(lstS[15]) + ',' + str(lstS[16]) + ',' + str(lstS[17]) + ',' + str(
+                        lstS[4]) + ',' + str('0') + ',' + str(lstS[4]) + ','
+                    csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(
+                        lstS[3]) + ',' + str(lstS[4]) + ',' + str(lstS[5]) + ',' + str(lstS[6]) + ','
+                    csvWrite += str(lstS[7]) + ',' + str(lstS[8]) + ',' + str(lstS[9]) + ',' + str(
+                        lstS[10]) + ',' + str(lstS[11]) + ',' + str(lstS[12]) + ',' + str(lstS[13]) + str(
+                        ',') + str(lstS[14]) + '\n'
+                fOut.write(csvWrite)
+                xCntObs += 1
+            infOut.write(str(xFilename)+'\n')
+        fOut.close()
+        fLog.close()
+        infOut.close()
+        print (xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(gZIP))
+
+        def calcVel(timediff,distance):
+            if timediff == 0:
+                return(0)
+            elif timediff != 0:
+                return(distance/timediff)
+
+        wind_df = pd.read_csv(fnOutTemp)
+        radians = False
+        wind_df['QUADRANT'] = wind_df.apply(lambda row: getQuad(row['U'],row['V']),axis=1)
+        wind_df['secnan'] = wind_df.apply(lambda row: row['SECONDS'] + row['NANOSECONDS']*1e-9,axis=1) # + row['NANOSECONDS']*1e-9,axis=1)
+        wind_df['prev_LAT'] = wind_df.LAT.shift(periods = 1)
+        wind_df['next_LAT'] = wind_df.LAT.shift(periods = -1)
+        wind_df['prev_LONG'] = wind_df.LONG.shift(periods = 1)
+        wind_df['next_LONG'] = wind_df.LONG.shift(periods = -1)
+        wind_df['prev_TIME'] = wind_df.secnan.shift(periods = 1)
+        wind_df['next_TIME'] = wind_df.secnan.shift(periods = -1)
+        wind_df['distance'] = wind_df.apply(lambda row: haversine(row['prev_LAT'],row['prev_LONG'],row['next_LAT'],row['next_LONG']),axis=1)
+        wind_df['bearing'] = wind_df.apply(lambda row: calcBearing(row['prev_LAT'],row['next_LAT'],row['prev_LONG'],row['next_LONG'],radians),axis=1)
+        wind_df['timediff'] = wind_df.apply(lambda row: row['next_TIME'] - row['prev_TIME'],axis = 1)
+        #wind_df['VELOCITY_calc'] = wind_df.apply(lambda row:calcVel(row['timediff'],row['distance']),axis=1)
         wind_df['U_cor'] = wind_df.apply(lambda row:row['U'] + row['VELOCITY'],axis = 1)
         wind_df['horz_length'] = wind_df.apply(lambda row: np.sqrt(row['U_cor']**2 + row['V']**2),axis=1)
         wind_df['uncor_theta'] = wind_df.apply(lambda row :calcBearing(row['U_cor'],row['V'],row['QUADRANT'],row['horz_length'],radians),axis = 1)

@@ -10,16 +10,16 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/retestData/CoDrive_45_102_5pc_pycharm"
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_dat"
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/retestData/CoDrive_45_102_5pc_pycharm/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_dat/"
 
 
 ## CarID 
-xCar = 'SCCar' # might need to be 5 letters? Need to check that!
+xCar = 'TrCar' # might need to be 5 letters? Need to check that!
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
-threshold = '0.03'
+threshold = '0.05'
 
 ## How many minutes to include in background calculation (minutes)
 #timethresh = '1.7'
@@ -27,17 +27,19 @@ timethresh = '5.0'
 #timethresh = '2.5'
 
 ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
-initialTimeIgnore = '5'
+initialTimeIgnore = '0'
 
 # minimum number of elevated readings required for an observed peak
 minElevated = '1'
 
 ## Lag time for CH4 to reach sensor (in seconds)
-shift = -4
+#shift = -4
+shift = 0
 
 ## Is this an engineering file?
 #engineering = True
 engineering = False
+aeris = True
 
 # Not super sure what timePush is but thats cool
 timePush = 5 #min
@@ -101,7 +103,10 @@ from amld_Functions import unique,unIfInt,\
                             makeGPD,summarizeDat,getQuad,calcTheta,\
                             calcBearing,ProcessRawDataEng,strList,\
                             countTimes,IdentifyPeaks,filterPeak,\
-                            passCombine,sumData2,addOdometer,ProcessRawData
+                            passCombine,sumData2,addOdometer,ProcessRawData,\
+                            ProcessRawDataAeris
+
+
 import numpy as np
 import os
 import os, sys, datetime, time, math, csv, numpy,gzip,shutil
@@ -192,14 +197,17 @@ if __name__ == '__main__':
             #else:
              #   bFirst = True
             x1 = file[:10]
-            
+
             #xCar = "CSULi"
             xDate = file[:10]
             #theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
             if engineering:
                 theResult = ProcessRawDataEng(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift,maxCarSpeed,minCarSpeed)
             elif not engineering:
-                theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift,maxCarSpeed,minCarSpeed)
+                if aeris:
+                    theResult = ProcessRawDataAeris(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift,maxCarSpeed,minCarSpeed)
+                elif not aeris:
+                    theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift,maxCarSpeed,minCarSpeed)
             #del(bFirst)
             count = count + 1
 

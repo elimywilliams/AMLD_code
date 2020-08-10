@@ -1,7 +1,19 @@
-xCar = 'SCCar'
-xDate = '20200615'
-opDir = '/Users/emilywilliams/Documents/DrivingData/retestData/CoDrive_45_102_5pc_pycharm/ObservedPeaks/'
-file = 'Peaks_SCCar_20200615.csv'
+### testring the processData aeris
+
+theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc, initialTimeIgnore, shift,
+                           maxCarSpeed, minCarSpeed)
+
+def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45', minSpeed='2'):
+
+xCar = 'TrCar'
+xDate = '20200630'
+xDir = rawDir
+xFilename = file
+gZIP = 1
+xOut = processedFileLoc
+initialTimeBack = initialTimeIgnore
+maxSpeed = maxCarSpeed
+minSpeed = minCarSpeed
 filtopDir = '/Users/emilywilliams/Documents/DrivingData/retestData/CoDrive_45_102_5pc_pycharm/FilteredObservedPeaks/'
 index = 1
 
