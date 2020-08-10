@@ -10,18 +10,16 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/retestData/CoDrive_45_102_5pc" 
+rawDatLoc = "/Users/emilywilliams/Documents/DrivingData/retestData/CoDrive_45_102_5pc_pycharm"
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/DrivingData/retestData/CoDrive_45_102_5pc/"
-
-
+resFolder = "/Users/emilywilliams/Documents/DrivingData/retestData/CoDrive_45_102_5pc_pycharm/"
 
 
 ## CarID 
 xCar = 'SCCar' # might need to be 5 letters? Need to check that!
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
-threshold = '0.05'
+threshold = '0.03'
 
 ## How many minutes to include in background calculation (minutes)
 #timethresh = '1.7'
@@ -106,7 +104,6 @@ from amld_Functions import unique,unIfInt,\
                             passCombine,sumData2,addOdometer,ProcessRawData
 import numpy as np
 import os
-import pandas as pd
 import os, sys, datetime, time, math, csv, numpy,gzip,shutil
 from math import radians, sin, cos, sqrt, asin
 from numpy import log
@@ -116,7 +113,9 @@ from shapely.geometry import Point # Shapely for converting latitude/longtitude 
 import matplotlib.pyplot as plt
 import ast
 from datetime import datetime
-import time
+import time, swifter
+
+
 
 
 #### CREATING NECESSARY FOLDERS
@@ -217,7 +216,7 @@ if __name__ == '__main__':
     numproc = 0
     listthing = os.listdir(opDir)
     for file in listthing:
-        if file.startswith(s2) and file.endswith('.csv') and not file.endswith('info.csv'):
+        if file.startswith(s2) and (file.endswith('.csv') and not file.endswith('info.csv')):
             print(file)
             file_loc = opDir + file
             csv_loc = opDir  + file[:-4]+ '_info.csv'
@@ -251,7 +250,9 @@ if not os.path.exists(finalMain):
             mainThing = woo.copy()
         index = index + 1
         print(file)
+    mainThing = mainThing.copy().reset_index(drop = True)
     mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine),axis=1)
+    #mainThing['numtimes']  = mainThing.recombine.swifter.apply(lambda x: countTimes(x))
 
 # =============================================================================
 # if not os.path.exists(finalMain):
@@ -299,7 +300,7 @@ if not os.path.exists(finalMain):
                 
 ## figure out the mainInfo thing
 #mainInfo.reset_index().FILENAME.to_csv(finalInfoLoc)
-mainThing.to_csv(finalMain)
+mainThing.reset_index(drop=True).to_csv(finalMain)
         
 print("I processed "+ str(index) + ' days of driving. The processed files are now stored in the folder: ' + str(filtopDir))
 
@@ -325,8 +326,14 @@ unique_gdf2 = pd.merge(unique_gdf,uniqueList,on = ['min_read'])
 #allTog = pd.merge(combinedGeo,uniqueOther,on=['min_read'])
 #allTog = pd.merge(allTog,uniqueList,on=['min_read'])
 allTog = unique_gdf2.copy()
-allTog['em'] = allTog.apply(lambda y: estEmissions(y['mnlogCH4']),axis=1)
-allTog['threshold'] = allTog.apply(lambda x: threshold,axis =1 )
+#allTog['em'] = allTog.apply(lambda y: estEmissions(y['mnlogCH4']),axis=1)
+allTog['em'] = allTog['mnlogCH4'].swifter.apply(lambda y: estEmissions(y))
+
+
+
+#allTog['threshold'] = allTog.apply(lambda x: threshold,axis =1 )
+
+allTog['threshold'] = allTog['em'].swifter.apply(lambda x: threshold)
 
 
 ##### SPLITTING IF THE PEAKS WERE VERIFIED OR NOT
@@ -346,5 +353,10 @@ if allTog.size == 0:
     print("Sorry, no observed peaks were found in the given data")
     
 end = time.time()
+print("I analysed the data using a threshold of " + str(float(threshold)*100 + 100) + "% for an elevated reading" )
+print("where the threshold was calculated using the " + str(baseLinePerc) + 'th percentile over ' + str(backObs) + ' observations')
+print("I filtered the speed of the car to be between " + str(minCarSpeed) + 'mph and ' + str(maxCarSpeed) + 'mph')
+print("To create an observed peak, I required there to be a minimum of " + str(minElevated) + " observations within 30 seconds")
 print("I created three summary files located here: " + str(finRes) + ". The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
-print("I found " + str(len(allTog.min_read.unique()))+ " Observed Peaks")
+print("I found " + str(len(mainThing.OP_NUM.unique()))+ " Observed Peaks")
+print(end - start)

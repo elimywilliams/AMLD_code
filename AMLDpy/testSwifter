@@ -1,0 +1,48 @@
+
+
+wind_df_norm = wind_df.copy()
+wind_df_swift = wind_df.copy()
+
+start_time = time.time()
+wind_df_norm['distance'] = wind_df_norm.apply(lambda row: haversine(row['prev_LAT'],row['prev_LONG'],row['next_LAT'],row['next_LONG']),axis=1)
+wind_df_norm['bearing'] = wind_df_norm.apply(lambda row: calcBearing(row['prev_LAT'],row['next_LAT'],row['prev_LONG'],row['next_LONG'],radians),axis=1)
+wind_df_norm['timediff'] = wind_df_norm.apply(lambda row: row['next_TIME'] - row['prev_TIME'],axis = 1)
+wind_df_norm['VELOCITY'] = wind_df_norm.apply(lambda row:calcVel(row['timediff'],row['distance']),axis=1)
+wind_df_norm['U_cor'] = wind_df_norm.apply(lambda row:row['U'] + row['VELOCITY'],axis = 1)
+wind_df_norm['horz_length'] = wind_df_norm.apply(lambda row: np.sqrt(row['U_cor']**2 + row['V']**2),axis=1)
+wind_df_norm['uncor_theta'] = wind_df_norm.apply(lambda row :calcBearing(row['U_cor'],row['V'],row['QUADRANT'],row['horz_length'],radians),axis = 1)
+wind_df_norm['adj_theta'] = wind_df_norm.apply(lambda row: (row['uncor_theta'] + row['bearing'])%360,axis =1)
+wind_df_norm['totalWind'] = wind_df_norm.apply(lambda row: np.sqrt(row['horz_length']**2 + row['W']**2),axis = 1)
+wind_df_norm['phi'] = wind_df_norm.apply(lambda row: np.arctan(row['horz_length']),axis=1)
+wind_df_norm['shift_CH4'] = wind_df_norm.CH4.shift(periods = int(float(shift)))
+wind_df_norm['raw_CH4'] = wind_df_norm.apply(lambda row: row['BCH4'],axis=1)
+wind_df_norm['BCH4']= wind_df_norm.loc[:,['shift_CH4']]
+wind_df_norm['CH4']= wind_df_norm.loc[:,['shift_CH4']]
+wind_df_norm['TCH4']= wind_df_norm.loc[:,['shift_CH4']]
+end_time = time.time()
+first_time = end_time - start_time
+print(first_time)
+
+
+start_time = time.time()
+df[['inCol1', 'inCol2']].swifter.apply(my_func)
+wind_df_swift[['prev_LAT','prev_LONG','next_LAT','next_LONG']].swifter.apply(haversine(0,1,2,3))
+
+wind_df_swift['distance'] = wind_df_swift.swifter.apply(lambda row: haversine(row.prev_LAT,row.prev_LONG,row.next_LAT,row.next_LONG),axis=1)
+wind_df_swift['bearing'] = wind_df_swift.swifter.apply(lambda row: calcBearing(row['prev_LAT'],row['next_LAT'],row['prev_LONG'],row['next_LONG'],radians),axis=1)
+wind_df_swift['timediff'] = wind_df_swift.swifter.apply(lambda row: row['next_TIME'] - row['prev_TIME'],axis = 1)
+wind_df_swift['VELOCITY'] = wind_df_swift.swifter.apply(lambda row:calcVel(row['timediff'],row['distance']),axis=1)
+wind_df_swift['U_cor'] = wind_df_swift.swifter.apply(lambda row:row['U'] + row['VELOCITY'],axis = 1)
+wind_df_swift['horz_length'] = wind_df_swift.swifter.apply(lambda row: np.sqrt(row['U_cor']**2 + row['V']**2),axis=1)
+wind_df_swift['uncor_theta'] = wind_df_swift.swifter.apply(lambda row :calcBearing(row['U_cor'],row['V'],row['QUADRANT'],row['horz_length'],radians),axis = 1)
+wind_df_swift['adj_theta'] = wind_df_swift.swifter.apply(lambda row: (row['uncor_theta'] + row['bearing'])%360,axis =1)
+wind_df_swift['totalWind'] = wind_df_swift.swifter.apply(lambda row: np.sqrt(row['horz_length']**2 + row['W']**2),axis = 1)
+wind_df_swift['phi'] = wind_df_swift.swifter.apply(lambda row: np.arctan(row['horz_length']),axis=1)
+wind_df_swift['shift_CH4'] = wind_df_swift.CH4.shift(periods = int(float(shift)))
+wind_df_swift['raw_CH4'] = wind_df_swift.swifter.apply(lambda row: row['BCH4'],axis=1)
+wind_df_swift['BCH4']= wind_df_swift.loc[:,['shift_CH4']]
+wind_df_swift['CH4']= wind_df_swift.loc[:,['shift_CH4']]
+wind_df_swift['TCH4']= wind_df_swift.loc[:,['shift_CH4']]
+end_time = time.time()
+swift_time = end_time - start_time
+print(swift_time)
