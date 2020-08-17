@@ -565,7 +565,6 @@ def ProcessRawData( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialTime
     import os
     import gzip
     #import csv
-    from math import floor
     try:
         xMaxCarSpeed = float(maxSpeed)/2.23694 #CONVERTED TO M/S (default is 45mph)
         xMinCarSpeed = float(minSpeed)/2.23694 #CONVERTED TO M/S (default is 2mph)
@@ -777,10 +776,8 @@ def ProcessRawDataAeris( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initia
     from datetime import datetime
     import os
     import gzip
-    from numpy import pi
     import numpy as np
     # import csv
-    from math import floor
     try:
         xMaxCarSpeed = float(maxSpeed) / 2.23694  # CONVERTED TO M/S (default is 45mph)
         xMinCarSpeed = float(minSpeed) / 2.23694  # CONVERTED TO M/S (default is 2mph)
@@ -1003,7 +1000,6 @@ def strList(x):
 
 
 def countTimes(opList):
-    import ast
     if isinstance(opList, str):
         opList = strList(opList)
     if len(opList) == 1:
@@ -1565,15 +1561,16 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename,outDir,processedFileLoc,Engineeri
 # Output: checks for overlaps within a day's drive. Finds locations of
 #           Observed Peaks
 
-def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
-    import rtree
-    import pygeos
+def filterPeak(xCar,xDate,xDir,xFilename, outFolder,buffer = '30',whichpass = 0):
+    ## NECESSARY MODULES
     import pandas as pd #
     import geopandas as gpd
     import shutil
     from datetime import datetime
-    from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
+    from shapely.geometry import Point
+    buffer = float(buffer)
 
+    # MOVING THE FILES NECESSARY & CREATING NEW FILES
     file_loc = xDir + xFilename
     new_loc = outFolder + "Filtered" + xFilename
     new_loc_json = new_loc[:-3] + 'json'
@@ -1589,12 +1586,12 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
     #   'OP_PEAK_DIST_M', 'OP_PEAK_CH4', 'OB_TCH4', 'OB_PERIOD5MIN'],
     #  dtype='object')
 
-    datFram = pd.read_csv(file_loc)
+    datFram = pd.read_csv(file_loc) #READING IN THE FILE
 
-    if datFram.shape[0] == 0:
+    if datFram.shape[0] == 0: #IF THE OBSERVED PEAK FILE WAS EMPTY, MOVE ON
         print("Not filtering this file, no peak in it!")
-    elif datFram.shape[0] == 1: ## only one thing to begin with
-        datFram_cent =  datFram.loc[:,:]
+    elif datFram.shape[0] == 1: ## IF ONLY HAD ONE OBSERVED PEAK
+        datFram_cent =  datFram.copy()
         datFram_cent['OB_CH4_AB'] = datFram.loc[:,'OB_CH4'].sub(datFram.loc[:,'OB_CH4_BASELINE'], axis = 0)
         maxch4 = datFram_cent.groupby('OP_NUM',as_index = False).OB_CH4_AB.max().rename(columns = {'OB_CH4_AB':'pk_maxCH4_AB'})
         datFram_wtLoc = weightedLoc(datFram_cent,'OB_LAT','OB_LON','OP_NUM','OB_CH4_AB').loc[:,:].rename(columns = {'OB_LAT':'pk_LAT','OB_LON':'pk_LON'})
@@ -1604,7 +1601,8 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
         crs = {'init': 'epsg:4326'}
         gdf_buff = gpd.GeoDataFrame(datFram_wtLocMax, crs=crs, geometry=geometry_temp)
         gdf_buff = gdf_buff.to_crs(epsg=32610)
-        gdf_buff['geometry'] = gdf_buff.loc[:,'geometry'].buffer(30)
+        #gdf_buff['geometry'] = gdf_buff.loc[:,'geometry'].buffer(30)
+        gdf_buff['geometry'] = gdf_buff.loc[:,'geometry'].buffer(buffer)
         gdf_tog = pd.merge(gdf_buff,datFram,on = ['OP_NUM'])
         gdf_bind_pks = gdf_buff.copy()
         gdf_pass_pks = gdf_bind_pks.copy()
@@ -1619,7 +1617,6 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
         gdf_pass_pks = gdf_pass_pks.drop(columns=['dates'])
 
         gdf_pass_pks['verified'] = False
-#           gdf_pass_pks['oldgeo'] = gdf_pass_pks.loc[:,'geometry']
         gdf_pass_pks['geometry'] = gdf_pass_pks.loc[:,"newgeo"]
         together = pd.merge(gdf_pass_pks,gdf_tog,on = ['OP_NUM','pk_LON','pk_LAT','pk_maxCH4_AB','geometry'])
         together['pass'] = whichpass
@@ -1635,41 +1632,16 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
         gdfcop = gdf_pass_pks.loc[:,['OP_NUM','min_read','min_Date','numtimes','verified','pass','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates()
         combinedOP = weightedLoc(gdfcop,'pk_LAT','pk_LON','min_read','pk_maxCH4_AB').loc[:,:].rename(columns = {'pk_LAT':'Overall_LAT','pk_LON':'Overall_LON'}).reset_index(drop=True)
         combinedOP1 = pd.merge(combinedOP,gdfcop,on=['min_read'])
-
-
-
         geometry_temp = [Point(xy) for xy in zip(combinedOP1['Overall_LON'], combinedOP1['Overall_LAT'])]
         crs = {'init': 'epsg:4326'}
         gdf_OP = gpd.GeoDataFrame(combinedOP1, crs=crs, geometry=geometry_temp)
         gdf_OP = gdf_OP.to_crs(epsg=32610).copy()
-
         gdf_OP_reduced = gdf_OP.loc[:,['min_read','geometry','numtimes','Overall_LON','Overall_LAT','min_Date','verified']].drop_duplicates().reset_index(drop=True)
         gdf_OP_reduced.to_file(new_loc_json, driver="GeoJSON")
-
-        #gdf_OP_wrecombine = pd.merge(gdf_OP.drop(columns=['geometry']),gdf_pass_pks.drop(columns=['geometry','oldgeo']),on=['min_read','min_Date','numtimes','pass','verified','pk_LAT','pk_LON','OP_NUM','pk_maxCH4_AB'])
         gdf_OP_wrecombine = pd.merge(gdf_OP.drop(columns=['geometry']),gdf_pass_pks.drop(columns=['geometry']),on=['min_read','min_Date','numtimes','pass','verified','pk_LAT','pk_LON','OP_NUM','pk_maxCH4_AB'])
-
-        #gdf_OP.to_csv(new_loc,index=False)
         gdf_OP_wrecombine.to_csv(new_loc,index=False)
 
-            #geometry is the point of the lat/lon
-        #gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
-
         gdf_buff = gpd.GeoDataFrame(datFram_wtLocMax, crs=crs, geometry=geometry_temp)
-
-
-            #geometry is the point of the lat/lon
-        #gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
-
-        #gdf_buff = gpd.GeoDataFrame(datFram_wtLocMax, crs=crs, geometry=geometry_temp)
-
-
-
-        #gdfcop = gdfcop.to_crs(epsg=32610).copy()
-        #gdfcop.to_file(new_loc_json, driver="GeoJSON")
-
-
-        #gdf_tot.to_csv(new_loc, index = False)
         unique_peaks = gdf_pass_pks.loc[:,['OP_NUM','pk_LAT','pk_LON','min_read','min_Date']].drop_duplicates()
         unique_peaks['save'] = True
         good_pks = list(unique_peaks.index)
@@ -1691,9 +1663,7 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
 
     elif datFram.shape[0] != 1:
         datFram_cent =  datFram.copy()
-        #datFram_cent['CH4_AB'] = datFram.loc[:,'CH4'].sub(datFram.loc[:,'CH4_BASELINE'], axis = 0)
         datFram_cent['OB_CH4_AB'] = datFram.loc[:,'OB_CH4'].sub(datFram.loc[:,'OB_CH4_BASELINE'], axis = 0)
-
 
         ### MAXCH4 is a df with the max methane (above baseline) in the given observed peak
         #maxch4 = datFram_cent.groupby('PEAK_NUM',as_index = False).CH4_AB.max().rename(columns = {'CH4_AB':'pk_maxCH4_AB'})
@@ -1724,18 +1694,9 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
         gdf_buff = gpd.GeoDataFrame(datFram_wtLocMax, crs=crs, geometry=geometry_temp)
         #gdf_buff = makeGPD(datFram,'LON','LAT')
         gdf_buff = gdf_buff.to_crs(epsg=32610)
-        gdf_buff['geometry'] = gdf_buff.loc[:,'geometry'].buffer(30)
-
-        #pass_info_new = datFram.copy().rename(columns={"geometry": 'pk_geo'})
-
-       # gdf_tog = pd.merge(gdf_buff,pass_info_new,on = ['PEAK_NUM', 'EPOCHSTART', 'EPOCH', 'DATETIME', 'CH4', 'LON', 'LAT',
-       #    'CH4_BASELINE', 'CH4_THRESHOLD', 'PEAK_DIST_M', 'PEAK_CH4', 'TCH4',
-       #    'PERIOD5MIN'])
-
+        #gdf_buff['geometry'] = gdf_buff.loc[:,'geometry'].buffer(30)
+        gdf_buff['geometry'] = gdf_buff.loc[:,'geometry'].buffer(buffer)
         gdf_tog = pd.merge(gdf_buff,datFram,on = ['OP_NUM'])
-
-        #gdf_bind_pks = gdf_tog.dissolve(by = 'PEAK_NUM',as_index=False).loc[:,['PEAK_NUM','geometry']]
-
         gdf_bind_pks = gdf_buff.copy()
 
 
@@ -1788,12 +1749,9 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                     over['date1'] = over.apply(lambda x: datetime.fromtimestamp(int( x.OP_NUM_1[6:x.OP_NUM_1.find('.')])).strftime('%Y-%m-%d'),axis=1)
                     over['date2'] = over.apply(lambda x: datetime.fromtimestamp(int( x.OP_NUM_2[6:x.OP_NUM_2.find('.')])).strftime('%Y-%m-%d'),axis=1)
 
-
-
                     def unique(list1):
                         # intilize a null list
                         unique_list = []
-
                         # traverse for all elements
                         for x in list1:
                             # check if exists in unique_list or not
@@ -1801,11 +1759,9 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                                 unique_list.append(x)
                         return(unique_list)
 
-
                     over['dates']= [list(x) for x in list(over.loc[:,['date1','date2']].to_numpy())]
                     over['pk_Dates'] = over.apply(lambda x: unique(x.dates),axis=1)
                     over = over.drop(columns = ['dates'])
-
 
                     over['VER_NUM'] = over.apply(lambda y: y.combined,axis=1)
                     over['min_val']=over.apply(lambda y: min(y.combined),axis=1)
@@ -1844,12 +1800,8 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                     #combined['dates'] = combined.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
                     combined['dates'] = combined.apply(lambda x: datetime.fromtimestamp(int( x.OP_NUM[6:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'),axis=1)
 
-
-
                     combined['pk_Dates'] = [list(x) for x in list(combined.loc[:,['dates']].to_numpy())]
-
                     combined['min_Date'] = combined.loc[:,'dates']
-
                     combined['numtimes'] = 1
                     combined['newgeo'] = combined.loc[:,'geometry']
                     combined['min_read'] = combined.loc[:,"OP_NUM"]
@@ -1985,23 +1937,8 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
         #gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
 
         gdf_buff = gpd.GeoDataFrame(datFram_wtLocMax, crs=crs, geometry=geometry_temp)
-
-
-            #geometry is the point of the lat/lon
-        #gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
-
-        #gdf_buff = gpd.GeoDataFrame(datFram_wtLocMax, crs=crs, geometry=geometry_temp)
-
-
-
-        #gdfcop = gdfcop.to_crs(epsg=32610).copy()
-        #gdfcop.to_file(new_loc_json, driver="GeoJSON")
-
-
-        #gdf_tot.to_csv(new_loc, index = False)
         unique_peaks = gdf_pass_pks.loc[:,['OP_NUM','pk_LAT','pk_LON','min_read','min_Date']].drop_duplicates()
         unique_peaks['save'] = True
-        #good_pks = unique_peaks.PEAK_NUM.drop_duplicates().values.tolist()
         good_pks = list(unique_peaks.index)
 
         def getthing(index):
@@ -2012,25 +1949,18 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
         gdf_pass_pks['wooind'] = gdf_pass_pks.index
         gdf_pass_pks['save'] = gdf_pass_pks.apply(lambda x: getthing(x.wooind),axis=1)
 
-       # unique_pks_tog = pd.concat([unique_peaks, gdf_pass_pks.drop(columns=['LON', 'LAT','PEAK_NUM'])], axis=1, join='inner')
-       # testa = pd.merge(gdf_pass_pks, unique_peaks, how='left', on=['PEAK_NUM', 'pk_LAT','pk_LON','min_read'])
-
         unique_pks_tog = gdf_pass_pks.loc[gdf_pass_pks.save == True,:].reset_index(drop=True)
         unique_pks_tog['Latitude'] = unique_pks_tog.loc[:,'pk_LAT']
         unique_pks_tog['Longitude'] = unique_pks_tog.loc[:,'pk_LON']
-
-        #unique_pks_tog.to_csv(new_loc2, index = False)
         unique_pks_tog.to_csv(new_loc, index = False)
 
         return()
-        #return(gdf_OP_wrecombine)
 
 ########################################################################
 #### sumData2
 # Input: the two data groups to combine (already have gone through
 #           'filterpeak')
 # Output: One dataframe with the combination (combine peaks)
-
 
 def sumData2(mainDF):
     from numpy import log
@@ -2051,7 +1981,7 @@ def sumData2(mainDF):
 # Output: One dataframe with the combination (combine peaks)
 
 
-def passCombine (firstgroup, secondgroup):
+def passCombine (firstgroup, secondgroup,buffer = '30'):
     import ast
     def strList(x):
         x = ast.literal_eval(x)
@@ -2061,6 +1991,7 @@ def passCombine (firstgroup, secondgroup):
     import pandas as pd #
     import geopandas as gpd
     from shapely.geometry import Point
+    buffer = float(buffer)
 
     seclist = secondgroup.columns
 

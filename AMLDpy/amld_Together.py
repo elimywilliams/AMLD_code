@@ -10,14 +10,14 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_july"
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/coDrive_new/coDrive_5pc_45mph_102_q1"
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_july/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/coDrive_new/coDrive_5pc_45mph_102_q1/"
 
 
 ## CarID 
-xCar = 'Truss' # might need to be 5 letters? Need to check that!
+xCar = 'SCCar' # might need to be 5 letters? Need to check that!
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 threshold = '0.05'
@@ -40,7 +40,7 @@ shift = 0
 ## Is this an engineering file?
 #engineering = True
 engineering = False
-aeris = True
+aeris = False
 
 # Not super sure what timePush is but thats cool
 timePush = 5 #min
@@ -55,6 +55,8 @@ minCarSpeed = '-2'
 
 baseLinePerc = '50' ## median
 #baseLinePerc = '25' #Q1
+
+buff = '30'
 
 ###############################################################################
 ###### DON'T CHANGE ANYTHING BELOW THIS (UNLESS YOU CAN FIX IT) ###############
@@ -231,7 +233,7 @@ if __name__ == '__main__':
                 index += 1
                 nonempt = True
                 xDate = file[12:20]
-                filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
+                filterPeak(xCar,xDate,opDir,file,filtopDir,buffer = buff,whichpass = index )
         
 end = time.time()
 #print(end - start)
@@ -366,4 +368,3 @@ print("To create an observed peak, I required there to be a minimum of " + str(m
 print("I created three summary files located here: " + str(finRes) + ".")
 print("The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
 print("I found " + str(len(mainThing.min_read.unique()))+ " Observed Peaks")
-#print(end - start)
