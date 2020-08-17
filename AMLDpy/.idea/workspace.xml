@@ -20,10 +20,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="844887e3-c461-427f-8d6c-bc5591a21f18" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/test2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testApp.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testApp2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testProcess.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/AMLDpy.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/AMLDpy.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/amld_Functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/amld_Functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/amld_Together.py" beforeDir="false" afterPath="$PROJECT_DIR$/amld_Together.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testSwifter" beforeDir="false" afterPath="$PROJECT_DIR$/testSwifter" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/amld_Together_CSUdat.py" beforeDir="false" afterPath="$PROJECT_DIR$/amld_Together_CSUdat.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testSwifter2.py" beforeDir="false" afterPath="$PROJECT_DIR$/testSwifter2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -50,9 +57,11 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="Python" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.testup">
     <configuration name="amld_Functions" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="AMLDpy" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -74,8 +83,52 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="AMLDpy" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="testup" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="AMLDpy" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/testup.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.testup" />
+        <item itemvalue="Python.test2" />
         <item itemvalue="Python.amld_Functions" />
       </list>
     </recent_temporary>
@@ -104,6 +157,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
     <state x="-1376" y="-123" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1596831828580">
@@ -114,29 +168,46 @@
       <screen x="0" y="0" width="1440" height="900" />
     </state>
     <state x="726" y="259" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1440.900@0.0.1440.900" timestamp="1597069204394" />
-    <state width="1659" height="287" key="GridCell.Tab.0.bottom" timestamp="1596834358432">
-      <screen x="-1680" y="-310" width="1680" height="1050" />
+    <state x="311" y="91" key="FileChooserDialogImpl" timestamp="1597242755160">
+      <screen x="0" y="23" width="1401" height="877" />
+    </state>
+    <state x="311" y="91" key="FileChooserDialogImpl/0.23.1401.877@0.23.1401.877" timestamp="1597242755160" />
+    <state width="1380" height="222" key="GridCell.Tab.0.bottom" timestamp="1597435155020">
+      <screen x="0" y="23" width="1399" height="877" />
     </state>
     <state width="1659" height="287" key="GridCell.Tab.0.bottom/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596832814451" />
+    <state width="1380" height="222" key="GridCell.Tab.0.bottom/0.23.1399.877@0.23.1399.877" timestamp="1597435155020" />
+    <state width="1380" height="222" key="GridCell.Tab.0.bottom/0.23.1401.877@0.23.1401.877" timestamp="1597425215756" />
     <state width="1659" height="287" key="GridCell.Tab.0.bottom/0.23.1440.877/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596834358432" />
-    <state width="1659" height="287" key="GridCell.Tab.0.center" timestamp="1596834358430">
-      <screen x="-1680" y="-310" width="1680" height="1050" />
+    <state width="1380" height="222" key="GridCell.Tab.0.center" timestamp="1597435155019">
+      <screen x="0" y="23" width="1399" height="877" />
     </state>
     <state width="1659" height="287" key="GridCell.Tab.0.center/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596832814449" />
+    <state width="1380" height="222" key="GridCell.Tab.0.center/0.23.1399.877@0.23.1399.877" timestamp="1597435155019" />
+    <state width="1380" height="222" key="GridCell.Tab.0.center/0.23.1401.877@0.23.1401.877" timestamp="1597425215755" />
     <state width="1659" height="287" key="GridCell.Tab.0.center/0.23.1440.877/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596834358430" />
-    <state width="1659" height="287" key="GridCell.Tab.0.left" timestamp="1596834358427">
-      <screen x="-1680" y="-310" width="1680" height="1050" />
+    <state width="1380" height="222" key="GridCell.Tab.0.left" timestamp="1597435155018">
+      <screen x="0" y="23" width="1399" height="877" />
     </state>
     <state width="1659" height="287" key="GridCell.Tab.0.left/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596832814447" />
+    <state width="1380" height="222" key="GridCell.Tab.0.left/0.23.1399.877@0.23.1399.877" timestamp="1597435155018" />
+    <state width="1380" height="222" key="GridCell.Tab.0.left/0.23.1401.877@0.23.1401.877" timestamp="1597425215755" />
     <state width="1659" height="287" key="GridCell.Tab.0.left/0.23.1440.877/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596834358427" />
-    <state width="1659" height="287" key="GridCell.Tab.0.right" timestamp="1596834358431">
-      <screen x="-1680" y="-310" width="1680" height="1050" />
+    <state width="1380" height="222" key="GridCell.Tab.0.right" timestamp="1597435155020">
+      <screen x="0" y="23" width="1399" height="877" />
     </state>
     <state width="1659" height="287" key="GridCell.Tab.0.right/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596832814450" />
+    <state width="1380" height="222" key="GridCell.Tab.0.right/0.23.1399.877@0.23.1399.877" timestamp="1597435155020" />
+    <state width="1380" height="222" key="GridCell.Tab.0.right/0.23.1401.877@0.23.1401.877" timestamp="1597425215756" />
     <state width="1659" height="287" key="GridCell.Tab.0.right/0.23.1440.877/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596834358431" />
-    <state x="-1175" y="-77" width="670" height="676" key="search.everywhere.popup" timestamp="1597073702693">
-      <screen x="-1680" y="-310" width="1680" height="1050" />
+    <state x="262" y="61" key="SettingsEditor" timestamp="1597242776856">
+      <screen x="0" y="23" width="1401" height="877" />
+    </state>
+    <state x="262" y="61" key="SettingsEditor/0.23.1401.877@0.23.1401.877" timestamp="1597242776856" />
+    <state x="421" y="218" width="670" height="565" key="search.everywhere.popup" timestamp="1597272939408">
+      <screen x="0" y="23" width="1401" height="877" />
     </state>
     <state x="-1175" y="-77" width="670" height="676" key="search.everywhere.popup/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1597073702693" />
+    <state x="421" y="218" width="670" height="565" key="search.everywhere.popup/0.23.1401.877@0.23.1401.877" timestamp="1597272939408" />
   </component>
 </project>

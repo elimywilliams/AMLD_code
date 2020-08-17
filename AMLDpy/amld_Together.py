@@ -10,13 +10,14 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_dat"
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_july"
+
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_dat/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_july/"
 
 
 ## CarID 
-xCar = 'TrCar' # might need to be 5 letters? Need to check that!
+xCar = 'Truss' # might need to be 5 letters? Need to check that!
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 threshold = '0.05'
@@ -30,7 +31,7 @@ timethresh = '5.0'
 initialTimeIgnore = '0'
 
 # minimum number of elevated readings required for an observed peak
-minElevated = '1'
+minElevated = '2'
 
 ## Lag time for CH4 to reach sensor (in seconds)
 #shift = -4
@@ -49,8 +50,8 @@ timePush = 0
 backObs = '102'
 #backObs = '10'
 
-maxCarSpeed = '45'
-minCarSpeed = '2'
+maxCarSpeed = '450'
+minCarSpeed = '-2'
 
 baseLinePerc = '50' ## median
 #baseLinePerc = '25' #Q1
@@ -103,24 +104,21 @@ from amld_Functions import unique,unIfInt,\
                             makeGPD,summarizeDat,getQuad,calcTheta,\
                             calcBearing,ProcessRawDataEng,strList,\
                             countTimes,IdentifyPeaks,filterPeak,\
-                            passCombine,sumData2,addOdometer,ProcessRawData,\
-                            ProcessRawDataAeris
-
-
+                            passCombine,sumData2,addOdometer,ProcessRawData,ProcessRawDataAeris
+import rtree
+import pygeos
 import numpy as np
 import os
 import os, sys, datetime, time, math, csv, numpy,gzip,shutil
 from math import radians, sin, cos, sqrt, asin
 from numpy import log
 import geopandas as gpd
-import pandas as pd #
-from shapely.geometry import Point # Shapely for converting latitude/longtitude to geometry
+import pandas as pd
+from shapely.geometry import Point
 import matplotlib.pyplot as plt
 import ast
 from datetime import datetime
 import time, swifter
-
-
 
 
 #### CREATING NECESSARY FOLDERS
@@ -225,7 +223,7 @@ if __name__ == '__main__':
     listthing = os.listdir(opDir)
     for file in listthing:
         if file.startswith(s2) and (file.endswith('.csv') and not file.endswith('info.csv')):
-            print(file)
+            print("About to Filter Peaks in the file: " + str(file))
             file_loc = opDir + file
             csv_loc = opDir  + file[:-4]+ '_info.csv'
             nonempt = False
@@ -365,6 +363,7 @@ print("I analysed the data using a threshold of " + str(float(threshold)*100 + 1
 print("where the threshold was calculated using the " + str(baseLinePerc) + 'th percentile over ' + str(backObs) + ' observations')
 print("I filtered the speed of the car to be between " + str(minCarSpeed) + 'mph and ' + str(maxCarSpeed) + 'mph')
 print("To create an observed peak, I required there to be a minimum of " + str(minElevated) + " observations within 30 seconds")
-print("I created three summary files located here: " + str(finRes) + ". The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
-print("I found " + str(len(mainThing.OP_NUM.unique()))+ " Observed Peaks")
-print(end - start)
+print("I created three summary files located here: " + str(finRes) + ".")
+print("The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
+print("I found " + str(len(mainThing.min_read.unique()))+ " Observed Peaks")
+#print(end - start)

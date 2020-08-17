@@ -291,7 +291,8 @@ def calcBearing(lat1,lat2,long1,long2,radians):
 # Input: a .txt file with raw data
 # Output: saves a log, and .csv file with processed data (removes unwanted)
 
-def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialTimeBack,shift,maxSpeed = '45',minSpeed = '2'):
+def ProcessRawDataEng( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initialTimeBack,
+                       shift,maxSpeed = '45',minSpeed = '2'):
     import pandas as pd
     from datetime import datetime
     import os
@@ -889,6 +890,10 @@ def ProcessRawDataAeris( xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut,initia
                 return(distance/timediff)
 
         wind_df = pd.read_csv(fnOutTemp)
+        wind_df_not_null = wind_df.loc[wind_df['LAT'].notnull(), ].reset_index(drop = True)
+        del(wind_df)
+        wind_df = wind_df_not_null.copy()
+
         radians = False
         wind_df['QUADRANT'] = wind_df.apply(lambda row: getQuad(row['U'],row['V']),axis=1)
         wind_df['secnan'] = wind_df.apply(lambda row: row['SECONDS'] + row['NANOSECONDS']*1e-9,axis=1) # + row['NANOSECONDS']*1e-9,axis=1)
@@ -1295,7 +1300,9 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename,outDir,processedFileLoc,Engineeri
         #xB = 300 #five min?
         xTimeThreshold = float(xTimeThreshold)
 
-        fn = xDir + "/" + xFilename      #set raw text file to read in
+        #fn = xDir + "/" + xFilename      #set raw text file to read in
+        fn = xDir  + xFilename      #set raw text file to read in
+
         fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"       #set CSV format output for observed peaks for a given car, day, city
         fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".shp"
         fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".log"       #set CSV output for observed peaks for a given car, day, city
@@ -1339,44 +1346,68 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename,outDir,processedFileLoc,Engineeri
             fLon = 25;
 
         #read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
-        x1 = []; x2 = []; x3 = []; x4 = []; x5 = []; x6 = []; x7 = []; x8 = []
+            x1 = [];
+            x2 = [];
+            x3 = [];
+            x4 = [];
+            x5 = [];
+            x6 = [];
+            x7 = [];
+            x8 = []
 
-        count = -1
-        with open(fn, 'r') as f:
-            t = csv.reader(f)
-            for row in t:
-                if count < 0:
+            count = -1
+            with open(fn, 'r') as f:
+                t = csv.reader(f)
+                for row in t:
+                    woo = row
+                    #print(count)
+                    if count < 0:
+                        count += 1
+                        continue
+
+                    datet = row[fDate].replace("-", "") + row[fTime].replace(":", "")
+                    ## if not engineering
+                    epoch = float(row[fEpochTime] + "." + row[fNanoSeconds][0])
+
+                    # x1.append(float(epoch));
+
+                    # =============================================================================
+                    #                 x1.append(float(str(row[fEpochTime]) + '.' + str(row[fNanoSeconds])));
+                    #                 x2.append(float(int(datet)));
+                    #                 x3.append(float(row[fLat]));
+                    #                 x4.append(float(row[fLon]));
+                    #                 x5.append(float(row[fBCH4]));
+                    #                 x6.append(float(row[fTCH4]))
+                    #                 x7.append(0.0);
+                    #                 x8.append(0.0)
+                    # =============================================================================
+
+                    datetime = row[fDate].replace("-", "") + row[fTime].replace(":", "")
+
+                    x1.append(epoch);
+                    x2.append(datetime);
+                    if row[fLat] == '':
+                        x3.append('')
+                    elif row[fLat] != '':
+                        x3.append(float(row[fLat]));
+                    if row[fLon] == '':
+                        x4.append('')
+                    elif row[fLon] != '':
+                        x4.append(float(row[fLon]));
+
+                    x5.append(float(row[fBCH4]));
+                    x6.append(float(row[fTCH4]))
+                    x7.append(0.0);
+                    x8.append(0.0)
+
+                    # print (str(row[fLat])+ str(row[1]))
                     count += 1
-                    continue
-
-                datet= row[fDate].replace("-","")+row[fTime].replace(":","")
-                ## if not engineering
-                epoch = float(row[fEpochTime]+"."+row[fNanoSeconds][0])
-
-                #x1.append(float(epoch));
-
-# =============================================================================
-#                 x1.append(float(str(row[fEpochTime]) + '.' + str(row[fNanoSeconds])));
-#                 x2.append(float(int(datet)));
-#                 x3.append(float(row[fLat]));
-#                 x4.append(float(row[fLon]));
-#                 x5.append(float(row[fBCH4]));
-#                 x6.append(float(row[fTCH4]))
-#                 x7.append(0.0);
-#                 x8.append(0.0)
-# =============================================================================
-
-
-                datetime = row[fDate].replace("-","")+row[fTime].replace(":","")
-                x1.append(epoch); x2.append(datetime); x3.append(float(row[fLat])); x4.append(float(row[fLon])); x5.append(float(row[fBCH4])); x6.append(float(row[fTCH4]))
-                x7.append(0.0); x8.append(0.0)
-
-                #print (str(row[fLat])+ str(row[1]))
-                count += 1
-        print ("Number of observations processed: " + str(count))
+            print("Number of observations processed: " + str(count))
 
         #convert lists to numpy arrays
-        aEpochTime = numpy.array(x1); aDateTime = numpy.array(x2); aLat = numpy.array(x3); aLon = numpy.array(x4); aCH4 = numpy.array(x5); aTCH4 = numpy.array(x6)
+        aEpochTime = numpy.array(x1); aDateTime = numpy.array(x2);
+        aLat = numpy.array(x3);
+        aLon = numpy.array(x4); aCH4 = numpy.array(x5); aTCH4 = numpy.array(x6)
         aMean = numpy.array(x7); aThreshold = numpy.array(x8)
 
         xLatMean = numpy.mean(aLat)
@@ -1535,6 +1566,8 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename,outDir,processedFileLoc,Engineeri
 #           Observed Peaks
 
 def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
+    import rtree
+    import pygeos
     import pandas as pd #
     import geopandas as gpd
     import shutil
@@ -1639,7 +1672,6 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
         #gdf_tot.to_csv(new_loc, index = False)
         unique_peaks = gdf_pass_pks.loc[:,['OP_NUM','pk_LAT','pk_LON','min_read','min_Date']].drop_duplicates()
         unique_peaks['save'] = True
-        #good_pks = unique_peaks.PEAK_NUM.drop_duplicates().values.tolist()
         good_pks = list(unique_peaks.index)
 
         def getthing(index):
@@ -1649,15 +1681,9 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
                 return False
         gdf_pass_pks['wooind'] = gdf_pass_pks.index
         gdf_pass_pks['save'] = gdf_pass_pks.apply(lambda x: getthing(x.wooind),axis=1)
-
-       # unique_pks_tog = pd.concat([unique_peaks, gdf_pass_pks.drop(columns=['LON', 'LAT','PEAK_NUM'])], axis=1, join='inner')
-       # testa = pd.merge(gdf_pass_pks, unique_peaks, how='left', on=['PEAK_NUM', 'pk_LAT','pk_LON','min_read'])
-
         unique_pks_tog = gdf_pass_pks.loc[gdf_pass_pks.save == True,:].reset_index(drop=True)
         unique_pks_tog['Latitude'] = unique_pks_tog.loc[:,'pk_LAT']
         unique_pks_tog['Longitude'] = unique_pks_tog.loc[:,'pk_LON']
-
-        #unique_pks_tog.to_csv(new_loc2, index = False)
         unique_pks_tog.to_csv(new_loc, index = False)
 
 
@@ -1716,8 +1742,12 @@ def filterPeak(xCar,xDate,xDir,xFilename, outFolder,whichpass = 0):
         if gdf_bind_pks.shape[0] > 1:
             data_overlap = gpd.GeoDataFrame(crs=gdf_bind_pks.crs)
             data_temp = gdf_bind_pks.copy()
+            data_temp = data_temp.to_crs(epsg=32610)
+
             for index, row in data_temp.iterrows():
-                data_temp1=data_temp.loc[data_temp.OP_NUM!=row.OP_NUM,]
+                data_temp1=data_temp.loc[data_temp.OP_NUM!=row.OP_NUM,:]
+                data_temp1 = data_temp1.to_crs(epsg=32610)
+
                 # check if intersection occured
                 overlaps=data_temp1[data_temp1.geometry.overlaps(row.geometry)]['OP_NUM'].tolist()
                 if len(overlaps)>0:
@@ -2142,17 +2172,22 @@ def passCombine (firstgroup, secondgroup):
     if gdf_bind_pks.shape[0] > 1:
         data_overlap = gpd.GeoDataFrame(crs=gdf_bind_pks.crs).copy()
         data_temp = gdf_bind_pks.copy()
+        data_temp = data_temp.to_crs(epsg=32610)
 
         for index, row in data_temp.iterrows():
             data_temp1=data_temp.loc[data_temp.min_read!=row.min_read,]
-            woo = data_temp1
-            what = row
+            data_temp1 = data_temp1.to_crs(epsg=32610)
+
+            #woo = data_temp1
+            #what = row
+
             # check if intersection occured
             overlaps=data_temp1[data_temp1.geometry.overlaps(row.geometry)]['min_read'].tolist()
             if len(overlaps)>0:
                 # compare the area with threshold
                 for y in overlaps:
                     temp_area=gpd.overlay(data_temp.loc[data_temp.min_read==y,],data_temp.loc[data_temp.min_read==row.min_read,],how='intersection')
+                    temp_area = temp_area.to_crs(epsg=32610)
                     temp_area=temp_area.loc[temp_area.geometry.area>=0]
                     #temp_union = gpd.overlay(data_temp.loc[data_temp.PEAK_NUM==y,],data_temp.loc[data_temp.PEAK_NUM==row.PEAK_NUM,],how='union')
                     if temp_area.shape[0]>0:

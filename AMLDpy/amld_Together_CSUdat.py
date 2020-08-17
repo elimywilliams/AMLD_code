@@ -10,9 +10,9 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/GitHub/CSU_SC/SC_Algorithm_Alex_30mph/csu_15pc_30mph_median" 
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/CSU_SC/SC_Algorithm_Alex_45mph/SC_Algorithm_Alex_15pc_45mph_median2"
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/GitHub/CSU_SC/SC_Algorithm_Alex_30mph/csu_15pc_30mph_median/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/CSU_SC/SC_Algorithm_Alex_45mph/SC_Algorithm_Alex_15pc_45mph_median2/"
 
 ## CarID 
 xCar = 'CSULi' # might need to be 5 letters? Need to check that!
@@ -42,7 +42,7 @@ timePush = 0
 
 ###
 backObs = '1020'
-maxCarSpeed = '30'
+maxCarSpeed = '45'
 minCarSpeed = '2'
 
 baseLinePerc = '50' 
@@ -568,5 +568,11 @@ if allTog.size == 0:
     print("Sorry, no observed peaks were found in the given data")
     
 end = time.time()
-print("I created three summary files located here: " + str(finRes) + ". The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
-print("I found " + str(len(allTog.min_read.unique()))+ " Observed Peaks")
+print("I analysed the data using a threshold of " + str(float(threshold)*100 + 100) + "% for an elevated reading" )
+print("where the threshold was calculated using the " + str(baseLinePerc) + 'th percentile over ' + str(backObs) + ' observations')
+print("I filtered the speed of the car to be between " + str(minCarSpeed) + 'mph and ' + str(maxCarSpeed) + 'mph')
+print("To create an observed peak, I required there to be a minimum of " + str(minElevated) + " observations within 30 seconds")
+print("I created three summary files located here: " + str(finRes) + ".")
+print("The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
+print("I found " + str(len(mainThing.min_read.unique()))+ " Observed Peaks")
+#print(end - start)

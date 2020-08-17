@@ -1,4 +1,19 @@
 ### testring the processData aeris
+theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file, opDir, processedFileLoc, engineering, threshold,
+                          timethresh, minElevated, backObs, baseLinePerc)
+
+def IdentifyPeaks(xCar, xDate, xDir, xFilename,outDir,processedFileLoc,Engineering,threshold = '.1',xTimeThreshold = '5.0',minElevated = '2',xB = '1020',basePerc = '50'):
+
+xDir = processedFileLoc
+xFilename = file
+outDir = opDir
+Engineering = False
+xTimeThreshold = timethresh
+xB = backObs
+basePerc = baseLinePerc
+
+
+
 
 theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc, initialTimeIgnore, shift,
                            maxCarSpeed, minCarSpeed)
