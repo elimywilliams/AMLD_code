@@ -415,21 +415,21 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
                 ## choosing what to write in the .csv
                 import sys
                 import pandas as pd
-                if sys.platform.startswith('win'):
-                    ## DATE, TIME, SECONDS,NANOSECONDS
-                    csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S')) + ',' + str(
-                        float(pd.to_numeric(dateob.strftime('%S.%f')))) + ',' + str(
-                        pd.to_numeric(dateob.strftime('%f')) * 1000) + str(',')
-                    ## VELOCITY, U,V,W,BCH4,BRSSI,TCH4
-                    csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(
-                        lstS[26]) + ',' + str('0') + ',' + str(lstS[26]) + ','
-                    ## TRSSI, PRESS_MBAR, INLET, TEMPC, CH4, H20,C2H6
-                    csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(lstS[3]) + ',' + str(
-                        lstS[26]) + ',' + str(lstS[27]) + ',' + str(lstS[28]) + ','
-                    # R, C2C1, BATTV, POWMV,CURRMA, SOCPER,LAT,LONG
-                    csvWrite += str(lstS[29]) + ',' + str(lstS[30]) + ',' + str(lstS[31]) + ',' + str(
-                        lstS[32]) + ',' + str(lstS[33]) + ',' + str(lstS[34]) + ',' + str(lstS[38]) + str(',') + str(
-                        lstS[39])
+                # if sys.platform.startswith('win'):
+                #     ## DATE, TIME, SECONDS,NANOSECONDS
+                #     csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S')) + ',' + str(
+                #         float(pd.to_numeric(dateob.strftime('%S.%f')))) + ',' + str(
+                #         pd.to_numeric(dateob.strftime('%f')) * 1000) + str(',')
+                #     ## VELOCITY, U,V,W,BCH4,BRSSI,TCH4
+                #     csvWrite += str('50') + ',' + str('0') + ',' + str('0') + ',' + str('0') + ',' + str(
+                #         lstS[26]) + ',' + str('0') + ',' + str(lstS[26]) + ','
+                #     ## TRSSI, PRESS_MBAR, INLET, TEMPC, CH4, H20,C2H6
+                #     csvWrite += str('0') + ',' + str(lstS[2]) + ',' + str(lstS[1]) + ',' + str(lstS[3]) + ',' + str(
+                #         lstS[26]) + ',' + str(lstS[27]) + ',' + str(lstS[28]) + ','
+                #     # R, C2C1, BATTV, POWMV,CURRMA, SOCPER,LAT,LONG
+                #     csvWrite += str(lstS[29]) + ',' + str(lstS[30]) + ',' + str(lstS[31]) + ',' + str(
+                #         lstS[32]) + ',' + str(lstS[33]) + ',' + str(lstS[34]) + ',' + str(lstS[38]) + str(',') + str(
+                #         lstS[39])
 
                 # =============================================================================
                 #                 if not sys.platform.startswith('win'):
@@ -446,7 +446,8 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
                 #                 #fOut.write('\n')
                 #
                 # =============================================================================
-                if not sys.platform.startswith('win'):
+                #if not sys.platform.startswith('win'):
+                if 1 == 1:
                     ## DATE, TIME, SECONDS,NANOSECONDS
                     csvWrite = str(Date) + ',' + str(GPS_Time) + ',' + str(seconds) + ',' + str(nano) + str(',')
                     ## VELOCITY, U,V,W,BCH4,BRSSI,TCH4
@@ -603,6 +604,7 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
         # if first time on this car/date, then write header out
         headerNames = sHeader.split(',')
         xdat = str('20') + xFilename[11:17]
+        #xdat = str(xFilename[len(xCar)+1:len(xCar) + 9])
 
         # fnOut = xOutDir + xCar + "_" + xDate.replace("-", "") + "_dat.csv"       #set CSV output for raw data
         # fnLog = xOutDir + xCar + "_" + xDate.replace("-", "") + "_log.csv"       #output for logfile
@@ -1048,7 +1050,7 @@ def strList(x):
 # Output: counts number of times the peak was seen (not in same 5 min period)
 
 
-def countTimes(opList):
+def countTimes(opList,xCar):
     if isinstance(opList, str):
         opList = strList(opList)
     if len(opList) == 1:
@@ -1060,12 +1062,12 @@ def countTimes(opList):
         index = 1
         for x in opList:
             if index == 1:
-                initTime = float(x[6:])
+                initTime = float(x[len(xCar)+1:])
                 initStart = initTime
                 initEnd = initTime + 300
                 index = index + 1
             if index != 1:
-                curTime = float(x[6:])
+                curTime = float(x[len(xCar)+1:])
                 within = curTime < initEnd
                 if curTime < initEnd:
                     index = index + 1
@@ -1112,7 +1114,21 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
                                                                       "") + ".json"  # set CSV format output for observed peaks for a given car, day, city
 
         infOut = processedFileLoc + xCar + "_" + xDate.replace("-", "") + "_info.csv"
-        print(str(outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + "_info.csv"))
+
+        ### TEST THING
+        fn = xDir + xFilename  # set raw text file to read in
+
+        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate +  ".csv"  # set CSV format output for observed peaks for a given car, day, city
+        fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".shp"
+        fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".log"  # set CSV output for observed peaks for a given car, day, city
+        pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate + "_info.csv"  # set CSV output for observed peaks for a given car, day, city
+
+        jsonOut = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".json"  # set CSV format output for observed peaks for a given car, day, city
+
+        infOut = processedFileLoc + xCar + "_" + xDate + "_info.csv"
+
+
+        print(str(outDir + "Peaks" + "_" + xCar + "_" + xDate + "_info.csv"))
 
         fLog = open(fnLog, 'w')
         shutil.copy(infOut, pkLog)
@@ -1146,8 +1162,6 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
             SOCPER = 23;
             fLat = 24;
             fLon = 25;
-
-
         elif not Engineering:
             fDate = 0;
             fTime = 1;
@@ -1462,7 +1476,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
         gdf_pass_pks['newgeo'] = gdf_pass_pks.loc[:, 'geometry']
         gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['OP_NUM']].to_numpy())].copy()
         gdf_pass_pks['dates'] = gdf_pass_pks.apply(
-            lambda x: datetime.fromtimestamp(int(x.OP_NUM[6:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
+            lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar) + 1:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
         gdf_pass_pks['pk_Dates'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['dates']].to_numpy())]
         gdf_pass_pks['min_Date'] = gdf_pass_pks.loc[:, 'dates']
         gdf_pass_pks = gdf_pass_pks.drop(columns=['dates'])
@@ -1607,10 +1621,10 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
                 # over['date1'] = over.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM_1'][6:-2])).strftime('%Y-%m-%d'),axis=1)
                 # over['date2'] = over.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM_2'][6:-2])).strftime('%Y-%m-%d'),axis=1)
                 over['date1'] = over.apply(
-                    lambda x: datetime.fromtimestamp(int(x.OP_NUM_1[6:x.OP_NUM_1.find('.')])).strftime('%Y-%m-%d'),
+                    lambda x: datetime.fromtimestamp(int(x.OP_NUM_1[len(xCar)+1:x.OP_NUM_1.find('.')])).strftime('%Y-%m-%d'),
                     axis=1)
                 over['date2'] = over.apply(
-                    lambda x: datetime.fromtimestamp(int(x.OP_NUM_2[6:x.OP_NUM_2.find('.')])).strftime('%Y-%m-%d'),
+                    lambda x: datetime.fromtimestamp(int(x.OP_NUM_2[len(xCar)+1:x.OP_NUM_2.find('.')])).strftime('%Y-%m-%d'),
                     axis=1)
 
                 def unique(list1):
@@ -1663,7 +1677,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
                 combined['recombine'] = [list(x) for x in list(combined.loc[:, ['OP_NUM']].to_numpy())]
                 # combined['dates'] = combined.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
                 combined['dates'] = combined.apply(
-                    lambda x: datetime.fromtimestamp(int(x.OP_NUM[6:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
+                    lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar)+1:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
 
                 combined['pk_Dates'] = [list(x) for x in list(combined.loc[:, ['dates']].to_numpy())]
                 combined['min_Date'] = combined.loc[:, 'dates']
@@ -1681,7 +1695,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
                             combined.at[index, 'min_Date'] = row2.min_Date
 
                 # combined['numtimes'] = combined.apply(lambda y: len(y.recombine),axis = 1).copy()
-                combined['numtimes'] = combined.apply(lambda x: countTimes(x.recombine), axis=1)
+                combined['numtimes'] = combined.apply(lambda x: countTimes(x.recombine,xCar), axis=1)
 
                 combined['numdays'] = combined.apply(lambda y: len(y.pk_Dates), axis=1).copy()
                 combined_reduced = combined.loc[:,
@@ -1700,7 +1714,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
                 gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['OP_NUM']].to_numpy())].copy()
                 # gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
                 gdf_pass_pks['dates'] = gdf_pass_pks.apply(
-                    lambda x: datetime.fromtimestamp(int(x.OP_NUM[6:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
+                    lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar)+1:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
 
                 gdf_pass_pks['pk_Dates'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['dates']].to_numpy())]
                 gdf_pass_pks['min_Date'] = gdf_pass_pks.loc[:, 'dates']
@@ -1723,7 +1737,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
             gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['OP_NUM']].to_numpy())].copy()
             # gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
             gdf_pass_pks['dates'] = gdf_pass_pks.apply(
-                lambda x: datetime.fromtimestamp(int(x.OP_NUM[6:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
+                lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar)+1:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
 
             gdf_pass_pks['pk_Dates'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['dates']].to_numpy())]
             gdf_pass_pks['min_Date'] = gdf_pass_pks.loc[:, 'dates']
@@ -1870,7 +1884,7 @@ def sumData2(mainDF):
 # Output: One dataframe with the combination (combine peaks)
 
 
-def passCombine(firstgroup, secondgroup, buffer='30'):
+def passCombine(firstgroup, secondgroup, xCar, buffer='30'):
     import ast
     def strList(x):
         x = ast.literal_eval(x)
@@ -2025,7 +2039,7 @@ def passCombine(firstgroup, secondgroup, buffer='30'):
                 columns=['geometry', 'numtimes', 'verified', 'recombine'])
             toChangecombined = toChangecombined.rename(columns={'min_read': 'prev_read', 'bothcombine': 'recombine'})
             # toChangecombined['numtimes'] = toChangecombined.apply(lambda x: len(x.recombine),axis = 1)
-            toChangecombined['numtimes'] = toChangecombined.apply(lambda x: countTimes(x.recombine), axis=1)
+            toChangecombined['numtimes'] = toChangecombined.apply(lambda x: countTimes(x.recombine,xCar), axis=1)
 
             toChangecombined['verified'] = toChangecombined.apply(lambda x: x.numtimes > 1, axis=1)
             toChangecombined = toChangecombined.rename(columns={'min_val': 'min_read'}).drop(columns=['combined'])

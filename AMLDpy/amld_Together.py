@@ -17,7 +17,7 @@ resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData/"
 
 
 ## CarID 
-xCar = 'SCCar' # might need to be 5 letters? Need to check that!
+xCar = 'SoCCar' # might need to be 5 letters? Need to check that!
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 threshold = '0.05'
@@ -216,7 +216,7 @@ if __name__ == '__main__':
     listthing = toIdentify.copy()
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
-            xDate = file[6:14]
+            xDate = file[len(xCar)+1:len(xCar) + 9]
             theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,engineering,threshold,timethresh,minElevated,backObs,baseLinePerc)
 if __name__ == '__main__':
     index = 0
@@ -231,7 +231,8 @@ if __name__ == '__main__':
             if pd.read_csv(file_loc).size != 0:
                 index += 1
                 nonempt = True
-                xDate = file[12:20]
+                #xDate = file[12:20]
+                xDate = file[len(xCar) + 7: len(xCar) + 15]
                 filterPeak(xCar,xDate,opDir,file,filtopDir,buffer = buff,whichpass = index )
         
 end = time.time()
@@ -253,12 +254,12 @@ if not os.path.exists(finalMain):
         elif index != 1:
             loc2 = filtopDir + file
             secThing = pd.read_csv(loc2)
-            woo = passCombine(mainThing,secThing,buffer = buff)
+            woo = passCombine(mainThing,secThing,xCar, buff)
             mainThing = woo.copy()
         index = index + 1
         print(file)
     mainThing = mainThing.copy().reset_index(drop = True)
-    mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine),axis=1)
+    mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine,xCar),axis=1)
     #mainThing['numtimes']  = mainThing.recombine.swifter.apply(lambda x: countTimes(x))
 
 # =============================================================================
