@@ -10,17 +10,17 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/coDrive_new/coDrive_15pc_45_102_median"
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData"
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/coDrive_new/coDrive_15pc_45_102_median/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData/"
 
 
 ## CarID 
 xCar = 'SCCar' # might need to be 5 letters? Need to check that!
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
-threshold = '0.15'
+threshold = '0.05'
 
 ## How many minutes to include in background calculation (minutes)
 #timethresh = '1.7'
@@ -321,7 +321,7 @@ combined = sumData2(mainThing) ## finds locations and mean log ch4 for each peak
 uniquePk = combined.loc[:,['min_read']].drop_duplicates()
 uniqueList = combined.loc[uniquePk.index,['min_read','recombine']]
 uniqueOther = combined.loc[:,['min_read','overallLON','overallLAT','mnlogCH4',\
-                             'verified','numtimes']].drop_duplicates()
+                             'verified','numtimes','minDist','maxDist']].drop_duplicates()
 
 unique_gdf = makeGPD(uniqueOther,'overallLAT','overallLON')
 unique_gdf2 = pd.merge(unique_gdf,uniqueList,on = ['min_read'])

@@ -1,4 +1,4 @@
-mFile = pd.read_csv('/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/coDrive_new/coDrive_10pc_45_102_median/FinalShpFiles/mainThing.csv')
+mFile = pd.read_csv('/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData/FinalShpFiles/mainThing.csv')
 
 import matplotlib.pyplot as plt
 
