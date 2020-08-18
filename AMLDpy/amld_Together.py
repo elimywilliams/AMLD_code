@@ -10,17 +10,17 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/coDrive_new/coDrive_5pc_45mph_102_q1"
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/coDrive_new/coDrive_15pc_45_102_median"
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/coDrive_new/coDrive_5pc_45mph_102_q1/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/coDrive_new/coDrive_15pc_45_102_median/"
 
 
 ## CarID 
 xCar = 'SCCar' # might need to be 5 letters? Need to check that!
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
-threshold = '0.05'
+threshold = '0.15'
 
 ## How many minutes to include in background calculation (minutes)
 #timethresh = '1.7'
@@ -31,11 +31,11 @@ timethresh = '5.0'
 initialTimeIgnore = '0'
 
 # minimum number of elevated readings required for an observed peak
-minElevated = '2'
+minElevated = '1'
 
 ## Lag time for CH4 to reach sensor (in seconds)
 #shift = -4
-shift = 0
+shift = -4
 
 ## Is this an engineering file?
 #engineering = True
@@ -50,8 +50,8 @@ timePush = 0
 backObs = '102'
 #backObs = '10'
 
-maxCarSpeed = '450'
-minCarSpeed = '-2'
+maxCarSpeed = '45'
+minCarSpeed = '2'
 
 baseLinePerc = '50' ## median
 #baseLinePerc = '25' #Q1
@@ -173,8 +173,7 @@ elif not os.path.exists(finalInfoLoc):
 ##### START OF THE ALGORITHM
 start = time.time()
 
-if __name__ == '__main__':  
-
+if __name__ == '__main__':
     dateList = []
     x1=""
     count = 0
@@ -254,7 +253,7 @@ if not os.path.exists(finalMain):
         elif index != 1:
             loc2 = filtopDir + file
             secThing = pd.read_csv(loc2)
-            woo = passCombine(mainThing,secThing)
+            woo = passCombine(mainThing,secThing,buffer = buff)
             mainThing = woo.copy()
         index = index + 1
         print(file)
