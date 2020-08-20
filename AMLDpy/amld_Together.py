@@ -43,7 +43,7 @@ engineering = False
 aeris = False
 
 # Not super sure what timePush is but thats cool
-timePush = 5 #min
+#timePush = 5 #min
 timePush = 0 
 
 ###
@@ -107,20 +107,16 @@ from amld_Functions import unique,unIfInt,\
                             calcBearing,ProcessRawDataEng,strList,\
                             countTimes,IdentifyPeaks,filterPeak,\
                             passCombine,sumData2,addOdometer,ProcessRawData,ProcessRawDataAeris
-import rtree
-import pygeos
-import numpy as np
-import os
-import os, sys, datetime, time, math, csv, numpy,gzip,shutil
+
+import rtree, pygeos,os, sys, datetime, time, math, numpy, csv, gzip,shutil,ast,swifter
 from math import radians, sin, cos, sqrt, asin
+import numpy as np
 from numpy import log
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point
 import matplotlib.pyplot as plt
-import ast
 from datetime import datetime
-import time, swifter
 
 
 #### CREATING NECESSARY FOLDERS
@@ -131,9 +127,9 @@ for x in foldList:
         try:
             os.mkdir(x)
         except OSError:
-            print ("Creation of the directory %s failed" % x)
+            print("Creation of the directory %s failed" % x)
         else:
-            print ("Successfully created the directory %s " % x)
+            print("Successfully created the directory %s " % x)
             
 ### MOVING RAW FILES TO THE RAW DATA FILE FOLDER
 listthing = os.listdir(rawDatLoc)
@@ -320,7 +316,7 @@ combined = sumData2(mainThing) ## finds locations and mean log ch4 for each peak
 ## combined so only with the same overall peak
 uniquePk = combined.loc[:,['min_read']].drop_duplicates()
 uniqueList = combined.loc[uniquePk.index,['min_read','recombine']]
-uniqueOther = combined.loc[:,['min_read','overallLON','overallLAT','mnlogCH4',\
+uniqueOther = combined.loc[:,['min_read','overallLON','overallLAT','mnlogCH4',
                              'verified','numtimes','minDist','maxDist']].drop_duplicates()
 
 unique_gdf = makeGPD(uniqueOther,'overallLAT','overallLON')
@@ -368,7 +364,7 @@ end = time.time()
 #print("The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
 #print("I found " + str(len(mainThing.min_read.unique()))+ " Observed Peaks")
 
-print(f"I processed {len(toFilter)} days of driving. I analysed the data using a threshold of {float(threshold)*100}% for an elevated reading, \n \
+print(f"I processed {len(toFilter)} days of driving. I analysed the data using a threshold of {100 + float(threshold)*100}% for an elevated reading, \n \
 where the threshold was calculated using the {baseLinePerc}th percentile over {backObs} observations. \n \
 I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
 I created 3 summary files located here:{finRes}.\n \

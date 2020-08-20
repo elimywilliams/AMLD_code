@@ -37,7 +37,6 @@ def unIfInt(a, b):
 # Output: list of intersection of a and b
 
 def intersect(a, b):
-    """ return the intersection of two lists """
     return list(set(a) & set(b))
 
 
@@ -76,9 +75,8 @@ def weightedLoc(df, lat, lon, by, val2avg):
     df_use = pd.merge(sumwts, df_use, on=str(by))
     df_use.loc[:, 'overall_LON'] = df_use.swifter.apply(lambda y: y['totlons'] / y['totwts'], axis=1)
     df_use.loc[:, 'overall_LAT'] = df_use.swifter.apply(lambda y: y['totlats'] / y['totwts'], axis=1)
-    toreturn = df_use.loc[:, [(str(by)), ('overall_LON'), ('overall_LAT')]].drop_duplicates()
-    toreturn = toreturn.rename(columns={'overall_LON': str(lon), 'overall_LAT': str(lat)})
-    return (toreturn)
+    return (df_use.loc[:, [(str(by)), ('overall_LON'), ('overall_LAT')]].drop_duplicates().rename(
+        columns={'overall_LON': str(lon), 'overall_LAT': str(lat)}))
 
 
 ########################################################################
@@ -101,7 +99,7 @@ def verPk(totalData):
     pkRed.loc[:, ('logCH4')] = pkRed.swifter.apply(lambda y: log(y.pk_maxCH4_AB), axis=1)
     mnVals = pkRed.groupby('min_read', as_index=False).logCH4.mean()
     together = pd.merge(verLoc, mnVals, on=['min_read'])
-    geometry_temp = [Point(lon,lat) for lon,lat in zip(together['pk_LON'], together['pk_LAT'])]
+    geometry_temp = [Point(lon, lat) for lon, lat in zip(together['pk_LON'], together['pk_LAT'])]
 
     crs = {'init': 'epsg:32610'}
     tog_dat = gpd.GeoDataFrame(together, crs=crs, geometry=geometry_temp)
@@ -172,7 +170,7 @@ def sumthing(thing):
 
 def makeGEO(df, lat, lon):
     from shapely.geometry import Point
-    geo = [Point(lon,lat) for lon,lat in zip(df[(lon)], df[(lat)])]
+    geo = [Point(lon, lat) for lon, lat in zip(df[(lon)], df[(lat)])]
 
     return (geo)
 
@@ -292,7 +290,7 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
     from datetime import datetime
     import os
     import gzip
-    # import csv
+    import sys
     from math import floor
     try:
         xMaxCarSpeed = float(maxSpeed) / 2.23694  # CONVERTED TO M/S (default is 45mph)
@@ -393,17 +391,11 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
 
                 # THIS IS USING THE CSU METHOD. IN OUR METHOD, WE DO THE SPEED LATER IN THE ALGORITHM.
 
-                #                # if RSSI of bottome sensor is below 50
-                #                if float(lstS[28]) < xMinRSSI:
-                #                    fLog.write("RSSI (Bottom) value less than 50: "+ str(lstS[28]) + "\n")
-                #                    continue
-                #                # Car Speed
-                #                if float(lstS[12]) > xMaxCarSpeed:
-                #                    fLog.write("Car speed of " + str(float(lstS[12])) + " exceeds max threshold of: " + str(xMaxCarSpeed) + "\n")
-                #                    continue
-                #                if float(lstS[12]) < xMinCarSpeed:
-                #                    fLog.write("Car speed of " + str(float(lstS[12])) + " less than min threshold of: " + str(xMinCarSpeed) + "\n")
-                #                    continue
+                # # if RSSI of bottome sensor is below 50 if float(lstS[28]) < xMinRSSI: fLog.write("RSSI (Bottom)
+                # value less than 50: "+ str(lstS[28]) + "\n") continue # Car Speed if float(lstS[12]) >
+                # xMaxCarSpeed: fLog.write("Car speed of " + str(float(lstS[12])) + " exceeds max threshold of: " +
+                # str(xMaxCarSpeed) + "\n") continue if float(lstS[12]) < xMinCarSpeed: fLog.write("Car speed of " +
+                # str(float(lstS[12])) + " less than min threshold of: " + str(xMinCarSpeed) + "\n") continue
 
                 # For some reason it is producing its longitude in positive number while USA is located at negative longitude
                 # thats why we do -1 * float(lstS[7])
@@ -415,8 +407,7 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
                 #                s1 += str(lstS[28])+","+str(lstS[38])+","+str(lstS[41])+"\n"
 
                 ## choosing what to write in the .csv
-                import sys
-                import pandas as pd
+
                 # if sys.platform.startswith('win'):
                 #     ## DATE, TIME, SECONDS,NANOSECONDS
                 #     csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S')) + ',' + str(
@@ -448,7 +439,7 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
                 #                 #fOut.write('\n')
                 #
                 # =============================================================================
-                #if not sys.platform.startswith('win'):
+                # if not sys.platform.startswith('win'):
                 if 1 == 1:
                     ## DATE, TIME, SECONDS,NANOSECONDS
                     csvWrite = str(Date) + ',' + str(GPS_Time) + ',' + str(seconds) + ',' + str(nano) + str(',')
@@ -487,7 +478,7 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
         # newfnOut = xOutDir + xCar + "_" + xDate + "_dat.csv"       #set CSV output for raw data
         # newfnLog = xOutDir + xCar + "_" + xDate + "_log.csv"
 
-        #print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
+        # print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
         #    gZIP))
 
         print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t {xCntObs} \t {xCntGoodValues} \t {gZIP}")
@@ -538,13 +529,12 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
         wind_df3 = wind_df3.drop(['shift_CH4'], axis=1)
 
         wind_df3 = wind_df3.loc[:,
-                   ['DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
-                    'TRSSI', 'PRESS_MBAR', 'INLET' \
-                       , 'TEMPC', 'CH4', 'H20', 'C2H6', 'R', 'C2C1', 'BATTV', 'POWMV', 'CURRMA', 'SOCPER', 'LAT',
-                    'LONG', 'bearing', 'U_cor', \
-                    'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4']]
+                   {'DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
+                    'TRSSI',
+                    'PRESS_MBAR', 'INLET', 'TEMPC', 'CH4', 'H20', 'C2H6', 'R', 'C2C1', 'BATTV', 'POWMV', 'CURRMA',
+                    'SOCPER',
+                    'LAT', 'LONG', 'bearing', 'U_cor', 'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4'}]
         wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(), :]
-
         wind_df7 = addOdometer(wind_df4, 'LAT', 'LONG')
         wind_df4 = wind_df7.copy()
         wind_df5 = wind_df4.loc[wind_df4.VELOCITY > xMinCarSpeed, :]
@@ -608,7 +598,7 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
         # if first time on this car/date, then write header out
         headerNames = sHeader.split(',')
         xdat = str('20') + xFilename[11:17]
-        #xdat = str(xFilename[len(xCar)+1:len(xCar) + 9])
+        # xdat = str(xFilename[len(xCar)+1:len(xCar) + 9])
 
         # fnOut = xOutDir + xCar + "_" + xDate.replace("-", "") + "_dat.csv"       #set CSV output for raw data
         # fnLog = xOutDir + xCar + "_" + xDate.replace("-", "") + "_log.csv"       #output for logfile
@@ -730,7 +720,7 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
         # newfnOut = xOutDir + xCar + "_" + xDate + "_dat.csv"       #set CSV output for raw data
         # newfnLog = xOutDir + xCar + "_" + xDate + "_log.csv"
 
-        #print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
+        # print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
         #    gZIP))
 
         print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t {xCntObs} \t {xCntGoodValues} \t  {gZIP}")
@@ -783,10 +773,11 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
 
         wind_df3 = wind_df3.loc[:,
                    ['DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
-                    'TRSSI', 'PRESS_MBAR', 'INLET' \
-                       , 'TEMPC', 'CH4', 'H20', 'C2H6', 'R', 'C2C1', 'BATTV', 'POWMV', 'CURRMA', 'SOCPER', 'LAT',
-                    'LONG', 'bearing', 'U_cor', \
-                    'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4', 'distance']]
+                    'TRSSI',
+                    'PRESS_MBAR', 'INLET', 'TEMPC', 'CH4', 'H20', 'C2H6', 'R', 'C2C1', 'BATTV', 'POWMV', 'CURRMA',
+                    'SOCPER',
+                    'LAT', 'LONG', 'bearing', 'U_cor', 'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4',
+                    'distance']]
         wind_df3['odometer'] = wind_df3.loc[:, 'distance'].cumsum()
         # wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(),:]
 
@@ -922,7 +913,7 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
         fOut.close()
         fLog.close()
         infOut.close()
-        #print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
+        # print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
         #    gZIP))
         print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t  {xCntObs} \t {xCntGoodValues} \t {gZIP}")
 
@@ -977,10 +968,9 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
 
         wind_df3 = wind_df3.loc[:,
                    ['DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
-                    'TRSSI', 'PRESS_MBAR', 'INLET' \
-                       , 'TEMPC', 'CH4', 'H20', 'C2H6', 'R', 'C2C1', 'BATTV', 'POWMV', 'CURRMA', 'SOCPER', 'LAT',
-                    'LONG', 'bearing', 'U_cor', \
-                    'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4']]
+                    'TRSSI', 'PRESS_MBAR', 'INLET', 'TEMPC', 'CH4', 'H20', 'C2H6', 'R', 'C2C1', 'BATTV', 'POWMV',
+                    'CURRMA', 'SOCPER', 'LAT',
+                    'LONG', 'bearing', 'U_cor', 'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4']]
         # wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(),:]
 
         wind_df4 = wind_df3.copy()
@@ -1057,7 +1047,7 @@ def strList(x):
 # Output: counts number of times the peak was seen (not in same 5 min period)
 
 
-def countTimes(opList,xCar):
+def countTimes(opList, xCar):
     if isinstance(opList, str):
         opList = strList(opList)
     if len(opList) == 1:
@@ -1069,12 +1059,12 @@ def countTimes(opList,xCar):
         index = 1
         for x in opList:
             if index == 1:
-                initTime = float(x[len(xCar)+1:])
+                initTime = float(x[len(xCar) + 1:])
                 initStart = initTime
                 initEnd = initTime + 300
                 index = index + 1
             if index != 1:
-                curTime = float(x[len(xCar)+1:])
+                curTime = float(x[len(xCar) + 1:])
                 within = curTime < initEnd
                 if curTime < initEnd:
                     index = index + 1
@@ -1092,21 +1082,17 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
     import csv, numpy
     import geopandas as gpd
     import shutil
+    from shapely.geometry import Point
+    import pandas as pd
+
     try:
         baseCalc = float(basePerc)
         xABThreshold = float(threshold)
         minElevated = float(minElevated)
-        # xABThreshold = 0.1                 # above baseline threshold above the mean value
         xDistThreshold = 160.0  # find the maximum CH4 reading of observations within street segments of this grouping distance in meters
         xSDF = 4  # multiplier times standard deviation for floating baseline added to mean
-        # xB = 1020       # the number of records that constitutes the floating baseline time -- 7200 = 1 hour (assuming average of 0.5 seconds per record)
-        # xB = 102 # since it is 1 record/second
 
-        xB = int(xB)
-        # xB = 300 #five min?
-        xTimeThreshold = float(xTimeThreshold)
-
-        # fn = xDir + "/" + xFilename      #set raw text file to read in
+        xB = int(xB); xTimeThreshold = float(xTimeThreshold)
         fn = xDir + xFilename  # set raw text file to read in
 
         fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
@@ -1125,7 +1111,7 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
         ### TEST THING
         fn = xDir + xFilename  # set raw text file to read in
 
-        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate +  ".csv"  # set CSV format output for observed peaks for a given car, day, city
+        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".csv"  # set CSV format output for observed peaks for a given car, day, city
         fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".shp"
         fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".log"  # set CSV output for observed peaks for a given car, day, city
         pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate + "_info.csv"  # set CSV output for observed peaks for a given car, day, city
@@ -1134,83 +1120,34 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
 
         infOut = processedFileLoc + xCar + "_" + xDate + "_info.csv"
 
-
-        #print(str(outDir + "Peaks" + "_" + xCar + "_" + xDate + "_info.csv"))
         print(f"{outDir}Peaks_{xCar}_{xDate}_info.csv")
         fLog = open(fnLog, 'w')
         shutil.copy(infOut, pkLog)
 
         # field column indices for various variables
         if Engineering == True:
-            fDate = 0;
-            fTime = 1;
-            fEpochTime = 2;
-            fNanoSeconds = 3;
-            fVelocity = 4;
-            fU = 5;
-            fV = 6;
-            fW = 7;
-            fBCH4 = 10;
-            fBCH4 = 8;
-            fBRSSI = 9;
-            fTCH4 = 10;
-            TRSSI = 11;
-            PRESS = 12;
-            INLET = 13;
-            TEMP = 14;
-            CH4 = 15;
-            H20 = 16;
-            C2H6 = 17;
-            R = 18;
-            C2C1 = 19;
-            BATT = 20;
-            POWER = 21;
-            CURR = 22;
-            SOCPER = 23;
-            fLat = 24;
-            fLon = 25;
+            fDate = 0;  fTime = 1; fEpochTime = 2
+            fNanoSeconds = 3; fVelocity = 4;  fU = 5
+            fV = 6; fW = 7; fBCH4 = 10
+            fBCH4 = 8;  fBRSSI = 9; fTCH4 = 10
+            TRSSI = 11;PRESS = 12; INLET = 13
+            TEMP = 14;  CH4 = 15;H20 = 16
+            C2H6 = 17;  R = 18;  C2C1 = 19
+            BATT = 20;  POWER = 21; CURR = 22
+            SOCPER = 23;fLat = 24; fLon = 25
         elif not Engineering:
-            fDate = 0;
-            fTime = 1;
-            fEpochTime = 2;
-            fNanoSeconds = 3;
-            fVelocity = 4;
-            fU = 5;
-            fV = 6;
-            fW = 7;
-            fBCH4 = 8;
-
-            fBRSSI = 9;
-            fTCH4 = 10;
-            TRSSI = 11;
-            PRESS = 12;
-            INLET = 13;
-            TEMP = 14;
-            CH4 = 15;
-            H20 = 16;
-            C2H6 = 17;
-            R = 18;
-            C2C1 = 19;
-            BATT = 20;
-            POWER = 21;
-            CURR = 22;
-            SOCPER = 23;
-            fLat = 24;
-            fLon = 25;
-            fDist = 33;
-            fOdometer = 34;
+            fDate = 0; fTime = 1; fEpochTime = 2
+            fNanoSeconds = 3;fVelocity = 4; fU = 5
+            fV = 6;  fW = 7
+            fBCH4 = 8; fBRSSI = 9
+            fTCH4 = 10;  TRSSI = 11;  PRESS = 12
+            INLET = 13;  TEMP = 14; CH4 = 15
+            H20 = 16;C2H6 = 17;  R = 18; C2C1 = 19
+            BATT = 20; POWER = 21; CURR = 22
+            SOCPER = 23; fLat = 24;fLon = 25; fDist = 33;  fOdometer = 34
 
             # read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
-            x1 = [];
-            x2 = [];
-            x3 = [];
-            x4 = [];
-            x5 = [];
-            x6 = [];
-            x7 = [];
-            x8 = []
-            x9 = []
-            x10 = []
+            x1, x2, x3, x4, x5, x6, x7, x8, x9, x10 = [[] for _ in range(10)]
 
             count = -1
             with open(fn, 'r') as f:
@@ -1241,35 +1178,32 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
 
                     datetime = row[fDate].replace("-", "") + row[fTime].replace(":", "")
 
-                    x1.append(epoch);
-                    x2.append(datetime);
+                    x1.append(epoch); x2.append(datetime)
                     if row[fLat] == '':
                         x3.append('')
                     elif row[fLat] != '':
-                        x3.append(float(row[fLat]));
+                        x3.append(float(row[fLat]))
                     if row[fLon] == '':
                         x4.append('')
                     elif row[fLon] != '':
-                        x4.append(float(row[fLon]));
+                        x4.append(float(row[fLon]))
 
-                    x5.append(float(row[fBCH4]));
+                    x5.append(float(row[fBCH4]))
                     x6.append(float(row[fTCH4]))
-                    x7.append(0.0);
+                    x7.append(0.0)
                     x8.append(0.0)
                     x9.append(row[fOdometer])
-
-                    # print (str(row[fLat])+ str(row[1]))
                     count += 1
             print(f"Number of observations processed:{count}")
 
         # convert lists to numpy arrays
-        aEpochTime = numpy.array(x1);
-        aDateTime = numpy.array(x2);
-        aLat = numpy.array(x3);
-        aLon = numpy.array(x4);
-        aCH4 = numpy.array(x5);
+        aEpochTime = numpy.array(x1)
+        aDateTime = numpy.array(x2)
+        aLat = numpy.array(x3)
+        aLon = numpy.array(x4)
+        aCH4 = numpy.array(x5)
         aTCH4 = numpy.array(x6)
-        aMean = numpy.array(x7);
+        aMean = numpy.array(x7)
         aThreshold = numpy.array(x8)
         aOdom = numpy.array(x9)
         xLatMean = numpy.mean(aLat)
@@ -1320,7 +1254,7 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
         prevIndex = 0
         for i in lstCH4_AB:
             if (cnt == 0):
-                xLon1 = aLon[i];
+                xLon1 = aLon[i]
                 xLat1 = aLat[i]
                 xOdom = aOdom[i]
             else:
@@ -1328,7 +1262,7 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
                 xDist = haversine(xLat1, xLon1, aLat[i], aLon[i])
                 xDistPeak += xDist
                 xCH4Peak += (xDist * (aCH4[i] - aMean[i]))
-                xLon1 = aLon[i];
+                xLon1 = aLon[i]
                 xLat1 = aLat[i]
                 xOdom = aOdom[i]
                 if (sID == ""):
@@ -1357,16 +1291,12 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
         cntPeak -= len(tmpsidlist)
 
         fLog.write("Number of peaks found: " + str(cntPeak) + "\n")
-        #print(xCar + "\t" + xDate + "\t" + xFilename + "\t" + str(count) + "\t" + str(len(lstCH4_ABP)))
         print(f"{xCar} \t {xDate} \t {xFilename} \t {count} \t {len(lstCH4_ABP)}")
-
-        #### calculate attribute for the area under the curve -- PPM
 
         # write out the observed peaks to a csv to be read into a GIS
         fOut = open(fnOut, 'w')
         # s = "PEAK_NUM,EPOCHSTART,EPOCH,DATETIME,CH4,LON,LAT,CH4_BASELINE,CH4_THRESHOLD,PEAK_DIST_M,PEAK_CH4,TCH4,PERIOD5MIN\n"
         s = "OP_NUM,OP_EPOCHSTART,OB_EPOCH,OB_DATETIME,OB_CH4,OB_LON,OB_LAT,OB_CH4_BASELINE,OB_CH4_THRESHOLD,OP_PEAK_DIST_M,OP_PEAK_CH4,OB_TCH4,OB_PERIOD5MIN,ODOMETER\n"
-
         fOut.write(s)
 
         truecount = 0
@@ -1382,9 +1312,7 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
         fOut.close()
         fLog.close()
 
-        import pandas as pd
         openFile = pd.read_csv(fnOut)
-        from shapely.geometry import Point
         if openFile.shape[0] != 0:
             pkDistDf = openFile.copy().groupby('OP_NUM', as_index=False).apply(
                 lambda x: max(x.ODOMETER) - min(x.ODOMETER))
@@ -1401,7 +1329,7 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
                 oFile = pd.merge(openFile, tempCount, on=['OP_NUM'])
                 openFile = oFile.copy()
                 del (oFile)
-                openFile['minElevated'] = openFile.apply(lambda x: int(minElevated), axis=1)
+                openFile["minElevated"] = openFile.apply(lambda x: int(minElevated), axis=1)
                 openFile.to_csv(fnOut, index=False)
                 openFile['OB_CH4_AB'] = openFile.loc[:, 'OB_CH4'].sub(openFile.loc[:, 'OB_CH4_BASELINE'], axis=0)
 
@@ -1487,7 +1415,8 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
         gdf_pass_pks['newgeo'] = gdf_pass_pks.loc[:, 'geometry']
         gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['OP_NUM']].to_numpy())].copy()
         gdf_pass_pks['dates'] = gdf_pass_pks.apply(
-            lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar) + 1:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
+            lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar) + 1:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'),
+            axis=1)
         gdf_pass_pks['pk_Dates'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['dates']].to_numpy())]
         gdf_pass_pks['min_Date'] = gdf_pass_pks.loc[:, 'dates']
         gdf_pass_pks = gdf_pass_pks.drop(columns=['dates'])
@@ -1632,10 +1561,12 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
                 # over['date1'] = over.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM_1'][6:-2])).strftime('%Y-%m-%d'),axis=1)
                 # over['date2'] = over.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM_2'][6:-2])).strftime('%Y-%m-%d'),axis=1)
                 over['date1'] = over.apply(
-                    lambda x: datetime.fromtimestamp(int(x.OP_NUM_1[len(xCar)+1:x.OP_NUM_1.find('.')])).strftime('%Y-%m-%d'),
+                    lambda x: datetime.fromtimestamp(int(x.OP_NUM_1[len(xCar) + 1:x.OP_NUM_1.find('.')])).strftime(
+                        '%Y-%m-%d'),
                     axis=1)
                 over['date2'] = over.apply(
-                    lambda x: datetime.fromtimestamp(int(x.OP_NUM_2[len(xCar)+1:x.OP_NUM_2.find('.')])).strftime('%Y-%m-%d'),
+                    lambda x: datetime.fromtimestamp(int(x.OP_NUM_2[len(xCar) + 1:x.OP_NUM_2.find('.')])).strftime(
+                        '%Y-%m-%d'),
                     axis=1)
 
                 def unique(list1):
@@ -1688,7 +1619,8 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
                 combined['recombine'] = [list(x) for x in list(combined.loc[:, ['OP_NUM']].to_numpy())]
                 # combined['dates'] = combined.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
                 combined['dates'] = combined.apply(
-                    lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar)+1:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
+                    lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar) + 1:x.OP_NUM.find('.')])).strftime(
+                        '%Y-%m-%d'), axis=1)
 
                 combined['pk_Dates'] = [list(x) for x in list(combined.loc[:, ['dates']].to_numpy())]
                 combined['min_Date'] = combined.loc[:, 'dates']
@@ -1706,7 +1638,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
                             combined.at[index, 'min_Date'] = row2.min_Date
 
                 # combined['numtimes'] = combined.apply(lambda y: len(y.recombine),axis = 1).copy()
-                combined['numtimes'] = combined.apply(lambda x: countTimes(x.recombine,xCar), axis=1)
+                combined['numtimes'] = combined.apply(lambda x: countTimes(x.recombine, xCar), axis=1)
 
                 combined['numdays'] = combined.apply(lambda y: len(y.pk_Dates), axis=1).copy()
                 combined_reduced = combined.loc[:,
@@ -1725,7 +1657,8 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
                 gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['OP_NUM']].to_numpy())].copy()
                 # gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
                 gdf_pass_pks['dates'] = gdf_pass_pks.apply(
-                    lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar)+1:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
+                    lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar) + 1:x.OP_NUM.find('.')])).strftime(
+                        '%Y-%m-%d'), axis=1)
 
                 gdf_pass_pks['pk_Dates'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['dates']].to_numpy())]
                 gdf_pass_pks['min_Date'] = gdf_pass_pks.loc[:, 'dates']
@@ -1748,7 +1681,8 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
             gdf_pass_pks['recombine'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['OP_NUM']].to_numpy())].copy()
             # gdf_pass_pks['dates'] = gdf_pass_pks.apply(lambda x: datetime.fromtimestamp(int(x['OP_NUM'][6:-2])).strftime('%Y-%m-%d'),axis=1)
             gdf_pass_pks['dates'] = gdf_pass_pks.apply(
-                lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar)+1:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'), axis=1)
+                lambda x: datetime.fromtimestamp(int(x.OP_NUM[len(xCar) + 1:x.OP_NUM.find('.')])).strftime('%Y-%m-%d'),
+                axis=1)
 
             gdf_pass_pks['pk_Dates'] = [list(x) for x in list(gdf_pass_pks.loc[:, ['dates']].to_numpy())]
             gdf_pass_pks['min_Date'] = gdf_pass_pks.loc[:, 'dates']
@@ -1870,21 +1804,21 @@ def sumData2(mainDF):
     from numpy import log
     import pandas as pd
     todo = mainDF.loc[:, ['OP_NUM', 'min_Date', 'pk_LON', 'pk_LAT', 'pk_maxCH4_AB', 'numtimes',
-                          'min_read','OP_DISTANCE']].drop_duplicates().reset_index(drop=True)
+                          'min_read', 'OP_DISTANCE']].drop_duplicates().reset_index(drop=True)
     todo['logCH4'] = todo.apply(lambda y: log(y.pk_maxCH4_AB), axis=1)
     mnVals = todo.groupby('min_read', as_index=False).logCH4.mean().rename(columns={'logCH4': 'mnlogCH4'}).loc[:,
              ['min_read', 'mnlogCH4']]
     opMin = todo.groupby('min_read', as_index=False).OP_DISTANCE.min().rename(columns={'OP_DISTANCE': 'minDist'}).loc[:,
-             ['min_read', 'minDist']]
+            ['min_read', 'minDist']]
     opMax = todo.groupby('min_read', as_index=False).OP_DISTANCE.max().rename(columns={'OP_DISTANCE': 'maxDist'}).loc[:,
-             ['min_read', 'maxDist']]
+            ['min_read', 'maxDist']]
 
     verLoc = weightedLoc(todo, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').rename(
         columns={'pk_LAT': 'overallLAT', 'pk_LON': 'overallLON'}).reset_index(drop=True)
     together = pd.merge(verLoc, mnVals, on=['min_read'])
     final = pd.merge(together, mainDF, on=['min_read'])
-    final = pd.merge(final,opMin,on=['min_read'])
-    final = pd.merge(final,opMax,on = ['min_read'])
+    final = pd.merge(final, opMin, on=['min_read'])
+    final = pd.merge(final, opMax, on=['min_read'])
     return (final)
 
 
@@ -1897,16 +1831,16 @@ def sumData2(mainDF):
 
 def passCombine(firstgroup, secondgroup, xCar, buffer='30'):
     import ast
+    import pandas as pd  #
+    import geopandas as gpd
+    from shapely.geometry import Point
+
     def strList(x):
         x = ast.literal_eval(x)
         x = [n.strip() for n in x]
         return (x)
 
-    import pandas as pd  #
-    import geopandas as gpd
-    from shapely.geometry import Point
     buffer = float(buffer)
-
     seclist = secondgroup.columns
 
     if not "prev_read" in seclist:
@@ -2050,7 +1984,7 @@ def passCombine(firstgroup, secondgroup, xCar, buffer='30'):
                 columns=['geometry', 'numtimes', 'verified', 'recombine'])
             toChangecombined = toChangecombined.rename(columns={'min_read': 'prev_read', 'bothcombine': 'recombine'})
             # toChangecombined['numtimes'] = toChangecombined.apply(lambda x: len(x.recombine),axis = 1)
-            toChangecombined['numtimes'] = toChangecombined.apply(lambda x: countTimes(x.recombine,xCar), axis=1)
+            toChangecombined['numtimes'] = toChangecombined.apply(lambda x: countTimes(x.recombine, xCar), axis=1)
 
             toChangecombined['verified'] = toChangecombined.apply(lambda x: x.numtimes > 1, axis=1)
             toChangecombined = toChangecombined.rename(columns={'min_val': 'min_read'}).drop(columns=['combined'])
