@@ -101,7 +101,8 @@ def verPk(totalData):
     pkRed.loc[:, ('logCH4')] = pkRed.swifter.apply(lambda y: log(y.pk_maxCH4_AB), axis=1)
     mnVals = pkRed.groupby('min_read', as_index=False).logCH4.mean()
     together = pd.merge(verLoc, mnVals, on=['min_read'])
-    geometry_temp = [Point(xy) for xy in zip(together['pk_LON'], together['pk_LAT'])]
+    geometry_temp = [Point(lon,lat) for lon,lat in zip(together['pk_LON'], together['pk_LAT'])]
+
     crs = {'init': 'epsg:32610'}
     tog_dat = gpd.GeoDataFrame(together, crs=crs, geometry=geometry_temp)
     tog_dat = tog_dat.to_crs(epsg=3857)
@@ -171,7 +172,8 @@ def sumthing(thing):
 
 def makeGEO(df, lat, lon):
     from shapely.geometry import Point
-    geo = [Point(xy) for xy in zip(df[(lon)], df[(lat)])]
+    geo = [Point(lon,lat) for lon,lat in zip(df[(lon)], df[(lat)])]
+
     return (geo)
 
 
@@ -1405,7 +1407,8 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
 
                 fileWt = weightedLoc(openFile, 'OB_LAT', 'OB_LON', 'OP_NUM', 'OB_CH4_AB').loc[:, :].rename(
                     columns={'OB_LAT': 'pk_LAT', 'OB_LON': 'pk_LON'}).reset_index(drop=True)
-                geometry_temp = [Point(xy) for xy in zip(fileWt['pk_LON'], fileWt['pk_LAT'])]
+                geometry_temp = [Point(lon, lat) for lon, lat in zip(fileWt['pk_LON'], fileWt['pk_LAT'])]
+
                 crs = {'init': 'epsg:4326'}
 
                 # geometry is the point of the lat/lon
@@ -1469,7 +1472,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
             columns={'OB_LAT': 'pk_LAT', 'OB_LON': 'pk_LON'})
         datFram_wtLocMax = pd.merge(datFram_wtLoc, maxch4, on=['OP_NUM'])
         pass_info = datFram.copy()
-        geometry_temp = [Point(xy) for xy in zip(datFram_wtLocMax['pk_LON'], datFram_wtLocMax['pk_LAT'])]
+        geometry_temp = [Point(lon, lat) for lon, lat in zip(datFram_wtLocMax['pk_LON'], datFram_wtLocMax['pk_LAT'])]
         crs = {'init': 'epsg:4326'}
         gdf_buff = gpd.GeoDataFrame(datFram_wtLocMax, crs=crs, geometry=geometry_temp)
         gdf_buff = gdf_buff.to_crs(epsg=32610)
@@ -1509,7 +1512,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
         combinedOP = weightedLoc(gdfcop, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').loc[:, :].rename(
             columns={'pk_LAT': 'Overall_LAT', 'pk_LON': 'Overall_LON'}).reset_index(drop=True)
         combinedOP1 = pd.merge(combinedOP, gdfcop, on=['min_read'])
-        geometry_temp = [Point(xy) for xy in zip(combinedOP1['Overall_LON'], combinedOP1['Overall_LAT'])]
+        geometry_temp = [Point(lon, lat) for lon, lat in zip(combinedOP1['Overall_LON'], combinedOP1['Overall_LAT'])]
         crs = {'init': 'epsg:4326'}
         gdf_OP = gpd.GeoDataFrame(combinedOP1, crs=crs, geometry=geometry_temp)
         gdf_OP = gdf_OP.to_crs(epsg=32610).copy()
@@ -1566,7 +1569,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
         # geometry_temp = [Point(xy) for xy in zip(datFram['LON'], datFram['LAT'])]
         # crs = {'init': 'epsg:4326'}
 
-        geometry_temp = [Point(xy) for xy in zip(datFram_wtLocMax['pk_LON'], datFram_wtLocMax['pk_LAT'])]
+        geometry_temp = [Point(lon, lat) for lon, lat in zip(datFram_wtLocMax['pk_LON'], datFram_wtLocMax['pk_LAT'])]
         crs = {'init': 'epsg:4326'}
 
         # geometry is the point of the lat/lon
@@ -1815,7 +1818,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
 
         # other = gdfcop.loc[:,['min_read','numtimes','min_Date']].reset_index(drop=True)
 
-        geometry_temp = [Point(xy) for xy in zip(combinedOP1['Overall_LON'], combinedOP1['Overall_LAT'])]
+        geometry_temp = [Point(lon, lat) for lon, lat in zip(combinedOP1['Overall_LON'], combinedOP1['Overall_LAT'])]
         crs = {'init': 'epsg:4326'}
         gdf_OP = gpd.GeoDataFrame(combinedOP1, crs=crs, geometry=geometry_temp)
         gdf_OP = gdf_OP.to_crs(epsg=32610).copy()
@@ -1910,7 +1913,7 @@ def passCombine(firstgroup, secondgroup, xCar, buffer='30'):
         sgrp = secondgroup.copy()
         secondgroup['prev_read'] = sgrp.loc[:, 'min_read']
     ### MAKE GEOPANDAS FRAME OF THE FIRST GROUP PEAKS
-    first_geo = [Point(xy) for xy in zip(firstgroup['pk_LON'], firstgroup['pk_LAT'])]
+    first_geo = [Point(lon, lat) for lon, lat in zip(firstgroup['pk_LON'], firstgroup['pk_LAT'])]
     #   crs = {'init': 'epsg:4326'}
     crs = {'init': 'epsg:32610'}
 
@@ -1937,7 +1940,7 @@ def passCombine(firstgroup, secondgroup, xCar, buffer='30'):
 
     firstgrp = first_buff.copy()
 
-    sec_geo = [Point(xy) for xy in zip(secondgroup['pk_LON'], secondgroup['pk_LAT'])]
+    sec_geo = [Point(lon, lat) for lon, lat in zip(secondgroup['pk_LON'], secondgroup['pk_LAT'])]
     secgrp = gpd.GeoDataFrame(secondgroup.drop(columns=['geometry', 'pkGEO']), crs=crs, geometry=sec_geo)
 
     sec_buffg = secgrp.copy()
