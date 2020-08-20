@@ -5,8 +5,6 @@ Created on Tue Jul 28 10:51:28 2020
 
 @author: emilywilliams
 """
-
-
 ######### ALL FUNCTIONS NECESSARY TO RUN AMLD CODE ####################################
 
 ########################################################################
