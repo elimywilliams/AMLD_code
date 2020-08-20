@@ -372,9 +372,11 @@ verTog = allTog.loc[allTog.numtimes!= 1,:]
 if verTog.size > 0:
     verTog.drop(columns=['recombine']).to_file(shpFileLocName, driver="GeoJSON")
     print(f'I found {len(verTog.min_read.unique())} verified peaks')
+    vpNew = len(verTog.min_read.unique())
 
 if verTog.size ==0:
-    print("Sorry, no verified peaks were found.")  
+    print("Sorry, no verified peaks were found.")
+    vpNew = 0
 if allTog.size> 0:
     allTog.drop(columns=['recombine']).to_file(OPshpFileLocName, driver="GeoJSON")
     allTog.to_csv(allPksCSVLoc)
@@ -405,4 +407,4 @@ elif addingFiles:
     I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
     I created 3 summary files located here:{finRes}.\n \
     The processing took {round((end - start) / 60, 3)} minutes. \n \
-    I found {curOP} additional observed peaks, and {curVP} VPs.")
+    I found {len(mainThing.min_read.unique()) - curOP} additional observed peaks, and {vpNew - curVP} VPs.")
