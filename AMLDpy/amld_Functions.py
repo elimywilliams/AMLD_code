@@ -485,8 +485,10 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
         # newfnOut = xOutDir + xCar + "_" + xDate + "_dat.csv"       #set CSV output for raw data
         # newfnLog = xOutDir + xCar + "_" + xDate + "_log.csv"
 
-        print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
-            gZIP))
+        #print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
+        #    gZIP))
+
+        print(f"{xCar} \t {xdat} \t {fnOut[-22:]} \t {xCntObs} \t {xCntGoodValues} \t {gZIP}")
 
         def calcVel(timediff, distance):
             if timediff == 0:
@@ -726,8 +728,10 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
         # newfnOut = xOutDir + xCar + "_" + xDate + "_dat.csv"       #set CSV output for raw data
         # newfnLog = xOutDir + xCar + "_" + xDate + "_log.csv"
 
-        print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
-            gZIP))
+        #print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
+        #    gZIP))
+
+        print(f"{xCar} \t {xdat} \t {fnOut[-22:]} \t {xCntObs} \t {xCntGoodValues} \t  {gZIP}")
         from numpy import pi
         import numpy as np
         def calcVel(timediff, distance):
@@ -916,8 +920,9 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
         fOut.close()
         fLog.close()
         infOut.close()
-        print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
-            gZIP))
+        #print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
+        #    gZIP))
+        print(f"{xCar} \t {xdat} \t {fnOut[-22:]} \t  {xCntObs} \t {xCntGoodValues} \t {gZIP}")
 
         def calcVel(timediff, distance):
             if timediff == 0:
@@ -1350,7 +1355,9 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
         cntPeak -= len(tmpsidlist)
 
         fLog.write("Number of peaks found: " + str(cntPeak) + "\n")
-        print(xCar + "\t" + xDate + "\t" + xFilename + "\t" + str(count) + "\t" + str(len(lstCH4_ABP)))
+        #print(xCar + "\t" + xDate + "\t" + xFilename + "\t" + str(count) + "\t" + str(len(lstCH4_ABP)))
+        print(f"{xCar} \t {xDate} \t {xFilename} \t {count} \t {len(lstCH4_ABP)}")
+
         #### calculate attribute for the area under the curve -- PPM
 
         # write out the observed peaks to a csv to be read into a GIS

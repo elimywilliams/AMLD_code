@@ -370,8 +370,8 @@ end = time.time()
 #print("I found " + str(len(mainThing.min_read.unique()))+ " Observed Peaks")
 
 print(f"I analysed the data using a threshold of {float(threshold)*100}% for an elevated reading, \n \
-    where the threshold was calculated using the {baseLinePerc}th percentile over {backObs} observations. \n \
-      I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
-      I created 3 summary files located here:{finRes}.\n \
-      The processing took {round((end-start)/60,3)} minutes. \n \
-      I found {len(mainThing.min_read.unique())} observed peaks.")
+where the threshold was calculated using the {baseLinePerc}th percentile over {backObs} observations. \n \
+I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
+I created 3 summary files located here:{finRes}.\n \
+The processing took {round((end-start)/60,3)} minutes. \n \
+I found {len(mainThing.min_read.unique())} observed peaks.")
