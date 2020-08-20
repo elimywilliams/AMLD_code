@@ -224,7 +224,7 @@ if __name__ == '__main__':
     listthing = os.listdir(opDir)
     for file in listthing:
         if file.startswith(s2) and (file.endswith('.csv') and not file.endswith('info.csv')):
-            print("About to Filter Peaks in the file: " + str(file))
+            #print("About to Filter Peaks in the file: " + str(file))
             file_loc = opDir + file
             csv_loc = opDir  + file[:-4]+ '_info.csv'
             nonempt = False
