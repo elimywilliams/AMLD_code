@@ -310,7 +310,6 @@ if not os.path.exists(finalMain):
 #mainInfo.reset_index().FILENAME.to_csv(finalInfoLoc)
 mainThing.reset_index(drop=True).to_csv(finalMain)
         
-print(f"I processed {index} days of driving. The processed files are now stored in the folder: {filtopDir}")
 
 ################
 
@@ -369,7 +368,7 @@ end = time.time()
 #print("The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
 #print("I found " + str(len(mainThing.min_read.unique()))+ " Observed Peaks")
 
-print(f"I analysed the data using a threshold of {float(threshold)*100}% for an elevated reading, \n \
+print(f"I processed {len(toFilter)} days of driving. I analysed the data using a threshold of {float(threshold)*100}% for an elevated reading, \n \
 where the threshold was calculated using the {baseLinePerc}th percentile over {backObs} observations. \n \
 I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
 I created 3 summary files located here:{finRes}.\n \

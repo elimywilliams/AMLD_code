@@ -488,7 +488,7 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
         #print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
         #    gZIP))
 
-        print(f"{xCar} \t {xdat} \t {fnOut[-22:]} \t {xCntObs} \t {xCntGoodValues} \t {gZIP}")
+        print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t {xCntObs} \t {xCntGoodValues} \t {gZIP}")
 
         def calcVel(timediff, distance):
             if timediff == 0:
@@ -731,7 +731,7 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
         #print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
         #    gZIP))
 
-        print(f"{xCar} \t {xdat} \t {fnOut[-22:]} \t {xCntObs} \t {xCntGoodValues} \t  {gZIP}")
+        print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t {xCntObs} \t {xCntGoodValues} \t  {gZIP}")
         from numpy import pi
         import numpy as np
         def calcVel(timediff, distance):
@@ -922,7 +922,7 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
         infOut.close()
         #print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
         #    gZIP))
-        print(f"{xCar} \t {xdat} \t {fnOut[-22:]} \t  {xCntObs} \t {xCntGoodValues} \t {gZIP}")
+        print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t  {xCntObs} \t {xCntGoodValues} \t {gZIP}")
 
         def calcVel(timediff, distance):
             if timediff == 0:
