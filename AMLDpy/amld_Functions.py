@@ -345,7 +345,7 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
             fLog = open(fnLog, 'w')
             infOut = open(infOut, 'w')
             infOut.write(infoHeader)
-            print("fnLog: " + fnOut)
+            print(f"fnLog:{fnOut}")
         if not bFirst:
             fOut = open(fnOut, 'a')
             fLog = open(fnLog, 'a')
@@ -629,7 +629,7 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
             fLog = open(fnLog, 'w')
             infOut = open(infOut, 'w')
             infOut.write(infoHeader)
-            print("fnLog: " + fnOut)
+            print(f"fnLog:{fnOut}")
         if not bFirst:
             fOut = open(fnOut, 'a')
             fLog = open(fnLog, 'a')
@@ -858,7 +858,7 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
             fLog = open(fnLog, 'w')
             infOut = open(infOut, 'w')
             infOut.write(infoHeader)
-            print("fnLog: " + fnOut)
+            print(f"fnLog:{fnOut}")
         if not bFirst:
             fOut = open(fnOut, 'a')
             fLog = open(fnLog, 'a')
@@ -1128,8 +1128,8 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
         infOut = processedFileLoc + xCar + "_" + xDate + "_info.csv"
 
 
-        print(str(outDir + "Peaks" + "_" + xCar + "_" + xDate + "_info.csv"))
-
+        #print(str(outDir + "Peaks" + "_" + xCar + "_" + xDate + "_info.csv"))
+        print(f"{outDir}Peaks_{xCar}_{xDate}_info.csv")
         fLog = open(fnLog, 'w')
         shutil.copy(infOut, pkLog)
 
@@ -1253,7 +1253,7 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
 
                     # print (str(row[fLat])+ str(row[1]))
                     count += 1
-            print("Number of observations processed: " + str(count))
+            print(f"Number of observations processed:{count}")
 
         # convert lists to numpy arrays
         aEpochTime = numpy.array(x1);
@@ -1386,7 +1386,8 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
                 columns={'OP_EPOCHSTART': 'Frequency'})
             tempCount = tempCount.loc[tempCount.Frequency >= minElevated, :]
             if tempCount.shape[0] == 0:
-                print("No Observed Peaks with enough Elevated Readings Found in the file: " + str(xFilename))
+                print(f"No Observed Peaks with enough Elevated Readings Found in the file: {xFilename}")
+
             elif tempCount.shape[0] != 0:
                 oFile = pd.merge(openFile, tempCount, on=['OP_NUM'])
                 openFile = oFile.copy()
@@ -1410,7 +1411,7 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
                 gdf_buff['geometry'] = gdf_buff.loc[:, 'geometry'].buffer(30)
                 gdf_buff.to_file(jsonOut, driver="GeoJSON")
         elif openFile.shape[0] == 0:
-            print("No Observed Peaks Found in the file: " + str(xFilename))
+            print(f"No Observed Peaks Found in the file:{xFilename}")
     except ValueError:
         print("Error in Identify Peaks")
         return False

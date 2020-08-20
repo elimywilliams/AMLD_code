@@ -17,7 +17,7 @@ resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData/"
 
 
 ## CarID 
-xCar = 'SoCCar' # might need to be 5 letters? Need to check that!
+xCar = 'SCCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 threshold = '0.05'
@@ -310,7 +310,7 @@ if not os.path.exists(finalMain):
 #mainInfo.reset_index().FILENAME.to_csv(finalInfoLoc)
 mainThing.reset_index(drop=True).to_csv(finalMain)
         
-print("I processed "+ str(index) + ' days of driving. The processed files are now stored in the folder: ' + str(filtopDir))
+print(f"I processed {index} days of driving. The processed files are now stored in the folder: {filtopDir}")
 
 ################
 
@@ -349,7 +349,7 @@ verTog = allTog.loc[allTog.numtimes!= 1,:]
 
 if verTog.size > 0:
     verTog.drop(columns=['recombine']).to_file(shpFileLocName, driver="GeoJSON")
-    print('I found ' + str(len(verTog.min_read.unique()))+" verified peaks")
+    print(f'I found {len(verTog.min_read.unique())} verified peaks')
 
 if verTog.size ==0:
     print("Sorry, no verified peaks were found.")  
@@ -361,10 +361,17 @@ if allTog.size == 0:
     print("Sorry, no observed peaks were found in the given data")
     
 end = time.time()
-print("I analysed the data using a threshold of " + str(float(threshold)*100 + 100) + "% for an elevated reading" )
-print("where the threshold was calculated using the " + str(baseLinePerc) + 'th percentile over ' + str(backObs) + ' observations')
-print("I filtered the speed of the car to be between " + str(minCarSpeed) + 'mph and ' + str(maxCarSpeed) + 'mph')
-print("To create an observed peak, I required there to be a minimum of " + str(minElevated) + " observations within 30 seconds")
-print("I created three summary files located here: " + str(finRes) + ".")
-print("The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
-print("I found " + str(len(mainThing.min_read.unique()))+ " Observed Peaks")
+#print("I analysed the data using a threshold of " + str(float(threshold)*100 + 100) + "% for an elevated reading" )
+#print("where the threshold was calculated using the " + str(baseLinePerc) + 'th percentile over ' + str(backObs) + ' observations')
+#print("I filtered the speed of the car to be between " + str(minCarSpeed) + 'mph and ' + str(maxCarSpeed) + 'mph')
+#print("To create an observed peak, I required there to be a minimum of " + str(minElevated) + " observations within 30 seconds")
+#print("I created three summary files located here: " + str(finRes) + ".")
+#print("The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
+#print("I found " + str(len(mainThing.min_read.unique()))+ " Observed Peaks")
+
+print(f"I analysed the data using a threshold of {float(threshold)*100}% for an elevated reading, \n \
+    where the threshold was calculated using the {baseLinePerc}th percentile over {backObs} observations. \n \
+      I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
+      I created 3 summary files located here:{finRes}.\n \
+      The processing took {round((end-start)/60,3)} minutes. \n \
+      I found {len(mainThing.min_read.unique())} observed peaks.")
