@@ -17,7 +17,7 @@ resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData/"
 
 
 ## CarID 
-xCar = 'SCCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
+xCar = 'SoCrCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 threshold = '0.05'
