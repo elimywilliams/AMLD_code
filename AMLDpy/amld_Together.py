@@ -17,7 +17,7 @@ resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData/"
 
 
 ## CarID 
-xCar = 'SoCrCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
+xCar = 'SCCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 
 ## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 threshold = '0.05'
@@ -120,7 +120,7 @@ from datetime import datetime
 
 
 #### CREATING NECESSARY FOLDERS
-
+addingFiles = False
 foldList = [rawDir,resFolder,opDir,filtopDir,finRes,processedFileLoc]
 for x in foldList:
     if os.path.isdir(x) == False:
@@ -246,14 +246,41 @@ if not os.path.exists(finalMain):
     for file in toCombineList:
         if index == 1:
             loc = filtopDir + file
+            mainInfo = pd.read_csv(filtopDir + file[:-4] + '_info.csv')
             mainThing = (pd.read_csv(loc))
         elif index != 1:
             loc2 = filtopDir + file
             secThing = pd.read_csv(loc2)
+            secInfo = pd.read_csv(filtopDir + file[:-4] + '_info.csv')
             woo = passCombine(mainThing,secThing,xCar, buff)
+            mainInfo = pd.concat([secInfo,mainInfo])
             mainThing = woo.copy()
         index = index + 1
         print(file)
+
+
+
+
+
+
+    mainThing = mainThing.copy().reset_index(drop = True)
+    mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine,xCar),axis=1)
+    #mainThing['numtimes']  = mainThing.recombine.swifter.apply(lambda x: countTimes(x))
+
+elif os.path.exists(finalMain):
+    addingFiles = True
+    toCombine = list(map(lambda x: 'FilteredPeaks_' + x[6:],toFilter))
+    mainThing = pd.read_csv(finalMain)
+    mainInfo = pd.read_csv(finalInfoLoc)
+    curVP = mainThing.loc[mainThing.numtimes > 1, :].min_read.drop_duplicates().shape[0]
+    curOP = mainThing.min_read.drop_duplicates().shape[0]
+    for file in toCombine:
+        loc = filtopDir + file
+        if os.path.exists(loc):
+            secThing = pd.read_csv(loc)
+            mainThing = passCombine(mainThing,secThing,xCar, buff)
+            mainInfo = pd.concat([mainInfo,pd.read_csv(filtopDir + file[:-4] + '_info.csv')])
+            print(file)
     mainThing = mainThing.copy().reset_index(drop = True)
     mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine,xCar),axis=1)
     #mainThing['numtimes']  = mainThing.recombine.swifter.apply(lambda x: countTimes(x))
@@ -303,7 +330,7 @@ if not os.path.exists(finalMain):
 # =============================================================================
                 
 ## figure out the mainInfo thing
-#mainInfo.reset_index().FILENAME.to_csv(finalInfoLoc)
+mainInfo.drop_duplicates().reset_index(drop=True).FILENAME.to_csv(finalInfoLoc)
 mainThing.reset_index(drop=True).to_csv(finalMain)
         
 
@@ -364,9 +391,18 @@ end = time.time()
 #print("The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
 #print("I found " + str(len(mainThing.min_read.unique()))+ " Observed Peaks")
 
-print(f"I processed {len(toFilter)} days of driving. I analysed the data using a threshold of {100 + float(threshold)*100}% for an elevated reading, \n \
-where the threshold was calculated using the {baseLinePerc}th percentile over {backObs} observations. \n \
-I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
-I created 3 summary files located here:{finRes}.\n \
-The processing took {round((end-start)/60,3)} minutes. \n \
-I found {len(mainThing.min_read.unique())} observed peaks.")
+if not addingFiles:
+    print(f"I processed {len(toFilter)} days of driving. I analysed the data using a threshold of {100 + float(threshold)*100}% for an elevated reading, \n \
+    where the threshold was calculated using the {baseLinePerc}th percentile over {backObs} observations. \n \
+    I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
+    I created 3 summary files located here:{finRes}.\n \
+    The processing took {round((end-start)/60,3)} minutes. \n \
+    I found {len(mainThing.min_read.unique())} observed peaks.")
+
+elif addingFiles:
+    print(f"I processed an additional {len(toFilter)} days of driving. I analysed the data using a threshold of {100 + float(threshold) * 100}% for an elevated reading, \n \
+    where the threshold was calculated using the {baseLinePerc}th percentile over {backObs} observations. \n \
+    I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
+    I created 3 summary files located here:{finRes}.\n \
+    The processing took {round((end - start) / 60, 3)} minutes. \n \
+    I found {curOP} additional observed peaks, and {curVP} VPs.")
