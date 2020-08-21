@@ -62,7 +62,6 @@ rawDir =  resFolder + 'RawData/'
 #inDir = resFolder + 'ObservedPeaks/'
 opDir = resFolder + 'ObservedPeaks/'
 
-#outFolder = resFolder + 'FilteredObservedPeaks/'
 filtopDir = resFolder + 'FilteredObservedPeaks/'
 finRes = resFolder + 'FinalShpFiles/'
 shpFileLocName = finRes + 'verifiedPKs.json'
@@ -71,22 +70,11 @@ OPshpFileLocName = finRes + "OP_Final.json"
 allPksCSVLoc = finRes + 'overallPeaks.csv'
 finalInfoLoc = finRes + 'summaryInfo.csv'
 finalMain = finRes + 'mainThing.csv'
-## replace inDir with opDir
-
-#inDir = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
-
-# where you want the 
-#outFolder = "/Users/emilywilliams/Documents/DrivingData/ColDat/Processed/"
-#shpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDat/compFinal.json"
-#processedFileLoc = "/Users/emilywilliams/Documents/DrivingData/ColDat/"
-#OPshpFileLocName = "/Users/emilywilliams/Documents/DrivingData/ColDat/OP_Final.json"
-
 
 ####### POTENTIALLY COULD CHANGE
 s1 = xCar
 s2 = "Peaks_" + str(s1)
 s3 = "Filtered" + str()
-
 
 ##################################
 ### IMPORTING NECESSARY MODULES
@@ -126,12 +114,9 @@ for x in foldList:
             print("Successfully created the directory %s " % x)
             
 ### MOVING RAW FILES TO THE RAW DATA FILE FOLDER
-listthing = os.listdir(rawDatLoc)
-
-for file in listthing:
+for file in os.listdir(rawDatLoc):
     if file.endswith(".txt"):
         shutil.move(rawDatLoc+'/' + file,rawDir)
-
 ########################################################################################
 
 ##### THIS PORTION OF THE CODE ALLOWS US TO ITERATIVELY ADD IN MORE DATA
@@ -165,9 +150,7 @@ if __name__ == '__main__':
     dateList = []
     x1=""
     count = 0
-    #listthing = os.listdir(rawDir)
-    listthing = toAnalyse ## changing to include the files we have to analyse?
-    for file in listthing:
+    for file in toAnalyse:
         #print (file)
         if file.endswith(".txt"):
             dateF = file[11:17]
@@ -179,7 +162,6 @@ if __name__ == '__main__':
                 dateList.append(dateF)
             x1 = file[:10]
             xDate = file[:10]
-            #theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
             if engineering:
                 theResult = ProcessRawDataEng(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift,maxCarSpeed,minCarSpeed)
             elif not engineering:
@@ -190,17 +172,14 @@ if __name__ == '__main__':
             count = count + 1
 
 if __name__ == '__main__':
-    #listthing = os.listdir(processedFileLoc).copy() 
-    listthing = toIdentify.copy()
-    for file in listthing:
+    for file in toIdentify:
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[len(xCar)+1:len(xCar) + 9]
             theResult = IdentifyPeaks(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,engineering,threshold,timethresh,minElevated,backObs,baseLinePerc)
 if __name__ == '__main__':
     index = 0
     numproc = 0
-    listthing = os.listdir(opDir)
-    for file in listthing:
+    for file in os.listdir(opDir):
         if file.startswith(s2) and (file.endswith('.csv') and not file.endswith('info.csv')):
             file_loc = opDir + file
             csv_loc = opDir  + file[:-4]+ '_info.csv'
@@ -210,9 +189,7 @@ if __name__ == '__main__':
                 nonempt = True
                 xDate = file[len(xCar) + 7: len(xCar) + 15]
                 filterPeak(xCar,xDate,opDir,file,filtopDir,buffer = buff,whichpass = index )
-        
-end = time.time()
-    
+
 if not os.path.exists(finalMain):
     toCombine = os.listdir(filtopDir)
     toCombineList = []
@@ -235,7 +212,6 @@ if not os.path.exists(finalMain):
             mainThing = woo.copy()
         index = index + 1
         print(file)
-
     mainThing = mainThing.copy().reset_index(drop = True)
     mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine,xCar),axis=1)
 
@@ -261,19 +237,12 @@ mainThing.reset_index(drop=True).to_csv(finalMain)
 
 combined = sumData2(mainThing) ## finds locations and mean log ch4 for each peak (either verified or non yet)
 
-
 ## combined so only with the same overall peak
 uniquePk = combined.loc[:,['min_read']].drop_duplicates()
 uniqueList = combined.loc[uniquePk.index,['min_read','recombine']]
 uniqueOther = combined.loc[:,['min_read','overallLON','overallLAT','mnlogCH4',
                              'verified','numtimes','minDist','maxDist']].drop_duplicates()
-
-#unique_gdf2 = pd.merge(makeGPD(uniqueOther,'overallLAT','overallLON'),uniqueList,on = ['min_read'])
-#unique_gdf2 = pd.merge(unique_gdf,uniqueList,on = ['min_read'])
-
 allTog = pd.merge(makeGPD(uniqueOther,'overallLAT','overallLON'),uniqueList,on = ['min_read'])
-
-#allTog = unique_gdf2.copy()
 allTog['em'] = allTog['mnlogCH4'].swifter.apply(lambda y: estEmissions(y))
 allTog['threshold'] = allTog['em'].swifter.apply(lambda x: threshold)
 
@@ -285,7 +254,6 @@ if verTog.size > 0:
     verTog.drop(columns=['recombine']).to_file(shpFileLocName, driver="GeoJSON")
     print(f'I found {len(verTog.min_read.unique())} verified peaks')
     vpNew = len(verTog.min_read.unique())
-
 if verTog.size ==0:
     print("Sorry, no verified peaks were found.")
     vpNew = 0
@@ -295,22 +263,13 @@ if allTog.size> 0:
 
 if allTog.size == 0:
     print("Sorry, no observed peaks were found in the given data")
-    
-end = time.time()
-#print("I analysed the data using a threshold of " + str(float(threshold)*100 + 100) + "% for an elevated reading" )
-#print("where the threshold was calculated using the " + str(baseLinePerc) + 'th percentile over ' + str(backObs) + ' observations')
-#print("I filtered the speed of the car to be between " + str(minCarSpeed) + 'mph and ' + str(maxCarSpeed) + 'mph')
-#print("To create an observed peak, I required there to be a minimum of " + str(minElevated) + " observations within 30 seconds")
-#print("I created three summary files located here: " + str(finRes) + ".")
-#print("The processing took " + str(round((end-start)/60,3)) + str(" minutes."))
-#print("I found " + str(len(mainThing.min_read.unique()))+ " Observed Peaks")
 
 if not addingFiles:
     print(f"I processed {len(toFilter)} days of driving. I analysed the data using a threshold of {100 + float(threshold)*100}% for an elevated reading, \n \
     where the threshold was calculated using the {baseLinePerc}th percentile over {backObs} observations. \n \
     I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
     I created 3 summary files located here:{finRes}.\n \
-    The processing took {round((end-start)/60,3)} minutes. \n \
+    The processing took {round((time.time()-start)/60,3)} minutes. \n \
     I found {len(mainThing.min_read.unique())} observed peaks.")
 
 elif addingFiles:
@@ -318,5 +277,5 @@ elif addingFiles:
     where the threshold was calculated using the {baseLinePerc}th percentile over {backObs} observations. \n \
     I filtered the speed of the car to be between {minCarSpeed}mph and {maxCarSpeed}mph.\n \
     I created 3 summary files located here:{finRes}.\n \
-    The processing took {round((end - start) / 60, 3)} minutes. \n \
+    The processing took {round((time.time() - start) / 60, 3)} minutes. \n \
     I found {len(mainThing.min_read.unique()) - curOP} additional observed peaks, and {vpNew - curVP} VPs.")
