@@ -16,20 +16,20 @@ rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_
 ## Folder to put results in (will make subfolders later)
 resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_dat/"
 
-xCar = 'SCCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
+xCar = 'TrussCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.05'  #What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 timethresh = '5.0'  ## How many minutes to include in background calculation (minutes)
-initialTimeIgnore = '5' ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
+initialTimeIgnore = '0' ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
 minElevated = '1' # minimum number of elevated readings required for an observed peak
-shift = -4  ## Lag time for CH4 to reach sensor (in seconds)
+shift = 0  ## Lag time for CH4 to reach sensor (in seconds)
 engineering = False #is this an engineering file
-aeris = False # is this from the aeris instrument
+aeris = True # is this from the aeris instrument
 timePush = 0 #not sure what this is
 backObs = '102' ### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
 maxCarSpeed = '45' #maximum car speed to allow (mph)
 minCarSpeed = '2' # minimum car speed to allow (mph)
 
-baseLinePerc = '25' #what percentile to use as a backgorund calculation
+baseLinePerc = '50' #what percentile to use as a backgorund calculation
 buff = '30' # distance of buffer (m) to use
 
 ###############################################################################
