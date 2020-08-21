@@ -26,7 +26,7 @@ threshold = '0.05'
 timethresh = '5.0'
 
 ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
-initialTimeIgnore = '0'
+initialTimeIgnore = '5'
 
 # minimum number of elevated readings required for an observed peak
 minElevated = '1'
@@ -49,7 +49,7 @@ backObs = '102'
 maxCarSpeed = '45'
 minCarSpeed = '2'
 
-baseLinePerc = '50'
+baseLinePerc = '25'
 buff = '30'
 
 ###############################################################################
