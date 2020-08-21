@@ -20,6 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="844887e3-c461-427f-8d6c-bc5591a21f18" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/amld_Together.py" beforeDir="false" afterPath="$PROJECT_DIR$/amld_Together.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -201,11 +202,12 @@
       <screen x="0" y="23" width="1401" height="877" />
     </state>
     <state x="262" y="61" key="SettingsEditor/0.23.1401.877@0.23.1401.877" timestamp="1597242776856" />
-    <state x="433" y="200" width="689" height="580" key="search.everywhere.popup" timestamp="1597682389063">
-      <screen x="0" y="0" width="1440" height="900" />
+    <state x="420" y="218" width="670" height="566" key="search.everywhere.popup" timestamp="1598031189152">
+      <screen x="0" y="23" width="1398" height="877" />
     </state>
     <state x="-1175" y="-77" width="670" height="676" key="search.everywhere.popup/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1597073702693" />
     <state x="433" y="200" width="689" height="580" key="search.everywhere.popup/0.0.1440.900@0.0.1440.900" timestamp="1597682389063" />
+    <state x="420" y="218" width="670" height="566" key="search.everywhere.popup/0.23.1398.877@0.23.1398.877" timestamp="1598031189152" />
     <state x="421" y="218" width="670" height="565" key="search.everywhere.popup/0.23.1401.877@0.23.1401.877" timestamp="1597272939408" />
   </component>
 </project>

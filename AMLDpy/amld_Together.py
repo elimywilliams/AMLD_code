@@ -11,46 +11,26 @@ Created on Tuesday July 28
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 
 ## Folder with .txt Data
-rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData"
+rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_dat"
 
 ## Folder to put results in (will make subfolders later)
-resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData/"
+resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_dat/"
 
-## CarID 
 xCar = 'SCCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
+threshold = '0.05'  #What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
+timethresh = '5.0'  ## How many minutes to include in background calculation (minutes)
+initialTimeIgnore = '5' ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
+minElevated = '1' # minimum number of elevated readings required for an observed peak
+shift = -4  ## Lag time for CH4 to reach sensor (in seconds)
+engineering = False #is this an engineering file
+aeris = False # is this from the aeris instrument
+timePush = 0 #not sure what this is
+backObs = '102' ### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
+maxCarSpeed = '45' #maximum car speed to allow (mph)
+minCarSpeed = '2' # minimum car speed to allow (mph)
 
-## What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
-threshold = '0.05'
-
-## How many minutes to include in background calculation (minutes)
-timethresh = '5.0'
-
-## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
-initialTimeIgnore = '5'
-
-# minimum number of elevated readings required for an observed peak
-minElevated = '1'
-
-## Lag time for CH4 to reach sensor (in seconds)
-#shift = -4
-shift = -4
-
-## Is this an engineering file?
-engineering = False
-aeris = False
-
-# Not super sure what timePush is but thats cool
-timePush = 0
-
-### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
-backObs = '102'
-
-# FILTER SPEED THING
-maxCarSpeed = '45'
-minCarSpeed = '2'
-
-baseLinePerc = '25'
-buff = '30'
+baseLinePerc = '25' #what percentile to use as a backgorund calculation
+buff = '30' # distance of buffer (m) to use
 
 ###############################################################################
 ###### DON'T CHANGE ANYTHING BELOW THIS (UNLESS YOU CAN FIX IT) ###############
@@ -59,7 +39,6 @@ buff = '30'
 # STARTING ALGORITHM (NAMING FOLDERS AND SUCH) 
 ## WHERE TO PUT LEAKS
 rawDir =  resFolder + 'RawData/'
-#inDir = resFolder + 'ObservedPeaks/'
 opDir = resFolder + 'ObservedPeaks/'
 
 filtopDir = resFolder + 'FilteredObservedPeaks/'
@@ -124,9 +103,8 @@ for file in os.listdir(rawDatLoc):
 rawTexts = pd.DataFrame(os.listdir(rawDir)).loc[pd.DataFrame(os.listdir(rawDir))[0].str.endswith('.txt')]
 
 ### DON'T ADD NEW FILE WITH PRE-EXISTING DATE [NEED TO WRITE CODE TO DEAL WITH THAT]
-toAnalyse = []
-toIdentify = []
-toFilter = []
+toAnalyse, toIdentify, toFilter = [[] for _ in range(3)]
+
 
 if os.path.exists(finalInfoLoc):
     analysed = pd.read_csv(finalInfoLoc)
