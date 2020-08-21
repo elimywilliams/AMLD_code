@@ -980,7 +980,8 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
         wind_df2 = wind_df.copy()
         wind_df3 = wind_df2.drop(
             ['QUADRANT', 'secnan', 'prev_LAT', 'next_LAT', 'prev_LONG', 'next_LONG', 'prev_TIME', 'next_TIME',
-             'distance', 'timediff', 'uncor_theta', 'CH4'], axis=1)
+             'timediff', 'uncor_theta', 'CH4'], axis=1)
+
         wind_df3['CH4'] = wind_df3.loc[:, 'shift_CH4']
         wind_df3 = wind_df3.drop(['shift_CH4'], axis=1)
 
@@ -990,7 +991,14 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
                     'CURRMA', 'SOCPER', 'LAT',
                     'LONG', 'bearing', 'U_cor', 'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4']]
         # wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(),:]
-
+        wind_df3 = wind_df3.loc[:,
+                   ['DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
+                    'TRSSI',
+                    'PRESS_MBAR', 'INLET', 'TEMPC', 'CH4', 'H20', 'C2H6', 'R', 'C2C1', 'BATTV', 'POWMV', 'CURRMA',
+                    'SOCPER',
+                    'LAT', 'LONG', 'bearing', 'U_cor', 'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4',
+                    'distance']]
+        wind_df3['odometer'] = wind_df3.loc[:, 'distance'].cumsum()
         wind_df4 = wind_df3.copy()
 
         # wind_df7 = addOdometer(wind_df4,'LAT','LONG')
