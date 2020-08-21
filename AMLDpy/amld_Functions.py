@@ -7,50 +7,46 @@ Created on Tue Jul 28 10:51:28 2020
 """
 ######### ALL FUNCTIONS NECESSARY TO RUN AMLD CODE ####################################
 
-########################################################################
-#### unique
-# Helper function to find unique items in a list (used later)
-# Input: a list
-# Output: a list of unique items from original list
-
 def unique(my_list):
+    """ Condense a list and return only its unique entries
+    input:
+        my_list -- a list
+    output:
+        a list of the unique items
+    """
     return [x for x in my_list if x not in locals()['_[1]']]
 
-
-########################################################################
-#### unIfInt
-# helper function to find intersection of two lists
-# Input: two lists
-# Output: one list with union of items
-
 def unIfInt(a, b):
+    """ If two lists intersect, return their union
+    input:
+        a,b: two lists
+    output:
+        if the two lists intersect, returns a list of their union.
+        if the two lists do not intersect, returns an empty list
+    """
     if len(intersect(a, b)) != 0:
         return (list(set(a).union(b)))
 
-
-########################################################################
-#### intersect
-# helper function to find the intersection of 2 lists
-# Input: two lists (a,b)
-# Output: list of intersection of a and b
-
 def intersect(a, b):
+    """ List of intersections of two lists
+    input:
+        a,b: lists
+    output:
+        a intersect b
+    """
     return list(set(a) & set(b))
 
-
-########################################################################
-#### weightedLoc
-# helper function to find weighted Location of a peak
-# Input:
-#   df = dataframe with data
-#   lat = name of column with latitude data
-#   lon = name of column with longitude data
-#   by = name of column to group by
-#   val2avg = name of column to use to weight
-# Output: dataframe with weighted location for each grouping variable
-
-
 def weightedLoc(df, lat, lon, by, val2avg):
+    """ find the weighted centroid of a data frame
+    input:
+        df: data frame with gps locations, a grouping variable, and a value to weight with
+        lat: name of the column with latitude
+        lon: name of the column with longitude
+        by: name of the column to group by (i.e. a observed peak name)
+        val2avg: name of the column that is being used to weight the location
+    output:
+        dataframe with weighted location for each grouping variable
+    """
     import pandas as pd
     import swifter
     df_use = df.loc[:, [(lat), (lon), (by), val2avg]]
@@ -76,14 +72,13 @@ def weightedLoc(df, lat, lon, by, val2avg):
     return (df_use.loc[:, [(str(by)), ('overall_LON'), ('overall_LAT')]].drop_duplicates().rename(
         columns={'overall_LON': str(lon), 'overall_LAT': str(lat)}))
 
-
-########################################################################
-#### verPK
-# helper function to make dataframe of verified peaks
-# Input: df with all data
-# Output: geodataframe of locations
-
 def verPk(totalData):
+    """ make a dataframe of the verified peaks
+    input:
+        df: data frame with all the data
+    output:
+        geodataframe of locations
+    """
     import pandas as pd  #
     from numpy import log
     import geopandas as gpd
@@ -103,13 +98,13 @@ def verPk(totalData):
     tog_dat = gpd.GeoDataFrame(together, crs=crs, geometry=geometry_temp)
     tog_dat = tog_dat.to_crs(epsg=3857)
 
-
-########################################################################
-#### estEmissions
-# Input: excess CH4 value
-# Output: estimated emission
-
 def estEmissions(excessCH4):
+    """ estimate emissions of the methane leak, using maximum values found at each OP
+    input:
+        excessCH4: amount of excess ch4
+    output:
+        estimated emission from that observed ch4 level
+    """
     import math
     a = 0.4630664
     b = 0.7443749
@@ -127,12 +122,16 @@ def estEmissions(excessCH4):
     return (m)
 
 
-########################################################################
-#### haversine
-# Input: two locations (lat,long), radius of earth
-# Output: distance (m) between points
 
-def haversine(lat1, lon1, lat2, lon2, radius=6371):  # 6372.8 = earth radius in kilometers
+def haversine(lat1, lon1, lat2, lon2, radius=6371):
+    """ calculate the distance between two gps coordinates, using haversine function
+    input:
+        lat1,lon1: location 1
+        lat2,lon2: location 2
+        radius: earth's radius at the location used (km). Default is 6371km
+    output:
+        distance between the points (m)
+    """
     from math import radians, sin, cos, sqrt, asin
     dLat = radians(lat2 - lat1)
     dLon = radians(lon2 - lon1)
@@ -142,54 +141,52 @@ def haversine(lat1, lon1, lat2, lon2, radius=6371):  # 6372.8 = earth radius in 
     return radius * c * 1000  # return in meters
 
 
-########################################################################
-#### wt_time_Locs
-# Input: weight, location
-# Output: wt*location
-
 def wt_time_Locs(wt, loc):
+    """ takes wt * loc to
+    """
     return (wt * loc)
 
-
-########################################################################
-#### sumthing
-# Input: values
-# Output: sum of values
-
-def sumthing(thing):
-    return (sum(thing))
-
-
-########################################################################
-#### makeGEO
-# Input: dataframe, lat,long columns
-# Output: converts lat long to points (useful for geodataframes)
-
+def sumthing(values):
+    """ sum everything in the values
+    """
+    return (sum(values))
 
 def makeGEO(df, lat, lon):
+    """ make a geodataframe
+    input:
+        df: dataframe
+        lat: name of column with latitude
+        lon: name of column with longitude
+    output:
+        geometry with points turned to geometries
+    """
     from shapely.geometry import Point
     geo = [Point(lon, lat) for lon, lat in zip(df[(lon)], df[(lat)])]
-
     return (geo)
 
-
-########################################################################
-#### makeGPD
-# Input: dataframe, lat,long locations, crs to use
-# Output: returns a geodataframe with the lat longs as points
-
 def makeGPD(df, lat, lon, cps='epsg:4326'):
+    """ make geodataframe
+    input:
+        df: dataframe to turn into geodataframe
+        lat: name of latitude column
+        lon: name of longitude column
+        cps: coordinate system to use
+    output:
+        geodataframe with the corresponding crs
+    """
     import geopandas as gpd
     gdf = gpd.GeoDataFrame(df, crs=cps, geometry=makeGEO(df, lat, lon))
     return (gdf)
 
 
-########################################################################
-#### summarizeDat
-# Input: data from all analyses
-# Output: summary information with the weighted locations
 
 def summarizeDat(totalData):
+    """ take all data from analyses, and output summary information
+    input:
+        df
+    output:
+        shorter df with summary
+    """
     import pandas as pd
     from numpy import log
     pkRed = totalData.loc[:, ['PEAK_NUM', 'pk_LON', 'pk_LAT', 'pk_maxCH4_AB', 'numtimes',
@@ -204,13 +201,15 @@ def summarizeDat(totalData):
     final = pd.merge(together, totalData, on=['min_read'])
     return (final)
 
-
-########################################################################
-#### getQuad
-# Input: x,y values
-# Output: which quadrant of a xy plot it is in (useful for wind info)
-
 def getQuad(x, y):
+    """ given an x,y coordinate, return which quadrant it is in
+    input:
+        x,y values
+    output:
+        quadrant
+    exceptions:
+
+    """
     try:
         x = int(x)
         y = int(y)
@@ -226,13 +225,16 @@ def getQuad(x, y):
     else:
         return (4)
 
-
-########################################################################
-#### calcTheta
-# Input: u,v (wind), quadrant, length of horizontal wind, radians (t/f)
-# Output: calculates theta value
-
 def calcTheta(U, V, quad, h_length, radians):
+    """ given wind coordinates, quadrant, and the length of horizontal wind, return theta value
+    input:
+        U,V: wind directions
+        quad: quadrant
+        h_length: horizontal wind component
+        radians: T/F value for radians or degrees
+    output:
+        theta value of the wind
+    """
     import numpy as np
     theta = np.arcsin(U / h_length)
     import numpy as np
@@ -250,13 +252,15 @@ def calcTheta(U, V, quad, h_length, radians):
 
     return (theta)
 
-
-########################################################################
-#### calcBearing
-# Input: two gps coordinates, radians(t/f)
-# Output: direction (degrees/radians) of motion
-
 def calcBearing(lat1, lat2, long1, long2, radians):
+    """ calculating the direction (bearing) of driving
+    input:
+        lat1,lon1: location 1
+        lat2,lon2: location 2
+        radians: T/F
+    output:
+        direction (degrees/radians) of motion
+    """
     from math import atan2
     from numpy import pi
     from math import radians, sin, cos
@@ -277,13 +281,16 @@ def calcBearing(lat1, lat2, long1, long2, radians):
         return (theta)
 
 
-########################################################################
-#### ProcessRawDataEng
-# Input: a .txt file with raw data
-# Output: saves a log, and .csv file with processed data (removes unwanted)
-
 def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack,
                       shift, maxSpeed='45', minSpeed='2'):
+    """ input a raw .txt file with data (enginnering file)
+    input:
+        txt file
+    output:
+        saved log file
+        saved csv file with processed data
+        saved info.csv file
+    """
     import pandas as pd
     from datetime import datetime
     import os
@@ -559,10 +566,16 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
         return False
 
 
-############
-### processData (not engineering file)
 def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45',
                    minSpeed='2'):
+    """ input a raw .txt file with data (not engineering file)
+    input:
+        txt file
+    output:
+        saved log file
+        saved csv file with processed data
+        saved info.csv file
+    """
     import pandas as pd
     from datetime import datetime
     import os
@@ -804,6 +817,14 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
 
 def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45',
                         minSpeed='2'):
+    """ input a raw .txt file with data (from aeris data file)
+    input:
+        txt file
+    output:
+        saved log file
+        saved csv file with processed data
+        saved info.csv file
+    """
     import pandas as pd
     from datetime import datetime
     import os
@@ -993,14 +1014,15 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
     except ValueError:
         return False
 
-
-########################################################################
-#### addOdometer
-# function to add column to dataframe with Odometer reading (in kms)
-# Input: df, lat, lon
-# Output: df with the odometer reading
-
 def addOdometer(df, lat, lon):
+    """ add column with running odometer
+    input:
+        df
+        lat: name of latitude column
+        lon: name of longitude column
+    output:
+        df with odometer reading
+    """
     import pandas as pd
     import math
     df_use = df.loc[:, [(lat), (lon)]]
@@ -1025,27 +1047,26 @@ def addOdometer(df, lat, lon):
     df_use['dif'] = df_use.apply(lambda x: nanthing(x.dif), axis=1)
     return (pd.merge(df, df_use.loc[:, [(lat), (lon), 'odometer', 'distance']], on=[(lat), (lon)]))
 
-
-########################################################################
-#### strList
-# helper function to convert a string of a list to just a list
-# Input: string of a list thing to
-# Output: list
-
 def strList(x):
+    """ convert a string of a list to just a list
+    input:
+        string of a list thing
+    output:
+        list
+    """
     import ast
     x = ast.literal_eval(x)
     x = [n.strip() for n in x]
     return (x)
 
 
-########################################################################
-#### COUNTTIMES
-# Input: a list of peak times included in a given combined peak
-# Output: counts number of times the peak was seen (not in same 5 min period)
-
-
 def countTimes(opList, xCar):
+    """ count number of times a peak seen (not in same 5 min period)
+    input:
+        list of peak times in a given combined peak
+    output:
+        counts # of times peaks seen not in same 5 min period
+    """
     if isinstance(opList, str):
         opList = strList(opList)
     if len(opList) == 1:
@@ -1076,7 +1097,27 @@ def countTimes(opList, xCar):
 
 
 def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engineering, threshold='.1',
-                  xTimeThreshold='5.0', minElevated='2', xB='1020', basePerc='50'):
+                  xTimeThreshold='5.0', minElevated='2', xB='102', basePerc='50'):
+    """ input a processed data file, and finds the locations of the elevated readings (observed peaks)
+    input:
+        xCar: name of the car (to make filename)
+        xDate: date of the reading
+        xDir: directory where the file is located
+        xFilename: name of the file
+        outDir: directory to take it
+        processedFileLoc
+        Engineering: T/F if the processed file was made using an engineering file
+        threshold: the proportion above baseline that is marked as elevated (i.e. .1 corresponds to 10% above
+        xTimeThreshold: not super sure
+        minElevated: # of elevated readings that need to be there to constitute an observed peak
+        xB: Number of observations used in background average
+        basePerc: percentile used for background average (i.e. 50 is median)
+    output:
+        saved log file
+        saved csv file with identified peaks
+        saved info.csv file
+        saved json file
+    """
     import csv, numpy
     import geopandas as gpd
     import shutil
