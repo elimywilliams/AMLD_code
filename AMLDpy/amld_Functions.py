@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jul 28 10:51:28 2020
-
 @author: emilywilliams
+relevant functions to run the AMLD algorithm
 """
-######### ALL FUNCTIONS NECESSARY TO RUN AMLD CODE ####################################
 
 def unique(my_list):
     """ Condense a list and return only its unique entries
@@ -1394,14 +1393,21 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
         return False
 
 
-########################################################################
-#### FILTER PEAK
-# Input: a .csv file with peak data (already have gone through
-#   ('identifyPeaks')
-# Output: checks for overlaps within a day's drive. Finds locations of
-#           Observed Peaks
-
 def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0):
+    """ goes through a given peak file to see if there are any verifications within that file
+    input:
+        xCar: name of car
+        xDate: date of the reading
+        xDir: directory
+        xFilename: name of file
+        outFolder: where to save it to
+        buffer: size (m) of the buffer to use to find overlapping observed peaks to combine/verify
+        whichpass: doesn't really matter, but could be used to identify stuff
+    output:
+        saved log file
+        saved csv file with processed data
+        saved info.csv file
+    """
     ## NECESSARY MODULES
     import pandas as pd  #
     import geopandas as gpd
@@ -1832,14 +1838,13 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
 
         return ()
 
-
-########################################################################
-#### sumData2
-# Input: the two data groups to combine (already have gone through
-#           'filterpeak')
-# Output: One dataframe with the combination (combine peaks)
-
 def sumData2(mainDF):
+    """ summarize data from after all analysis has been done
+    input:
+        mainDf
+    output:
+        finds the log ch4 mean, the minimum distance and max distance of an observed peak, etc.
+    """
     from numpy import log
     import pandas as pd
     todo = mainDF.loc[:, ['OP_NUM', 'min_Date', 'pk_LON', 'pk_LAT', 'pk_maxCH4_AB', 'numtimes',
@@ -1860,15 +1865,18 @@ def sumData2(mainDF):
     final = pd.merge(final, opMax, on=['min_read'])
     return (final)
 
-
-########################################################################
-#### PASS COMBINE
-# Input: the two data groups to combine (already have gone through
-#           'filterpeak')
-# Output: One dataframe with the combination (combine peaks)
-
-
 def passCombine(firstgroup, secondgroup, xCar, buffer='30'):
+    """ used to combine two days' filtered peak files, to find any overlaps or verified peaks
+    input:
+        firstgroup: filtered peak file 1
+        secondgroup: filtered peak file 2
+        xCar: name of car
+        buffer: radius of buffer (m) to be used to find overlapping peaks
+    output:
+        saved log file
+        saved csv file with processed data
+        saved info.csv file
+    """
     import ast
     import pandas as pd  #
     import geopandas as gpd

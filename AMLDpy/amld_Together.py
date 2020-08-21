@@ -9,12 +9,12 @@ Created on Tuesday July 28
 
 ## WHERE THE amld_Functions.py file is located
 functionFileLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
+
 ## Folder with .txt Data
 rawDatLoc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData"
 
 ## Folder to put results in (will make subfolders later)
 resFolder = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/allData/"
-
 
 ## CarID 
 xCar = 'SCCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
@@ -23,9 +23,7 @@ xCar = 'SCCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.05'
 
 ## How many minutes to include in background calculation (minutes)
-#timethresh = '1.7'
 timethresh = '5.0'
-#timethresh = '2.5'
 
 ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
 initialTimeIgnore = '0'
@@ -38,24 +36,20 @@ minElevated = '1'
 shift = -4
 
 ## Is this an engineering file?
-#engineering = True
 engineering = False
 aeris = False
 
 # Not super sure what timePush is but thats cool
-#timePush = 5 #min
-timePush = 0 
+timePush = 0
 
-###
+### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
 backObs = '102'
-#backObs = '10'
 
+# FILTER SPEED THING
 maxCarSpeed = '45'
 minCarSpeed = '2'
 
-baseLinePerc = '50' ## median
-#baseLinePerc = '25' #Q1
-
+baseLinePerc = '50'
 buff = '30'
 
 ###############################################################################
@@ -144,8 +138,7 @@ for file in listthing:
 #        PUT THE NEW TEXT FILES INTO THE OVERALL FOLDER AND IT WILL DO THE REST
 rawTexts = pd.DataFrame(os.listdir(rawDir)).loc[pd.DataFrame(os.listdir(rawDir))[0].str.endswith('.txt')]
 
-
-### DONT ADD NEW FILE WITH PRE-EXISTING DATE [NEED TO WRITE CODE TO DEAL WITH THAT]
+### DON'T ADD NEW FILE WITH PRE-EXISTING DATE [NEED TO WRITE CODE TO DEAL WITH THAT]
 toAnalyse = []
 toIdentify = []
 toFilter = []
@@ -164,7 +157,6 @@ elif not os.path.exists(finalInfoLoc):
         toAnalyse.append(text)
         toIdentify.append(s1 + '_20' + text[11:17] + '_dat.csv')
         toFilter.append(s2 + '_20' + text[11:17] + '.csv')
-        
 
 ##### START OF THE ALGORITHM
 start = time.time()
@@ -185,15 +177,7 @@ if __name__ == '__main__':
             if dateF not in set(dateList):
                 bFirst = True
                 dateList.append(dateF)
-
-            
-            #if file[:10] == x1:
-             #   bFirst = False
-            #else:
-             #   bFirst = True
             x1 = file[:10]
-
-            #xCar = "CSULi"
             xDate = file[:10]
             #theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc)
             if engineering:
@@ -203,9 +187,7 @@ if __name__ == '__main__':
                     theResult = ProcessRawDataAeris(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift,maxCarSpeed,minCarSpeed)
                 elif not aeris:
                     theResult = ProcessRawData(xCar, xDate, rawDir, file, bFirst, 1, processedFileLoc,initialTimeIgnore,shift,maxCarSpeed,minCarSpeed)
-            #del(bFirst)
             count = count + 1
-
 
 if __name__ == '__main__':
     #listthing = os.listdir(processedFileLoc).copy() 
@@ -220,20 +202,16 @@ if __name__ == '__main__':
     listthing = os.listdir(opDir)
     for file in listthing:
         if file.startswith(s2) and (file.endswith('.csv') and not file.endswith('info.csv')):
-            #print("About to Filter Peaks in the file: " + str(file))
             file_loc = opDir + file
             csv_loc = opDir  + file[:-4]+ '_info.csv'
             nonempt = False
             if pd.read_csv(file_loc).size != 0:
                 index += 1
                 nonempt = True
-                #xDate = file[12:20]
                 xDate = file[len(xCar) + 7: len(xCar) + 15]
                 filterPeak(xCar,xDate,opDir,file,filtopDir,buffer = buff,whichpass = index )
         
 end = time.time()
-#print(end - start)
-
     
 if not os.path.exists(finalMain):
     toCombine = os.listdir(filtopDir)
@@ -258,14 +236,8 @@ if not os.path.exists(finalMain):
         index = index + 1
         print(file)
 
-
-
-
-
-
     mainThing = mainThing.copy().reset_index(drop = True)
     mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine,xCar),axis=1)
-    #mainThing['numtimes']  = mainThing.recombine.swifter.apply(lambda x: countTimes(x))
 
 elif os.path.exists(finalMain):
     addingFiles = True
@@ -283,60 +255,10 @@ elif os.path.exists(finalMain):
             print(file)
     mainThing = mainThing.copy().reset_index(drop = True)
     mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine,xCar),axis=1)
-    #mainThing['numtimes']  = mainThing.recombine.swifter.apply(lambda x: countTimes(x))
 
-# =============================================================================
-# if not os.path.exists(finalMain):
-#     index = 0
-#     numproc = 0
-#     listthing = os.listdir(opDir)
-#     for file in listthing:
-#         if file.startswith(s2) and file.endswith('.csv') and not file.endswith('info.csv'):
-#             file_loc = opDir + file
-#             csv_loc = opDir + "/" + file[:-4] + '_info.csv'
-#             
-#             nonempt = False
-#             if pd.read_csv(file_loc).size != 0:
-#                 index += 1
-#                 nonempt = True
-#             xDate = file[12:20]
-#             if index == 1 and nonempt:
-#                 mainThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
-#                 numproc += 1
-#                 mainInfo = pd.read_csv(csv_loc)
-#                 #mainInfo = mainInfo1.copy()
-#     
-#             if index != 1 and nonempt:
-#                 secondThing = filterPeak(xCar,xDate,opDir,file,filtopDir,whichpass = index )
-#                 mainThing = passCombine(mainThing,secondThing)
-#                 tempInfo = pd.read_csv(csv_loc)
-#                 mainInfo = pd.concat([mainInfo, tempInfo], axis=0)
-#     toCombine = os.listdir(filtopDir)
-#     toCombineList = []
-#     for file in toCombine:
-#         if file.startswith(s3) and file.endswith('.csv') and not file.endswith('info.csv'):
-#             toCombineList.append(file)
-#     for x in range(len(toCombineList)):
-#         if x == 0: ## first thing
-#             mainThing = toCombineList[x]
-#             mainLoc = filtopDir + mainThing
-# 
-#             print('first mainthing = ' + str(toCombineList[x]))
-#         elif x!= 0:
-#             secondThing = toCombineList[x]
-#             secLoc = filtopDir + secondThing
-#             print('combining = ' + 'main thing and ' + str(toCombineList[x]))
-#             #mainThing = passCombine(mainThing,secondThing)
-# =============================================================================
-                
-## figure out the mainInfo thing
 mainInfo.drop_duplicates().reset_index(drop=True).FILENAME.to_csv(finalInfoLoc)
 mainThing.reset_index(drop=True).to_csv(finalMain)
-        
 
-################
-
-#combined = summarizeDat(mainThing) ## finds locations and mean log ch4 for each peak (either verified or non yet)
 combined = sumData2(mainThing) ## finds locations and mean log ch4 for each peak (either verified or non yet)
 
 
@@ -346,23 +268,13 @@ uniqueList = combined.loc[uniquePk.index,['min_read','recombine']]
 uniqueOther = combined.loc[:,['min_read','overallLON','overallLAT','mnlogCH4',
                              'verified','numtimes','minDist','maxDist']].drop_duplicates()
 
-unique_gdf = makeGPD(uniqueOther,'overallLAT','overallLON')
-unique_gdf2 = pd.merge(unique_gdf,uniqueList,on = ['min_read'])
+#unique_gdf2 = pd.merge(makeGPD(uniqueOther,'overallLAT','overallLON'),uniqueList,on = ['min_read'])
+#unique_gdf2 = pd.merge(unique_gdf,uniqueList,on = ['min_read'])
 
-#unique_gdf = makeGPD(combined.loc[:,['min_read','pk_LAT','pk_LON']],'pk_LAT','pk_LON')
-#combinedGeo = unique_gdf.dissolve(by='min_read',as_index = False)
+allTog = pd.merge(makeGPD(uniqueOther,'overallLAT','overallLON'),uniqueList,on = ['min_read'])
 
-
-#allTog = pd.merge(combinedGeo,uniqueOther,on=['min_read'])
-#allTog = pd.merge(allTog,uniqueList,on=['min_read'])
-allTog = unique_gdf2.copy()
-#allTog['em'] = allTog.apply(lambda y: estEmissions(y['mnlogCH4']),axis=1)
+#allTog = unique_gdf2.copy()
 allTog['em'] = allTog['mnlogCH4'].swifter.apply(lambda y: estEmissions(y))
-
-
-
-#allTog['threshold'] = allTog.apply(lambda x: threshold,axis =1 )
-
 allTog['threshold'] = allTog['em'].swifter.apply(lambda x: threshold)
 
 
