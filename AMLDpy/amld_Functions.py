@@ -958,6 +958,7 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
         wind_df['next_TIME'] = wind_df.secnan.shift(periods=-1)
         wind_df['distance'] = wind_df.apply(
             lambda row: haversine(row['prev_LAT'], row['prev_LONG'], row['next_LAT'], row['next_LONG']), axis=1)
+
         wind_df['bearing'] = wind_df.apply(
             lambda row: calcBearing(row['prev_LAT'], row['next_LAT'], row['prev_LONG'], row['next_LONG'], radians),
             axis=1)
@@ -984,12 +985,6 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
 
         wind_df3['CH4'] = wind_df3.loc[:, 'shift_CH4']
         wind_df3 = wind_df3.drop(['shift_CH4'], axis=1)
-
-        wind_df3 = wind_df3.loc[:,
-                   ['DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
-                    'TRSSI', 'PRESS_MBAR', 'INLET', 'TEMPC', 'CH4', 'H20', 'C2H6', 'R', 'C2C1', 'BATTV', 'POWMV',
-                    'CURRMA', 'SOCPER', 'LAT',
-                    'LONG', 'bearing', 'U_cor', 'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4']]
         # wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(),:]
         wind_df3 = wind_df3.loc[:,
                    ['DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
