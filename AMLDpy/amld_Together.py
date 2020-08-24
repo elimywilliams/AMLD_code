@@ -62,12 +62,12 @@ s3 = "Filtered" + str()
 import sys
 sys.path.insert(0, function_file_Loc) # FINDING FUNCTIONS FOLDER TO IMPORT FROM
 from amld_Functions import unique,unIfInt,\
-                            intersect,weightedLoc,verPk,estEmissions,\
-                            haversine,wt_time_Locs,sumthing,makeGEO,\
-                            makeGPD,summarizeDat,getQuad,calcTheta,\
-                            calcBearing,ProcessRawDataEng,strList,\
-                            countTimes,IdentifyPeaks,filterPeak,\
-                            passCombine,sumData2,addOdometer,ProcessRawData,ProcessRawDataAeris,IdentifyPeaksCSU
+                            intersect,weighted_loc,verPk,estimate_emissions,\
+                            haversine,wt_time_Locs,sum_values,make_GEO,\
+                            make_GPD,summarize_dat,get_quadrant,calc_theta,\
+                            calc_bearing,process_raw_data_eng,str_list,\
+                            count_times,identify_peaks,filter_peaks,\
+                            pass_combine,summarize_data_2,add_odometer,process_raw_data,process_raw_data_aeris,identify_peaks_CSU
 
 import rtree, pygeos,os, sys, datetime, time, math, numpy, csv, gzip,shutil,ast,swifter
 from math import radians, sin, cos, sqrt, asin
@@ -100,64 +100,64 @@ for file in os.listdir(raw_data_loc):
 
 ##### THIS PORTION OF THE CODE ALLOWS US TO ITERATIVELY ADD IN MORE DATA
 #        PUT THE NEW TEXT FILES INTO THE OVERALL FOLDER AND IT WILL DO THE REST
-rawTexts = pd.DataFrame(os.listdir(raw_data_dir)).loc[pd.DataFrame(os.listdir(raw_data_dir))[0].str.endswith('.txt')]
+raw_txts = pd.DataFrame(os.listdir(raw_data_dir)).loc[pd.DataFrame(os.listdir(raw_data_dir))[0].str.endswith('.txt')]
 
 ### DON'T ADD NEW FILE WITH PRE-EXISTING DATE [NEED TO WRITE CODE TO DEAL WITH THAT]
-toAnalyse, toIdentify, toFilter = [[] for _ in range(3)]
+to_analyse, to_identify, to_filter = [[] for _ in range(3)]
 
 
 if os.path.exists(final_info_loc):
     analysed = pd.read_csv(final_info_loc)
-    for index,row in rawTexts.reset_index().iterrows():
-        text = rawTexts[0].iloc[index]
+    for index,row in raw_txts.reset_index().iterrows():
+        text = raw_txts[0].iloc[index]
         if analysed[analysed['FILENAME'].astype(str).str.contains(text)].shape[0] < 1:
-            toAnalyse.append(text)
-            toIdentify.append(s1 + '_20' + text[11:17] + '_dat.csv')
-            toFilter.append(s2 + '_20' + text[11:17] + '.csv')
+            to_analyse.append(text)
+            to_identify.append(s1 + '_20' + text[11:17] + '_dat.csv')
+            to_filter.append(s2 + '_20' + text[11:17] + '.csv')
 elif not os.path.exists(final_info_loc):
-    for index,row in rawTexts.reset_index().iterrows():
-        text = rawTexts[0].iloc[index]
-        toAnalyse.append(text)
-        toIdentify.append(s1 + '_20' + text[11:17] + '_dat.csv')
-        toFilter.append(s2 + '_20' + text[11:17] + '.csv')
+    for index,row in raw_txts.reset_index().iterrows():
+        text = raw_txts[0].iloc[index]
+        to_analyse.append(text)
+        to_identify.append(s1 + '_20' + text[11:17] + '_dat.csv')
+        to_filter.append(s2 + '_20' + text[11:17] + '.csv')
 
 ##### START OF THE ALGORITHM
 start = time.time()
 
 if __name__ == '__main__':
-    dateList = []
+    date_list = []
     x1=""
     count = 0
-    for file in toAnalyse:
+    for file in to_analyse:
         #print (file)
         if file.endswith(".txt"):
             dateF = file[11:17]
-            if dateF in set(dateList):
+            if dateF in set(date_list):
                 bFirst = False
             
-            if dateF not in set(dateList):
+            if dateF not in set(date_list):
                 bFirst = True
-                dateList.append(dateF)
+                date_list.append(dateF)
             x1 = file[:10]
-            xDate = file[:10]
+            x_date = file[:10]
             if engineering:
-                theResult = ProcessRawDataEng(car_id, xDate, raw_data_dir, file, bFirst, 1, processedFileLoc,initial_time_ignore,shift,max_car_speed,min_car_speed)
+                the_result = process_raw_data_eng(car_id, x_date, raw_data_dir, file, bFirst, 1, processedFileLoc,initial_time_ignore,shift,max_car_speed,min_car_speed)
             elif not engineering:
                 if aeris:
-                    theResult = ProcessRawDataAeris(car_id, xDate, raw_data_dir, file, bFirst, 1, processedFileLoc,initial_time_ignore,shift,max_car_speed,min_car_speed)
+                    the_result = process_raw_data_aeris(car_id, x_date, raw_data_dir, file, bFirst, 1, processedFileLoc,initial_time_ignore,shift,max_car_speed,min_car_speed)
                 elif not aeris:
-                    theResult = ProcessRawData(car_id, xDate, raw_data_dir, file, bFirst, 1, processedFileLoc,initial_time_ignore,shift,max_car_speed,min_car_speed)
+                    the_result = process_raw_data(car_id, x_date, raw_data_dir, file, bFirst, 1, processedFileLoc,initial_time_ignore,shift,max_car_speed,min_car_speed)
             count = count + 1
 
 if __name__ == '__main__':
-    for file in toIdentify:
+    for file in to_identify:
         if file.startswith(s1) and file.endswith("dat.csv"):
-            xDate = file[len(car_id)+1:len(car_id) + 9]
+            x_date = file[len(car_id)+1:len(car_id) + 9]
             if CSU:
-                theResult = IdentifyPeaksCSU(car_id, xDate, processedFileLoc, file, observed_peaks_dir, processedFileLoc, engineering,
+                the_result = identify_peaks_CSU(car_id, x_date, processedFileLoc, file, observed_peaks_dir, processedFileLoc, engineering,
                                           threshold, time_thresh, min_elevated, back_obs_num, baseline_percentile)
             elif not CSU:
-                theResult = IdentifyPeaks(car_id, xDate, processedFileLoc, file,observed_peaks_dir,processedFileLoc,engineering,threshold,time_thresh,min_elevated,back_obs_num,baseline_percentile)
+                the_result = identify_peaks(car_id, x_date, processedFileLoc, file,observed_peaks_dir,processedFileLoc,engineering,threshold,time_thresh,min_elevated,back_obs_num,baseline_percentile)
 if __name__ == '__main__':
     index = 0
     numproc = 0
@@ -165,12 +165,12 @@ if __name__ == '__main__':
         if file.startswith(s2) and (file.endswith('.csv') and not file.endswith('info.csv')):
             file_loc = observed_peaks_dir + file
             csv_loc = observed_peaks_dir  + file[:-4]+ '_info.csv'
-            nonempt = False
+            non_empty = False
             if pd.read_csv(file_loc).size != 0:
                 index += 1
-                nonempt = True
-                xDate = file[len(car_id) + 7: len(car_id) + 15]
-                filterPeak(car_id,xDate,observed_peaks_dir,file,filtered_observed_peaks_dir,buffer = buffer_distance,whichpass = index )
+                non_empty = True
+                x_date = file[len(car_id) + 7: len(car_id) + 15]
+                filter_peaks(car_id,x_date,observed_peaks_dir,file,filtered_observed_peaks_dir,buffer = buffer_distance,whichpass = index )
 
 if not os.path.exists(final_main_csv_loc):
     toCombine = os.listdir(filtered_observed_peaks_dir)
@@ -189,17 +189,17 @@ if not os.path.exists(final_main_csv_loc):
             loc2 = filtered_observed_peaks_dir + file
             secThing = pd.read_csv(loc2)
             secInfo = pd.read_csv(filtered_observed_peaks_dir + file[:-4] + '_info.csv')
-            woo = passCombine(mainThing,secThing,car_id, buffer_distance)
+            woo = pass_combine(mainThing,secThing,car_id, buffer_distance)
             mainInfo = pd.concat([secInfo,mainInfo])
             mainThing = woo.copy()
         index = index + 1
         print(file)
     mainThing = mainThing.copy().reset_index(drop = True)
-    mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine,car_id),axis=1)
+    mainThing['numtimes']  = mainThing.apply(lambda x: count_times(x.recombine,car_id),axis=1)
 
 elif os.path.exists(final_main_csv_loc):
     addingFiles = True
-    toCombine = list(map(lambda x: 'FilteredPeaks_' + x[6:],toFilter))
+    toCombine = list(map(lambda x: 'FilteredPeaks_' + x[6:],to_filter))
     mainThing = pd.read_csv(final_main_csv_loc)
     mainInfo = pd.read_csv(final_info_loc)
     curVP = mainThing.loc[mainThing.numtimes > 1, :].min_read.drop_duplicates().shape[0]
@@ -208,24 +208,24 @@ elif os.path.exists(final_main_csv_loc):
         loc = filtered_observed_peaks_dir + file
         if os.path.exists(loc):
             secThing = pd.read_csv(loc)
-            mainThing = passCombine(mainThing,secThing,car_id, buffer_distance)
+            mainThing = pass_combine(mainThing,secThing,car_id, buffer_distance)
             mainInfo = pd.concat([mainInfo,pd.read_csv(filtered_observed_peaks_dir + file[:-4] + '_info.csv')])
             print(file)
     mainThing = mainThing.copy().reset_index(drop = True)
-    mainThing['numtimes']  = mainThing.apply(lambda x: countTimes(x.recombine,car_id),axis=1)
+    mainThing['numtimes']  = mainThing.apply(lambda x: count_times(x.recombine,car_id),axis=1)
 
 mainInfo.drop_duplicates().reset_index(drop=True).FILENAME.to_csv(final_info_loc)
 mainThing.reset_index(drop=True).to_csv(final_main_csv_loc)
 
-combined = sumData2(mainThing) ## finds locations and mean log ch4 for each peak (either verified or non yet)
+combined = summarize_data_2(mainThing) ## finds locations and mean log ch4 for each peak (either verified or non yet)
 
 ## combined so only with the same overall peak
 uniquePk = combined.loc[:,['min_read']].drop_duplicates()
 uniqueList = combined.loc[uniquePk.index,['min_read','recombine']]
 uniqueOther = combined.loc[:,['min_read','overallLON','overallLAT','mnlogCH4',
                              'verified','numtimes','minDist','maxDist']].drop_duplicates()
-allTog = pd.merge(makeGPD(uniqueOther,'overallLAT','overallLON'),uniqueList,on = ['min_read'])
-allTog['em'] = allTog['mnlogCH4'].swifter.apply(lambda y: estEmissions(y))
+allTog = pd.merge(make_GPD(uniqueOther,'overallLAT','overallLON'),uniqueList,on = ['min_read'])
+allTog['em'] = allTog['mnlogCH4'].swifter.apply(lambda y: estimate_emissions(y))
 allTog['threshold'] = allTog['em'].swifter.apply(lambda x: threshold)
 
 
@@ -247,7 +247,7 @@ if allTog.size == 0:
     print("Sorry, no observed peaks were found in the given data")
 
 if not addingFiles:
-    print(f"I processed {len(toFilter)} days of driving. I analysed the data using a threshold of {100 + float(threshold)*100}% for an elevated reading, \n \
+    print(f"I processed {len(to_filter)} days of driving. I analysed the data using a threshold of {100 + float(threshold)*100}% for an elevated reading, \n \
     where the threshold was calculated using the {baseline_percentile}th percentile over {back_obs_num} observations. \n \
     I filtered the speed of the car to be between {min_car_speed}mph and {max_car_speed}mph.\n \
     I created 3 summary files located here:{final_results_dir}.\n \
@@ -255,7 +255,7 @@ if not addingFiles:
     I found {len(mainThing.min_read.unique())} observed peaks.")
 
 elif addingFiles:
-    print(f"I processed an additional {len(toFilter)} days of driving. I analysed the data using a threshold of {100 + float(threshold) * 100}% for an elevated reading, \n \
+    print(f"I processed an additional {len(to_filter)} days of driving. I analysed the data using a threshold of {100 + float(threshold) * 100}% for an elevated reading, \n \
     where the threshold was calculated using the {baseline_percentile}th percentile over {back_obs_num} observations. \n \
     I filtered the speed of the car to be between {min_car_speed}mph and {max_car_speed}mph.\n \
     I created 3 summary files located here:{final_results_dir}.\n \

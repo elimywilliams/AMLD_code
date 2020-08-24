@@ -35,7 +35,7 @@ def intersect(a, b):
     """
     return list(set(a) & set(b))
 
-def weightedLoc(df, lat, lon, by, val2avg):
+def weighted_loc(df, lat, lon, by, val2avg):
     """ find the weighted centroid of a data frame
     input:
         df: data frame with gps locations, a grouping variable, and a value to weight with
@@ -87,7 +87,7 @@ def verPk(totalData):
     totalData = totalData[totalData.numtimes != 1]
     pkRed = totalData[
         ['PEAK_NUM', 'pk_LON', 'pk_LAT', 'pk_maxCH4_AB', 'numtimes', 'min_read']].drop_duplicates().reset_index()
-    verLoc = weightedLoc(pkRed, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB')
+    verLoc = weighted_loc(pkRed, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB')
     pkRed.loc[:, ('logCH4')] = pkRed.swifter.apply(lambda y: log(y.pk_maxCH4_AB), axis=1)
     mnVals = pkRed.groupby('min_read', as_index=False).logCH4.mean()
     together = pd.merge(verLoc, mnVals, on=['min_read'])
@@ -97,7 +97,7 @@ def verPk(totalData):
     tog_dat = gpd.GeoDataFrame(together, crs=crs, geometry=geometry_temp)
     tog_dat = tog_dat.to_crs(epsg=3857)
 
-def estEmissions(excessCH4):
+def estimate_emissions(excess_CH4):
     """ estimate emissions of the methane leak, using maximum values found at each OP
     input:
         excessCH4: amount of excess ch4
@@ -112,14 +112,13 @@ def estEmissions(excessCH4):
     a2 = 1.755891
     b2 = 0.4438203
 
-    m = math.exp((excessCH4 - a) / b)
+    m = math.exp((excess_CH4 - a) / b)
     # if m < math.exp(3.157):
     #    if m < math.exp(2):
     #       m = math.exp((np.log(m) - a1)/b1)
     #  if m > math.exp(2):
     #     m = math.exp((np.log(m) - a2)/b2)
     return (m)
-
 
 
 def haversine(lat1, lon1, lat2, lon2, radius=6371):
@@ -145,12 +144,12 @@ def wt_time_Locs(wt, loc):
     """
     return (wt * loc)
 
-def sumthing(values):
+def sum_values(values):
     """ sum everything in the values
     """
     return (sum(values))
 
-def makeGEO(df, lat, lon):
+def make_GEO(df, lat, lon):
     """ make a geodataframe
     input:
         df: dataframe
@@ -163,7 +162,7 @@ def makeGEO(df, lat, lon):
     geo = [Point(lon, lat) for lon, lat in zip(df[(lon)], df[(lat)])]
     return (geo)
 
-def makeGPD(df, lat, lon, cps='epsg:4326'):
+def make_GPD(df, lat, lon, cps='epsg:4326'):
     """ make geodataframe
     input:
         df: dataframe to turn into geodataframe
@@ -174,12 +173,12 @@ def makeGPD(df, lat, lon, cps='epsg:4326'):
         geodataframe with the corresponding crs
     """
     import geopandas as gpd
-    gdf = gpd.GeoDataFrame(df, crs=cps, geometry=makeGEO(df, lat, lon))
+    gdf = gpd.GeoDataFrame(df, crs=cps, geometry=make_GEO(df, lat, lon))
     return (gdf)
 
 
 
-def summarizeDat(totalData):
+def summarize_dat(totalData):
     """ take all data from analyses, and output summary information
     input:
         df
@@ -191,7 +190,7 @@ def summarizeDat(totalData):
     pkRed = totalData.loc[:, ['PEAK_NUM', 'pk_LON', 'pk_LAT', 'pk_maxCH4_AB', 'numtimes',
                               'min_read']].drop_duplicates().reset_index().loc[:,
             ['PEAK_NUM', 'pk_LON', 'pk_LAT', 'pk_maxCH4_AB', 'numtimes', 'min_read']]
-    verLoc = weightedLoc(pkRed, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').rename(
+    verLoc = weighted_loc(pkRed, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').rename(
         columns={'pk_LAT': 'overallLAT', 'pk_LON': 'overallLON'})
     pkRed['logCH4'] = pkRed.apply(lambda y: log(y.pk_maxCH4_AB), axis=1)
     mnVals = pkRed.groupby('min_read', as_index=False).logCH4.mean().rename(columns={'logCH4': 'mnlogCH4'}).loc[:,
@@ -200,7 +199,7 @@ def summarizeDat(totalData):
     final = pd.merge(together, totalData, on=['min_read'])
     return (final)
 
-def getQuad(x, y):
+def get_quadrant(x, y):
     """ given an x,y coordinate, return which quadrant it is in
     input:
         x,y values
@@ -224,7 +223,7 @@ def getQuad(x, y):
     else:
         return (4)
 
-def calcTheta(U, V, quad, h_length, radians):
+def calc_theta(U, V, quad, h_length, radians):
     """ given wind coordinates, quadrant, and the length of horizontal wind, return theta value
     input:
         U,V: wind directions
@@ -251,7 +250,7 @@ def calcTheta(U, V, quad, h_length, radians):
 
     return (theta)
 
-def calcBearing(lat1, lat2, long1, long2, radians):
+def calc_bearing(lat1, lat2, long1, long2, radians):
     """ calculating the direction (bearing) of driving
     input:
         lat1,lon1: location 1
@@ -280,7 +279,7 @@ def calcBearing(lat1, lat2, long1, long2, radians):
         return (theta)
 
 
-def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack,
+def process_raw_data_eng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack,
                       shift, maxSpeed='45', minSpeed='2'):
     """ input a raw .txt file with data (enginnering file)
     input:
@@ -487,7 +486,7 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
 
         print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t {xCntObs} \t {xCntGoodValues} \t {gZIP}")
 
-        def calcVel(timediff, distance):
+        def calc_velocity(timediff, distance):
             if timediff == 0:
                 return (0)
             elif timediff != 0:
@@ -496,7 +495,7 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
         import numpy as np
         radians = False
         wind_df = pd.read_csv(fnOutTemp)
-        wind_df['QUADRANT'] = wind_df.apply(lambda row: getQuad(row['U'], row['V']), axis=1)
+        wind_df['QUADRANT'] = wind_df.apply(lambda row: get_quadrant(row['U'], row['V']), axis=1)
 
         wind_df['secnan'] = wind_df.apply(lambda row: row['SECONDS'], axis=1)  # + row['NANOSECONDS']*1e-9,axis=1)
         wind_df['prev_LAT'] = wind_df.LAT.shift(periods=1)
@@ -508,14 +507,14 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
         wind_df['distance'] = wind_df.apply(
             lambda row: haversine(row['prev_LAT'], row['prev_LONG'], row['next_LAT'], row['next_LONG']), axis=1)
         wind_df['bearing'] = wind_df.apply(
-            lambda row: calcBearing(row['prev_LAT'], row['next_LAT'], row['prev_LONG'], row['next_LONG'], radians),
+            lambda row: calc_bearing(row['prev_LAT'], row['next_LAT'], row['prev_LONG'], row['next_LONG'], radians),
             axis=1)
         wind_df['timediff'] = wind_df.apply(lambda row: row['next_TIME'] - row['prev_TIME'], axis=1)
-        wind_df['VELOCITY'] = wind_df.apply(lambda row: calcVel(row['timediff'], row['distance']), axis=1)
+        wind_df['VELOCITY'] = wind_df.apply(lambda row: calc_velocity(row['timediff'], row['distance']), axis=1)
         wind_df['U_cor'] = wind_df.apply(lambda row: row['U'] + row['VELOCITY'], axis=1)
         wind_df['horz_length'] = wind_df.apply(lambda row: np.sqrt(row['U_cor'] ** 2 + row['V'] ** 2), axis=1)
         wind_df['uncor_theta'] = wind_df.apply(
-            lambda row: calcBearing(row['U_cor'], row['V'], row['QUADRANT'], row['horz_length'], radians), axis=1)
+            lambda row: calc_bearing(row['U_cor'], row['V'], row['QUADRANT'], row['horz_length'], radians), axis=1)
         wind_df['adj_theta'] = wind_df.apply(lambda row: (row['uncor_theta'] + row['bearing']) % 360, axis=1)
         wind_df['totalWind'] = wind_df.apply(lambda row: np.sqrt(row['horz_length'] ** 2 + row['W'] ** 2), axis=1)
         wind_df['phi'] = wind_df.apply(lambda row: np.arctan(row['horz_length']), axis=1)
@@ -539,14 +538,14 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
                     'SOCPER',
                     'LAT', 'LONG', 'bearing', 'U_cor', 'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4'}]
         wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(), :]
-        wind_df7 = addOdometer(wind_df4, 'LAT', 'LONG')
+        wind_df7 = add_odometer(wind_df4, 'LAT', 'LONG')
         wind_df4 = wind_df7.copy()
         wind_df5 = wind_df4.loc[wind_df4.VELOCITY > xMinCarSpeed, :]
         wind_df6 = wind_df5.loc[wind_df5.VELOCITY < xMaxCarSpeed, :]
 
         del (wind_df4)
 
-        # wind_df7 = addOdometer(wind_df6,'LAT','LONG')
+        # wind_df7 = add_odometer(wind_df6,'LAT','LONG')
         wind_df4 = wind_df6.copy().drop_duplicates()
         # del(wind_df7)
 
@@ -563,7 +562,7 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
         return True
     except ValueError:
         return False
-def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45',
+def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45',
                    minSpeed='2'):
     """ input a raw .txt file with data (not engineering file)
     input:
@@ -734,7 +733,7 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
         print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t {xCntObs} \t {xCntGoodValues} \t  {gZIP}")
         from numpy import pi
         import numpy as np
-        def calcVel(timediff, distance):
+        def calc_velocity(timediff, distance):
             if timediff == 0:
                 return (0)
             elif timediff != 0:
@@ -742,7 +741,7 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
 
         wind_df = pd.read_csv(fnOutTemp)
         radians = False
-        wind_df['QUADRANT'] = wind_df.apply(lambda row: getQuad(row['U'], row['V']), axis=1)
+        wind_df['QUADRANT'] = wind_df.apply(lambda row: get_quadrant(row['U'], row['V']), axis=1)
         wind_df['secnan'] = wind_df.apply(lambda row: row['SECONDS'] + row['NANOSECONDS'] * 1e-9,
                                           axis=1)  # + row['NANOSECONDS']*1e-9,axis=1)
         wind_df['prev_LAT'] = wind_df.LAT.shift(periods=1)
@@ -754,14 +753,14 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
         wind_df['distance'] = wind_df.apply(
             lambda row: haversine(row['prev_LAT'], row['prev_LONG'], row['next_LAT'], row['next_LONG']), axis=1)
         wind_df['bearing'] = wind_df.apply(
-            lambda row: calcBearing(row['prev_LAT'], row['next_LAT'], row['prev_LONG'], row['next_LONG'], radians),
+            lambda row: calc_bearing(row['prev_LAT'], row['next_LAT'], row['prev_LONG'], row['next_LONG'], radians),
             axis=1)
         wind_df['timediff'] = wind_df.apply(lambda row: row['next_TIME'] - row['prev_TIME'], axis=1)
-        wind_df['VELOCITY'] = wind_df.apply(lambda row: calcVel(row['timediff'], row['distance']), axis=1)
+        wind_df['VELOCITY'] = wind_df.apply(lambda row: calc_velocity(row['timediff'], row['distance']), axis=1)
         wind_df['U_cor'] = wind_df.apply(lambda row: row['U'] + row['VELOCITY'], axis=1)
         wind_df['horz_length'] = wind_df.apply(lambda row: np.sqrt(row['U_cor'] ** 2 + row['V'] ** 2), axis=1)
         wind_df['uncor_theta'] = wind_df.apply(
-            lambda row: calcBearing(row['U_cor'], row['V'], row['QUADRANT'], row['horz_length'], radians), axis=1)
+            lambda row: calc_bearing(row['U_cor'], row['V'], row['QUADRANT'], row['horz_length'], radians), axis=1)
         wind_df['adj_theta'] = wind_df.apply(lambda row: (row['uncor_theta'] + row['bearing']) % 360, axis=1)
         wind_df['totalWind'] = wind_df.apply(lambda row: np.sqrt(row['horz_length'] ** 2 + row['W'] ** 2), axis=1)
         wind_df['phi'] = wind_df.apply(lambda row: np.arctan(row['horz_length']), axis=1)
@@ -791,7 +790,7 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
 
         wind_df4 = wind_df3.copy()
 
-        # wind_df7 = addOdometer(wind_df4,'LAT','LONG')
+        # wind_df7 = add_odometer(wind_df4,'LAT','LONG')
 
         # wind_df4 = wind_df7.copy()
         wind_df5 = wind_df4.loc[wind_df4.VELOCITY > xMinCarSpeed, :]
@@ -810,7 +809,7 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
         return True
     except ValueError:
         return False
-def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45',
+def process_raw_data_aeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45',
                         minSpeed='2'):
     """ input a raw .txt file with data (from aeris data file)
     input:
@@ -931,7 +930,7 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
         #    gZIP))
         print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t  {xCntObs} \t {xCntGoodValues} \t {gZIP}")
 
-        def calcVel(timediff, distance):
+        def calc_velocity(timediff, distance):
             if timediff == 0:
                 return (0)
             elif timediff != 0:
@@ -943,7 +942,7 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
         wind_df = wind_df_not_null.copy()
 
         radians = False
-        wind_df['QUADRANT'] = wind_df.apply(lambda row: getQuad(row['U'], row['V']), axis=1)
+        wind_df['QUADRANT'] = wind_df.apply(lambda row: get_quadrant(row['U'], row['V']), axis=1)
         wind_df['secnan'] = wind_df.apply(lambda row: row['SECONDS'] + row['NANOSECONDS'] * 1e-9,
                                           axis=1)  # + row['NANOSECONDS']*1e-9,axis=1)
         wind_df['prev_LAT'] = wind_df.LAT.shift(periods=1)
@@ -956,14 +955,14 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
             lambda row: haversine(row['prev_LAT'], row['prev_LONG'], row['next_LAT'], row['next_LONG']), axis=1)
 
         wind_df['bearing'] = wind_df.apply(
-            lambda row: calcBearing(row['prev_LAT'], row['next_LAT'], row['prev_LONG'], row['next_LONG'], radians),
+            lambda row: calc_bearing(row['prev_LAT'], row['next_LAT'], row['prev_LONG'], row['next_LONG'], radians),
             axis=1)
         wind_df['timediff'] = wind_df.apply(lambda row: row['next_TIME'] - row['prev_TIME'], axis=1)
-        # wind_df['VELOCITY_calc'] = wind_df.apply(lambda row:calcVel(row['timediff'],row['distance']),axis=1)
+        # wind_df['VELOCITY_calc'] = wind_df.apply(lambda row:calc_velocity(row['timediff'],row['distance']),axis=1)
         wind_df['U_cor'] = wind_df.apply(lambda row: row['U'] + row['VELOCITY'], axis=1)
         wind_df['horz_length'] = wind_df.apply(lambda row: np.sqrt(row['U_cor'] ** 2 + row['V'] ** 2), axis=1)
         wind_df['uncor_theta'] = wind_df.apply(
-            lambda row: calcBearing(row['U_cor'], row['V'], row['QUADRANT'], row['horz_length'], radians), axis=1)
+            lambda row: calc_bearing(row['U_cor'], row['V'], row['QUADRANT'], row['horz_length'], radians), axis=1)
         wind_df['adj_theta'] = wind_df.apply(lambda row: (row['uncor_theta'] + row['bearing']) % 360, axis=1)
         wind_df['totalWind'] = wind_df.apply(lambda row: np.sqrt(row['horz_length'] ** 2 + row['W'] ** 2), axis=1)
         wind_df['phi'] = wind_df.apply(lambda row: np.arctan(row['horz_length']), axis=1)
@@ -992,7 +991,7 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
         wind_df3['odometer'] = wind_df3.loc[:, 'distance'].cumsum()
         wind_df4 = wind_df3.copy()
 
-        # wind_df7 = addOdometer(wind_df4,'LAT','LONG')
+        # wind_df7 = add_odometer(wind_df4,'LAT','LONG')
 
         # wind_df4 = wind_df7.copy()
         wind_df5 = wind_df4.loc[wind_df4.VELOCITY > xMinCarSpeed, :]
@@ -1011,7 +1010,7 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
         return True
     except ValueError:
         return False
-def addOdometer(df, lat, lon):
+def add_odometer(df, lat, lon):
     """ add column with running odometer
     input:
         df
@@ -1044,7 +1043,7 @@ def addOdometer(df, lat, lon):
     df_use['dif'] = df_use.apply(lambda x: nanthing(x.dif), axis=1)
     return (pd.merge(df, df_use.loc[:, [(lat), (lon), 'odometer', 'distance']], on=[(lat), (lon)]))
 
-def strList(x):
+def str_list(x):
     """ convert a string of a list to just a list
     input:
         string of a list thing
@@ -1057,7 +1056,7 @@ def strList(x):
     return (x)
 
 
-def countTimes(opList, xCar):
+def count_times(opList, xCar):
     """ count number of times a peak seen (not in same 5 min period)
     input:
         list of peak times in a given combined peak
@@ -1065,7 +1064,7 @@ def countTimes(opList, xCar):
         counts # of times peaks seen not in same 5 min period
     """
     if isinstance(opList, str):
-        opList = strList(opList)
+        opList = str_list(opList)
     if len(opList) == 1:
         numtimes = 1
         return (numtimes)
@@ -1093,7 +1092,7 @@ def countTimes(opList, xCar):
         return (numtimes)
 
 
-def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engineering, threshold='.1',
+def identify_peaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engineering, threshold='.1',
                   xTimeThreshold='5.0', minElevated='2', xB='102', basePerc='50'):
     """ input a processed data file, and finds the locations of the elevated readings (observed peaks)
     input:
@@ -1353,7 +1352,7 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
                 openFile.to_csv(fnOut, index=False)
                 openFile['OB_CH4_AB'] = openFile.loc[:, 'OB_CH4'].sub(openFile.loc[:, 'OB_CH4_BASELINE'], axis=0)
 
-                fileWt = weightedLoc(openFile, 'OB_LAT', 'OB_LON', 'OP_NUM', 'OB_CH4_AB').loc[:, :].rename(
+                fileWt = weighted_loc(openFile, 'OB_LAT', 'OB_LON', 'OP_NUM', 'OB_CH4_AB').loc[:, :].rename(
                     columns={'OB_LAT': 'pk_LAT', 'OB_LON': 'pk_LON'}).reset_index(drop=True)
                 geometry_temp = [Point(lon, lat) for lon, lat in zip(fileWt['pk_LON'], fileWt['pk_LAT'])]
 
@@ -1374,7 +1373,7 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
         print("Error in Identify Peaks")
         return False
 
-def IdentifyPeaksCSU(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, threshold='.1', xTimeThreshold='5.0',
+def identify_peaks_CSU(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, threshold='.1', xTimeThreshold='5.0',
                      minElevated='2', xB='1020', basePerc='50'):
     import csv, numpy
     import geopandas as gpd
@@ -1562,7 +1561,7 @@ def IdentifyPeaksCSU(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, thr
                 openFile.to_csv(fnOut, index=False)
                 openFile['OB_CH4_AB'] = openFile.loc[:, 'OB_CH4'].sub(openFile.loc[:, 'OB_CH4_BASELINE'], axis=0)
 
-                fileWt = weightedLoc(openFile, 'OB_LAT', 'OB_LON', 'OP_NUM', 'OB_CH4_AB').loc[:, :].rename(
+                fileWt = weighted_loc(openFile, 'OB_LAT', 'OB_LON', 'OP_NUM', 'OB_CH4_AB').loc[:, :].rename(
                     columns={'OB_LAT': 'pk_LAT', 'OB_LON': 'pk_LON'}).reset_index(drop=True)
                 geometry_temp = [Point(xy) for xy in zip(fileWt['pk_LON'], fileWt['pk_LAT'])]
                 crs = {'init': 'epsg:4326'}
@@ -1584,7 +1583,7 @@ def IdentifyPeaksCSU(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, thr
         return False
 
 
-def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0):
+def filter_peaks(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0):
     """ goes through a given peak file to see if there are any verifications within that file
     input:
         xCar: name of car
@@ -1632,7 +1631,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
         datFram_cent['OB_CH4_AB'] = datFram.loc[:, 'OB_CH4'].sub(datFram.loc[:, 'OB_CH4_BASELINE'], axis=0)
         maxch4 = datFram_cent.groupby('OP_NUM', as_index=False).OB_CH4_AB.max().rename(
             columns={'OB_CH4_AB': 'pk_maxCH4_AB'})
-        datFram_wtLoc = weightedLoc(datFram_cent, 'OB_LAT', 'OB_LON', 'OP_NUM', 'OB_CH4_AB').loc[:, :].rename(
+        datFram_wtLoc = weighted_loc(datFram_cent, 'OB_LAT', 'OB_LON', 'OP_NUM', 'OB_CH4_AB').loc[:, :].rename(
             columns={'OB_LAT': 'pk_LAT', 'OB_LON': 'pk_LON'})
         datFram_wtLocMax = pd.merge(datFram_wtLoc, maxch4, on=['OP_NUM'])
         pass_info = datFram.copy()
@@ -1674,7 +1673,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
         gdfcop = gdf_pass_pks.loc[:,
                  ['OP_NUM', 'min_read', 'min_Date', 'numtimes', 'verified', 'pass', 'pk_LAT', 'pk_LON',
                   'pk_maxCH4_AB']].drop_duplicates()
-        combinedOP = weightedLoc(gdfcop, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').loc[:, :].rename(
+        combinedOP = weighted_loc(gdfcop, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').loc[:, :].rename(
             columns={'pk_LAT': 'Overall_LAT', 'pk_LON': 'Overall_LON'}).reset_index(drop=True)
         combinedOP1 = pd.merge(combinedOP, gdfcop, on=['min_read'])
         geometry_temp = [Point(lon, lat) for lon, lat in zip(combinedOP1['Overall_LON'], combinedOP1['Overall_LAT'])]
@@ -1694,14 +1693,14 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
         unique_peaks['save'] = True
         good_pks = list(unique_peaks.index)
 
-        def getthing(index):
+        def get_thing(index):
             if index in good_pks:
                 return True
             else:
                 return False
 
         gdf_pass_pks['wooind'] = gdf_pass_pks.index
-        gdf_pass_pks['save'] = gdf_pass_pks.apply(lambda x: getthing(x.wooind), axis=1)
+        gdf_pass_pks['save'] = gdf_pass_pks.apply(lambda x: get_thing(x.wooind), axis=1)
         unique_pks_tog = gdf_pass_pks.loc[gdf_pass_pks.save == True, :].reset_index(drop=True)
         unique_pks_tog['Latitude'] = unique_pks_tog.loc[:, 'pk_LAT']
         unique_pks_tog['Longitude'] = unique_pks_tog.loc[:, 'pk_LON']
@@ -1719,13 +1718,13 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
             columns={'OB_CH4_AB': 'pk_maxCH4_AB'})
 
         ### FINDING WEIGHTED LOCATION OF THE OP, BY THE ABOVE BASELINE CH4 LEVEL
-        # wtloc = weightedLoc(datFram_cent,'LAT','LON','PEAK_NUM','CH4_AB')
+        # wtloc = weighted_loc(datFram_cent,'LAT','LON','PEAK_NUM','CH4_AB')
         # datFram_wtLoca =  wtloc.copy()
         # datFram_wtLoc = datFram_wtLoca.rename(columns = {'LAT':'pk_LAT','LON':'pk_LON'})
 
-        datFram_wtLoc = weightedLoc(datFram_cent, 'OB_LAT', 'OB_LON', 'OP_NUM', 'OB_CH4_AB').loc[:, :].rename(
+        datFram_wtLoc = weighted_loc(datFram_cent, 'OB_LAT', 'OB_LON', 'OP_NUM', 'OB_CH4_AB').loc[:, :].rename(
             columns={'OB_LAT': 'pk_LAT', 'OB_LON': 'pk_LON'})
-        # datFram_wtLoc = weightedLoc(datFram_cent,'LAT','LON','PEAK_NUM','CH4_AB').rename(columns = {'LAT':'pk_LAT','LON':'pk_LON'}).copy()
+        # datFram_wtLoc = weighted_loc(datFram_cent,'LAT','LON','PEAK_NUM','CH4_AB').rename(columns = {'LAT':'pk_LAT','LON':'pk_LON'}).copy()
         datFram_wtLocMax = pd.merge(datFram_wtLoc, maxch4, on=['OP_NUM'])
 
         pass_info = datFram.copy()
@@ -1874,7 +1873,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
                             combined.at[index, 'min_Date'] = row2.min_Date
 
                 # combined['numtimes'] = combined.apply(lambda y: len(y.recombine),axis = 1).copy()
-                combined['numtimes'] = combined.apply(lambda x: countTimes(x.recombine, xCar), axis=1)
+                combined['numtimes'] = combined.apply(lambda x: count_times(x.recombine, xCar), axis=1)
 
                 combined['numdays'] = combined.apply(lambda y: len(y.pk_Dates), axis=1).copy()
                 combined_reduced = combined.loc[:,
@@ -1963,7 +1962,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
             gdfcop = gdf_pass_pks.loc[:,
                      ['OP_NUM', 'min_read', 'min_Date', 'numtimes', 'verified', 'pass', 'pk_LAT', 'pk_LON',
                       'pk_maxCH4_AB']].drop_duplicates()
-            combinedOP = weightedLoc(gdfcop, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').loc[:, :].rename(
+            combinedOP = weighted_loc(gdfcop, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').loc[:, :].rename(
                 columns={'pk_LAT': 'Overall_LAT', 'pk_LON': 'Overall_LON'}).reset_index(drop=True)
             combinedOP1 = pd.merge(combinedOP, gdfcop, on=['min_read'])
 
@@ -1974,13 +1973,13 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
             gdfcop = gdf_pass_pks.loc[:,
                      ['OP_NUM', 'min_read', 'min_Date', 'numtimes', 'verified', 'pass', 'pk_LAT', 'pk_LON',
                       'pk_maxCH4_AB']].drop_duplicates()
-            combinedOP = weightedLoc(gdfcop, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').loc[:, :].rename(
+            combinedOP = weighted_loc(gdfcop, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').loc[:, :].rename(
                 columns={'pk_LAT': 'Overall_LAT', 'pk_LON': 'Overall_LON'}).reset_index(drop=True)
             combinedOP1 = pd.merge(combinedOP, gdfcop, on=['min_read'])
 
         ## TO FINDED WEIGHTED LOCATION OF EACH PK GROUP
         #    gdfcop = gdf_pass_pks.loc[:,['OP_NUM','min_read','min_Date','numtimes','verified','pass','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates()
-        #    combinedOP = weightedLoc(gdfcop,'pk_LAT','pk_LON','min_read','pk_maxCH4_AB').loc[:,:].rename(columns = {'pk_LAT':'Overall_LAT','pk_LON':'Overall_LON'}).reset_index(drop=True)
+        #    combinedOP = weighted_loc(gdfcop,'pk_LAT','pk_LON','min_read','pk_maxCH4_AB').loc[:,:].rename(columns = {'pk_LAT':'Overall_LAT','pk_LON':'Overall_LON'}).reset_index(drop=True)
         #    combinedOP1 = pd.merge(combinedOP,gdfcop,on=['min_read'])
 
         ## getting the rest of the stuff
@@ -2013,14 +2012,14 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
         unique_peaks['save'] = True
         good_pks = list(unique_peaks.index)
 
-        def getthing(index):
+        def get_thing(index):
             if index in good_pks:
                 return True
             else:
                 return False
 
         gdf_pass_pks['wooind'] = gdf_pass_pks.index
-        gdf_pass_pks['save'] = gdf_pass_pks.apply(lambda x: getthing(x.wooind), axis=1)
+        gdf_pass_pks['save'] = gdf_pass_pks.apply(lambda x: get_thing(x.wooind), axis=1)
 
         unique_pks_tog = gdf_pass_pks.loc[gdf_pass_pks.save == True, :].reset_index(drop=True)
         unique_pks_tog['Latitude'] = unique_pks_tog.loc[:, 'pk_LAT']
@@ -2029,7 +2028,7 @@ def filterPeak(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass=0
 
         return ()
 
-def sumData2(mainDF):
+def summarize_data_2(mainDF):
     """ summarize data from after all analysis has been done
     input:
         mainDf
@@ -2048,7 +2047,7 @@ def sumData2(mainDF):
     opMax = todo.groupby('min_read', as_index=False).OP_DISTANCE.max().rename(columns={'OP_DISTANCE': 'maxDist'}).loc[:,
             ['min_read', 'maxDist']]
 
-    verLoc = weightedLoc(todo, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').rename(
+    verLoc = weighted_loc(todo, 'pk_LAT', 'pk_LON', 'min_read', 'pk_maxCH4_AB').rename(
         columns={'pk_LAT': 'overallLAT', 'pk_LON': 'overallLON'}).reset_index(drop=True)
     together = pd.merge(verLoc, mnVals, on=['min_read'])
     final = pd.merge(together, mainDF, on=['min_read'])
@@ -2056,7 +2055,7 @@ def sumData2(mainDF):
     final = pd.merge(final, opMax, on=['min_read'])
     return (final)
 
-def passCombine(firstgroup, secondgroup, xCar, buffer='30'):
+def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
     """ used to combine two days' filtered peak files, to find any overlaps or verified peaks
     input:
         firstgroup: filtered peak file 1
@@ -2073,7 +2072,7 @@ def passCombine(firstgroup, secondgroup, xCar, buffer='30'):
     import geopandas as gpd
     from shapely.geometry import Point
 
-    def strList(x):
+    def str_list(x):
         x = ast.literal_eval(x)
         x = [n.strip() for n in x]
         return (x)
@@ -2192,14 +2191,14 @@ def passCombine(firstgroup, secondgroup, xCar, buffer='30'):
             over = over.loc[over.same == True, :].drop(columns=['same'])
             over = over.copy().drop_duplicates('sorted').reset_index(drop=True)
 
-            def checkLst(opList):
+            def check_lst(opList):
                 if isinstance(opList, str):
-                    opList = strList(opList)
+                    opList = str_list(opList)
                 return (opList)
 
-            # over['bothcombine'] = over.apply(lambda x: sorted(strList(x.recombine_1)+ strList(x.recombine_2)),axis=1)
+            # over['bothcombine'] = over.apply(lambda x: sorted(str_list(x.recombine_1)+ str_list(x.recombine_2)),axis=1)
 
-            over['bothcombine'] = over.apply(lambda x: sorted(checkLst(x.recombine_1) + checkLst(x.recombine_2)),
+            over['bothcombine'] = over.apply(lambda x: sorted(check_lst(x.recombine_1) + check_lst(x.recombine_2)),
                                              axis=1)
 
             over['combined'] = [list(x) for x in list(over.loc[:, ['min_read_1', 'min_read_2']].to_numpy())].copy()
@@ -2222,7 +2221,7 @@ def passCombine(firstgroup, secondgroup, xCar, buffer='30'):
                 columns=['geometry', 'numtimes', 'verified', 'recombine'])
             toChangecombined = toChangecombined.rename(columns={'min_read': 'prev_read', 'bothcombine': 'recombine'})
             # toChangecombined['numtimes'] = toChangecombined.apply(lambda x: len(x.recombine),axis = 1)
-            toChangecombined['numtimes'] = toChangecombined.apply(lambda x: countTimes(x.recombine, xCar), axis=1)
+            toChangecombined['numtimes'] = toChangecombined.apply(lambda x: count_times(x.recombine, xCar), axis=1)
 
             toChangecombined['verified'] = toChangecombined.apply(lambda x: x.numtimes > 1, axis=1)
             toChangecombined = toChangecombined.rename(columns={'min_val': 'min_read'}).drop(columns=['combined'])
