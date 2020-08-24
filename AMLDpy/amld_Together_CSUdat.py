@@ -22,10 +22,10 @@ threshold = '0.15'
 
 ## How many minutes to include in background calculation (minutes)
 #timethresh = '1.7' 
-timethresh= '5'
+time_thresh= '5'
 
 ## How many minutes to skip at the beginning of the dataset (i.e. if Colin is at his house)
-initialTimeIgnore = '0'
+initial_Time_Ignore = '0'
 
 # minimum number of elevated readings required for an observed peak
 minElevated = '2'
@@ -432,7 +432,7 @@ if __name__ == '__main__':
     for file in listthing:
         if file.startswith(s1) and file.endswith("dat.csv"):
             xDate = file[6:14]
-            theResult = IdentifyPeaksCSU(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,timethresh,minElevated,backObs)
+            theResult = IdentifyPeaksCSU(xCar, xDate, processedFileLoc, file,opDir,processedFileLoc,threshold,time_thresh,minElevated,backObs)
 
 if __name__ == '__main__':
     index = 0

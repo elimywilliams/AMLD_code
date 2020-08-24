@@ -563,8 +563,6 @@ def ProcessRawDataEng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialT
         return True
     except ValueError:
         return False
-
-
 def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45',
                    minSpeed='2'):
     """ input a raw .txt file with data (not engineering file)
@@ -812,8 +810,6 @@ def ProcessRawData(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTime
         return True
     except ValueError:
         return False
-
-
 def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45',
                         minSpeed='2'):
     """ input a raw .txt file with data (from aeris data file)
@@ -1015,7 +1011,6 @@ def ProcessRawDataAeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initia
         return True
     except ValueError:
         return False
-
 def addOdometer(df, lat, lon):
     """ add column with running odometer
     input:
@@ -1203,22 +1198,7 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
                     datet = row[fDate].replace("-", "") + row[fTime].replace(":", "")
                     ## if not engineering
                     epoch = float(row[fEpochTime] + "." + row[fNanoSeconds][0])
-
-                    # x1.append(float(epoch));
-
-                    # =============================================================================
-                    #                 x1.append(float(str(row[fEpochTime]) + '.' + str(row[fNanoSeconds])));
-                    #                 x2.append(float(int(datet)));
-                    #                 x3.append(float(row[fLat]));
-                    #                 x4.append(float(row[fLon]));
-                    #                 x5.append(float(row[fBCH4]));
-                    #                 x6.append(float(row[fTCH4]))
-                    #                 x7.append(0.0);
-                    #                 x8.append(0.0)
-                    # =============================================================================
-
                     datetime = row[fDate].replace("-", "") + row[fTime].replace(":", "")
-
                     x1.append(epoch); x2.append(datetime)
                     if row[fLat] == '':
                         x3.append('')
@@ -1252,7 +1232,6 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
 
         fLog.write("Day CH4_mean = " + str(numpy.mean(aCH4)) + ", Day CH4_SD = " + str(numpy.std(aCH4)) + "\n")
         fLog.write("Center lon/lat = " + str(xLonMean) + ", " + str(xLatMean) + "\n")
-        # pkLog.write('hi')
         lstCH4_AB = []
 
         # generate list of the index for observations that were above the threshold
@@ -1391,6 +1370,215 @@ def IdentifyPeaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engine
                 gdf_buff.to_file(jsonOut, driver="GeoJSON")
         elif openFile.shape[0] == 0:
             print(f"No Observed Peaks Found in the file:{xFilename}")
+    except ValueError:
+        print("Error in Identify Peaks")
+        return False
+
+def IdentifyPeaksCSU(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, threshold='.1', xTimeThreshold='5.0',
+                     minElevated='2', xB='1020', basePerc='50'):
+    import csv, numpy
+    import geopandas as gpd
+    import shutil
+    import swifter
+    try:
+        baseCalc = float(basePerc)
+        xABThreshold = float(threshold)
+        minElevated = float(minElevated)
+        xDistThreshold = 160.0  # find the maximum CH4 reading of observations within street segments of this grouping distance in meters
+        xSDF = 4  # multiplier times standard deviation for floating baseline added to mean
+
+        xB = int(xB)
+        xTimeThreshold = float(xTimeThreshold)
+
+        fn = xDir + "/" + xFilename  # set raw text file to read in
+        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
+                                                                    "") + ".csv"  # set CSV format output for observed peaks for a given car, day, city
+        fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".shp"
+        fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
+                                                                    "") + ".log"  # set CSV output for observed peaks for a given car, day, city
+        pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
+                                                                    "") + "_info.csv"  # set CSV output for observed peaks for a given car, day, city
+
+        jsonOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
+                                                                      "") + ".json"  # set CSV format output for observed peaks for a given car, day, city
+
+        infOut = processedFileLoc + xCar + "_" + xDate.replace("-", "") + "_info.csv"
+        print(str(outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + "_info.csv"))
+
+        fLog = open(fnLog, 'w')
+        shutil.copy(infOut, pkLog)
+
+        # field column indices for various variables
+        fDate = 0; fTime = 1;  fEpochTime = 2; fNanoSeconds = 3
+        fLat = 4; fLon = 5; fVelocity = 6; fU = 7; fV = 8; fW = 9; fBCH4 = 10; fTCH4 = 12
+
+        # read data in from text file and extract desired fields into a list, padding with 5 minute and hourly average
+        x1, x2, x3, x4, x5, x6, x7, x8, x9, x10 = [[] for _ in range(10)]
+
+        count = -1
+        with open(fn, 'r') as f:
+            t = csv.reader(f)
+            for row in t:
+                if count < 0:
+                    count += 1
+                    continue
+
+                datet = row[fDate].replace("-", "") + row[fTime].replace(":", "")
+                x1.append(float(str(row[fEpochTime]) + '.' + str(row[fNanoSeconds])))
+                x2.append(float(int(datet)))
+                x3.append(float(row[fLat]))
+                x4.append(float(row[fLon]))
+                x5.append(float(row[fBCH4]))
+                x6.append(float(row[fTCH4]))
+                x7.append(0.0)
+                x8.append(0.0)
+                count += 1
+        print("Number of observations processed: " + str(count))
+
+        # convert lists to numpy arrays
+        aEpochTime = numpy.array(x1)
+        aDateTime = numpy.array(x2)
+        aLat = numpy.array(x3)
+        aLon = numpy.array(x4)
+        aCH4 = numpy.array(x5)
+        aTCH4 = numpy.array(x6)
+        aMean = numpy.array(x7)
+        aThreshold = numpy.array(x8)
+        xLatMean = numpy.mean(aLat)
+        xLonMean = numpy.mean(aLon)
+
+        fLog.write("Day CH4_mean = " + str(numpy.mean(aCH4)) + ", Day CH4_SD = " + str(numpy.std(aCH4)) + "\n")
+        fLog.write("Center lon/lat = " + str(xLonMean) + ", " + str(xLatMean) + "\n")
+        lstCH4_AB = []
+
+        # generate list of the index for observations that were above the threshold
+        for i in range(0, count - 2):
+            if ((count - 2) > xB):
+                topBound = min((i + xB), (count - 2))
+                botBound = max((i - xB), 0)
+
+                for t in range(min((i + xB), (count - 2)), i, -1):
+                    if aEpochTime[t] < (aEpochTime[i] + (xB / 2)):
+                        topBound = t
+                        break
+                for b in range(max((i - xB), 0), i):
+                    if aEpochTime[b] > (aEpochTime[i] - (xB / 2)):
+                        botBound = b
+                        break
+
+                xCH4Mean = numpy.percentile(aCH4[botBound:topBound], baseCalc)
+            else:
+                xCH4Mean = numpy.percentile(aCH4[0:(count - 2)], baseCalc)
+            xThreshold = xCH4Mean + (xCH4Mean * xABThreshold)
+
+            if (aCH4[i] > xThreshold):
+                lstCH4_AB.append(i)
+                aMean[
+                    i] = xCH4Mean  # insert mean + SD as upper quartile CH4 value into the array to later retreive into the peak calculation
+                aThreshold[i] = xThreshold
+
+        # now group the above baseline threshold observations into groups based on distance threshold
+        lstCH4_ABP = []
+        xDistPeak = 0.0
+        xCH4Peak = 0.0
+        xTime = 0.0
+        cntPeak = 0
+        cnt = 0
+        sID = ""
+        sPeriod5Min = ""
+        prevIndex = 0
+        for i in lstCH4_AB:
+            if (cnt == 0):
+                xLon1 = aLon[i];
+                xLat1 = aLat[i]
+            else:
+                # calculate distance between points
+                xDist = haversine(xLat1, xLon1, aLat[i], aLon[i])
+                xDistPeak += xDist
+                xCH4Peak += (xDist * (aCH4[i] - aMean[i]))
+                xLon1 = aLon[i];
+                xLat1 = aLat[i]
+                if (sID == ""):
+                    xTime = aEpochTime[i]
+                    sID = str(xCar) + "_" + str(xTime)
+                    sPeriod5Min = str(int((aEpochTime[i] - 1350000000) / (30 * 1)))  # 30 sec
+                if ((aEpochTime[i] - aEpochTime[prevIndex]) > xTimeThreshold):  # initial start of a observed peak
+                    cntPeak += 1
+                    xTime = aEpochTime[i]
+                    xDistPeak = 0.0
+                    xCH4Peak = 0.0
+                    sID = str(xCar) + "_" + str(xTime)
+                    sPeriod5Min = str(int((aEpochTime[i] - 1350000000) / (30 * 1)))  # 30 sec
+                    # print str(i) +", " + str(xDist) + "," + str(cntPeak) +"," + str(xDistPeak)
+                lstCH4_ABP.append(
+                    [sID, xTime, aEpochTime[i], aDateTime[i], aCH4[i], aLon[i], aLat[i], aMean[i], aThreshold[i],
+                     xDistPeak, xCH4Peak, aTCH4[i], sPeriod5Min])
+            cnt += 1
+            prevIndex = i
+
+        # Finding peak_id larger than 160.0 m
+        tmpsidlist = []
+        for r in lstCH4_ABP:
+            if (float(r[9]) > 160.0) and (r[0] not in tmpsidlist):
+                tmpsidlist.append(r[0])
+        cntPeak -= len(tmpsidlist)
+
+        fLog.write("Number of peaks found: " + str(cntPeak) + "\n")
+        print(xCar + "\t" + xDate + "\t" + xFilename + "\t" + str(count) + "\t" + str(len(lstCH4_ABP)))
+        #### calculate attribute for the area under the curve -- PPM
+
+        # write out the observed peaks to a csv to be read into a GIS
+        fOut = open(fnOut, 'w')
+        s = "OP_NUM,OP_EPOCHSTART,OB_EPOCH,OB_DATETIME,OB_CH4,OB_LON,OB_LAT,OB_CH4_BASELINE,OB_CH4_THRESHOLD,OP_PEAK_DIST_M,OP_PEAK_CH4,OB_TCH4,OB_PERIOD5MIN\n"
+
+        fOut.write(s)
+
+        truecount = 0
+        for r in lstCH4_ABP:
+            if r[0] not in tmpsidlist:
+                s = ''
+                for rr in r:
+                    s += str(rr) + ','
+                s = s[:-1]
+                s += '\n'
+                fOut.write(s)
+                truecount += 1
+        fOut.close()
+        fLog.close()
+        import pandas as pd
+        openFile = pd.read_csv(fnOut)
+        from shapely.geometry import Point
+        if openFile.shape[0] != 0:
+            tempCount = openFile.groupby('OP_NUM', as_index=False).OP_EPOCHSTART.count().rename(
+                columns={'OP_EPOCHSTART': 'Frequency'})
+            tempCount = tempCount.loc[tempCount.Frequency >= minElevated, :]
+            if tempCount.shape[0] == 0:
+                print("No Observed Peaks with enough Elevated Readings Found in the file: " + str(xFilename))
+            elif tempCount.shape[0] != 0:
+                oFile = pd.merge(openFile, tempCount, on=['OP_NUM'])
+                openFile = oFile.copy()
+                del (oFile)
+                openFile['minElevated'] = openFile.swifter.apply(lambda x: int(minElevated), axis=1)
+                openFile.to_csv(fnOut, index=False)
+                openFile['OB_CH4_AB'] = openFile.loc[:, 'OB_CH4'].sub(openFile.loc[:, 'OB_CH4_BASELINE'], axis=0)
+
+                fileWt = weightedLoc(openFile, 'OB_LAT', 'OB_LON', 'OP_NUM', 'OB_CH4_AB').loc[:, :].rename(
+                    columns={'OB_LAT': 'pk_LAT', 'OB_LON': 'pk_LON'}).reset_index(drop=True)
+                geometry_temp = [Point(xy) for xy in zip(fileWt['pk_LON'], fileWt['pk_LAT'])]
+                crs = {'init': 'epsg:4326'}
+
+                # geometry is the point of the lat/lon
+                # gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
+
+                ## BUFFER AROUND EACH 'OP_NUM' OF 30 M
+                gdf_buff = gpd.GeoDataFrame(fileWt, crs=crs, geometry=geometry_temp)
+                # gdf_buff = makeGPD(datFram,'LON','LAT')
+                gdf_buff = gdf_buff.to_crs(epsg=32610)
+                gdf_buff['geometry'] = gdf_buff.loc[:, 'geometry'].buffer(30)
+                gdf_buff.to_file(jsonOut, driver="GeoJSON")
+        elif openFile.shape[0] == 0:
+            print("No Observed Peaks Found in the file: " + str(xFilename))
+
     except ValueError:
         print("Error in Identify Peaks")
         return False
