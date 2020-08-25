@@ -11,12 +11,12 @@ Created on Tuesday July 28
 function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 
 ## Folder with .txt Data
-raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_dat"
+raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/fireData/driving_fire"
 
 ## Folder to put results in (will make subfolders later)
-results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/trussville_dat/"
+results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/fireData/driving_fire/"
 
-car_id = 'TrussCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
+car_id = 'CSULi' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.05'  #What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 time_thresh = '5.0'  ## How many minutes to include in background calculation (minutes)
 initial_time_ignore = '0' ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
@@ -26,7 +26,7 @@ engineering = False #is this an engineering file
 aeris = True # is this from the aeris instrument
 CSU = True
 time_push = 0 #not sure what this is
-back_obs_num = '102' ### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
+back_obs_num = '1020' ### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
 max_car_speed = '45' #maximum car speed to allow (mph)
 min_car_speed = '2' # minimum car speed to allow (mph)
 baseline_percentile = '50' #what percentile to use as a backgorund calculation
@@ -62,15 +62,17 @@ s3 = "Filtered" + str()
 import sys
 sys.path.insert(0, function_file_Loc) # FINDING FUNCTIONS FOLDER TO IMPORT FROM
 from amld_Functions import unique,unIfInt,\
-                            intersect,weighted_loc,verPk,estimate_emissions,\
+                            intersect,verPk,estimate_emissions,\
                             haversine,wt_time_Locs,sum_values,make_GEO,\
                             make_GPD,summarize_dat,get_quadrant,calc_theta,\
                             calc_bearing,process_raw_data_eng,str_list,\
                             count_times,identify_peaks,filter_peaks,\
-                            pass_combine,summarize_data_2,add_odometer,process_raw_data,process_raw_data_aeris,identify_peaks_CSU
+                            pass_combine,summarize_data_2,add_odometer,\
+                            process_raw_data,process_raw_data_aeris,\
+                            identify_peaks_CSU#,weighted_loc
 
 import rtree, pygeos,os, sys, datetime, time, math, numpy, csv, gzip,shutil,ast,swifter
-from math import radians, sin, cos, sqrt, asin
+from math import radians, sign, cos, sqrt, asin
 import numpy as np
 from numpy import log
 import geopandas as gpd
@@ -78,6 +80,42 @@ import pandas as pd
 from shapely.geometry import Point
 import matplotlib.pyplot as plt
 from datetime import datetime
+
+def weighted_loc(df, lat, lon, by, val2avg):
+    """ find the weighted centroid of a data frame
+    input:
+        df: data frame with gps locations, a grouping variable, and a value to weight with
+        lat: name of the column with latitude
+        lon: name of the column with longitude
+        by: name of the column to group by (i.e. a observed peak name)
+        val2avg: name of the column that is being used to weight the location
+    output:
+        dataframe with weighted location for each grouping variable
+    """
+    import pandas as pd
+    import swifter
+    df_use = df.loc[:, [(lat), (lon), (by), val2avg]]
+    df_use.loc[:, 'lat_wt'] = df_use.swifter.apply(lambda y: y[lat] * y[val2avg], axis=1).copy()
+    df_use.loc[:, 'lon_wt'] = df_use.swifter.apply(lambda y: y[lon] * y[val2avg], axis=1).copy()
+
+    sumwts = pd.DataFrame(df_use.copy().groupby(str(by)).apply(lambda y: sumthing(y[str(val2avg)])), columns={'totwts'})
+    sumwts.loc[:, 'min_reads'] = sumwts.copy().index
+    sumwts = sumwts.reset_index(drop=True).rename(columns={"min_reads": str(by)})
+    totlats = pd.DataFrame(df_use.groupby(str(by)).apply(lambda y: sumthing(y['lat_wt'])), columns=['totlats'])
+    totlats['min_reads'] = totlats.index.copy()
+    totlats = totlats.reset_index(drop=True)
+    totlats = totlats.rename(columns={"min_reads": str(by)})
+    totlons = pd.DataFrame(df_use.groupby(str(by)).apply(lambda y: sumthing(y['lon_wt'])), columns=['totlons'])
+    totlons['min_reads'] = totlons.index.copy()
+    totlons = totlons.reset_index(drop=True)
+    totlons = totlons.rename(columns={"min_reads": str(by)})
+    df_use = pd.merge(totlats, df_use, on=str(by))
+    df_use = pd.merge(totlons, df_use, on=str(by))
+    df_use = pd.merge(sumwts, df_use, on=str(by))
+    df_use.loc[:, 'overall_LON'] = df_use.swifter.apply(lambda y: y['totlons'] / y['totwts'], axis=1)
+    df_use.loc[:, 'overall_LAT'] = df_use.swifter.apply(lambda y: y['totlats'] / y['totwts'], axis=1)
+    return (df_use.loc[:, [(str(by)), ('overall_LON'), ('overall_LAT')]].drop_duplicates().rename(
+        columns={'overall_LON': str(lon), 'overall_LAT': str(lat)}))
 
 
 #### CREATING NECESSARY FOLDERS
