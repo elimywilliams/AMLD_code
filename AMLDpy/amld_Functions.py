@@ -52,14 +52,14 @@ def weighted_loc(df, lat, lon, by, val2avg):
     df_use.loc[:, 'lat_wt'] = df_use.swifter.apply(lambda y: y[lat] * y[val2avg], axis=1).copy()
     df_use.loc[:, 'lon_wt'] = df_use.swifter.apply(lambda y: y[lon] * y[val2avg], axis=1).copy()
 
-    sumwts = pd.DataFrame(df_use.copy().groupby(str(by)).apply(lambda y: sumthing(y[str(val2avg)])), columns={'totwts'})
+    sumwts = pd.DataFrame(df_use.copy().groupby(str(by)).apply(lambda y: sum_values(y[str(val2avg)])), columns={'totwts'})
     sumwts.loc[:, 'min_reads'] = sumwts.copy().index
     sumwts = sumwts.reset_index(drop=True).rename(columns={"min_reads": str(by)})
-    totlats = pd.DataFrame(df_use.groupby(str(by)).apply(lambda y: sumthing(y['lat_wt'])), columns=['totlats'])
+    totlats = pd.DataFrame(df_use.groupby(str(by)).apply(lambda y: sum_values(y['lat_wt'])), columns=['totlats'])
     totlats['min_reads'] = totlats.index.copy()
     totlats = totlats.reset_index(drop=True)
     totlats = totlats.rename(columns={"min_reads": str(by)})
-    totlons = pd.DataFrame(df_use.groupby(str(by)).apply(lambda y: sumthing(y['lon_wt'])), columns=['totlons'])
+    totlons = pd.DataFrame(df_use.groupby(str(by)).apply(lambda y: sum_values(y['lon_wt'])), columns=['totlons'])
     totlons['min_reads'] = totlons.index.copy()
     totlons = totlons.reset_index(drop=True)
     totlons = totlons.rename(columns={"min_reads": str(by)})
@@ -1373,8 +1373,7 @@ def identify_peaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engin
         print("Error in Identify Peaks")
         return False
 
-def identify_peaks_CSU(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, threshold='.1', xTimeThreshold='5.0',
-                     minElevated='2', xB='1020', basePerc='50'):
+def identify_peaks_CSU(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, threshold='.1', xTimeThreshold='5.0',minElevated='2', xB='1020', basePerc='50'):
     import csv, numpy
     import geopandas as gpd
     import shutil
