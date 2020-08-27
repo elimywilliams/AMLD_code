@@ -1751,10 +1751,6 @@ def filter_peaks(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass
 
         pass_info = datFram.copy()
 
-        ## MIGHT NEED TO CHANGE BACK
-        # geometry_temp = [Point(xy) for xy in zip(datFram['LON'], datFram['LAT'])]
-        # crs = {'init': 'epsg:4326'}
-
         geometry_temp = [Point(lon, lat) for lon, lat in zip(datFram_wtLocMax['pk_LON'], datFram_wtLocMax['pk_LAT'])]
         crs = {'init': 'epsg:4326'}
 
@@ -1951,15 +1947,6 @@ def filter_peaks(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass
             gdf_pass_pks = pd.merge(gdf_pass_pks, epdat, on=['OP_NUM']).copy()
             data_overlap = pd.DataFrame(columns=['what', 'oh'])
 
-        ### gdf_pass_pks
-        #    Index(['OP_NUM', 'pk_LON', 'pk_LAT', 'pk_maxCH4_AB', 'geometry',
-        #       'OP_EPOCHSTART', 'OB_EPOCH', 'OB_DATETIME', 'OB_CH4', 'OB_LON',
-        #       'OB_LAT', 'OB_CH4_BASELINE', 'OB_CH4_THRESHOLD', 'OP_PEAK_DIST_M',
-        #       'OP_PEAK_CH4', 'OB_TCH4', 'OB_PERIOD5MIN', 'OB_CH4_AB', 'newgeo',
-        #       'recombine', 'numtimes', 'min_read', 'numdays', 'pk_Dates', 'min_Date',
-        #       'verified'],
-        #      dtype='object')
-
         gdf_pass_pks['pkGEO'] = gdf_pass_pks.loc[:, "geometry"]
         gdf_pass_pks['geometry'] = gdf_pass_pks.loc[:, "newgeo"]
         del (gdf_pass_pks['newgeo'])
@@ -1967,15 +1954,6 @@ def filter_peaks(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass
         gdf_pass_pks['Overall_LON'] = gdf_pass_pks['pk_LON']
         gdf_pass_pks['Overall_LAT'] = gdf_pass_pks['pk_LAT']
         combinedOP1 = gdf_pass_pks.drop(columns=['recombine', 'pk_Dates']).drop_duplicates()
-
-        # gdf_tot = pd.merge(gdf_pass_pks,datFram_wtLocMax.loc[:,['PEAK_NUM','pk_LON','pk_LAT']],on = ['PEAK_NUM','pk_LON','pk_LAT']).copy()
-        ## condense by peak_num
-        # gdfcop = gdf_tot.loc[:,['PEAK_NUM','geometry','min_read','numtimes','verified','pass','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates()
-
-        #### WANT A DATAFRAME WITH
-        # EACH OP SUMMARY
-        # COMBINED WITH THE COMBINED SUMMARY
-        # gdf_op_unique = gdf_pass_pks.loc[:,['numtimes','min_read','numdays','min_Date','verified','pass','Overall_LON','Overall_LAT']].drop_duplicates()
 
         if data_overlap.size != 0:
             gdf_op_unique = gdf_pass_pks.loc[:,
@@ -1999,16 +1977,6 @@ def filter_peaks(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass
                 columns={'pk_LAT': 'Overall_LAT', 'pk_LON': 'Overall_LON'}).reset_index(drop=True)
             combinedOP1 = pd.merge(combinedOP, gdfcop, on=['min_read'])
 
-        ## TO FINDED WEIGHTED LOCATION OF EACH PK GROUP
-        #    gdfcop = gdf_pass_pks.loc[:,['OP_NUM','min_read','min_Date','numtimes','verified','pass','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates()
-        #    combinedOP = weighted_loc(gdfcop,'pk_LAT','pk_LON','min_read','pk_maxCH4_AB').loc[:,:].rename(columns = {'pk_LAT':'Overall_LAT','pk_LON':'Overall_LON'}).reset_index(drop=True)
-        #    combinedOP1 = pd.merge(combinedOP,gdfcop,on=['min_read'])
-
-        ## getting the rest of the stuff
-        # gdf_justloc = gdfcop.loc[:,['min_read','pk_LAT','pk_LON','min_Date']].reset_index(drop=True)
-
-        # other = gdfcop.loc[:,['min_read','numtimes','min_Date']].reset_index(drop=True)
-
         geometry_temp = [Point(lon, lat) for lon, lat in zip(combinedOP1['Overall_LON'], combinedOP1['Overall_LAT'])]
         crs = {'init': 'epsg:4326'}
         gdf_OP = gpd.GeoDataFrame(combinedOP1, crs=crs, geometry=geometry_temp)
@@ -2018,17 +1986,11 @@ def filter_peaks(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass
                                         'verified']].drop_duplicates().reset_index(drop=True)
         gdf_OP_reduced.to_file(new_loc_json, driver="GeoJSON")
 
-        # gdf_OP_wrecombine = pd.merge(gdf_OP.drop(columns=['geometry']),gdf_pass_pks.drop(columns=['geometry','oldgeo']),on=['min_read','min_Date','numtimes','pass','verified','pk_LAT','pk_LON','OP_NUM','pk_maxCH4_AB'])
         gdf_OP_wrecombine = pd.merge(gdf_OP.drop(columns=['geometry']), gdf_pass_pks.drop(columns=['geometry']),
                                      on=['min_read', 'min_Date', 'numtimes', 'pass', 'verified', 'pk_LAT', 'pk_LON',
                                          'OP_NUM', 'pk_maxCH4_AB'])
 
-        # gdf_OP.to_csv(new_loc,index=False)
         gdf_OP_wrecombine.to_csv(new_loc, index=False)
-
-        # geometry is the point of the lat/lon
-        # gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
-
         gdf_buff = gpd.GeoDataFrame(datFram_wtLocMax, crs=crs, geometry=geometry_temp)
         unique_peaks = gdf_pass_pks.loc[:, ['OP_NUM', 'pk_LAT', 'pk_LON', 'min_read', 'min_Date']].drop_duplicates()
         unique_peaks['save'] = True
@@ -2047,8 +2009,7 @@ def filter_peaks(xCar, xDate, xDir, xFilename, outFolder, buffer='30', whichpass
         unique_pks_tog['Latitude'] = unique_pks_tog.loc[:, 'pk_LAT']
         unique_pks_tog['Longitude'] = unique_pks_tog.loc[:, 'pk_LON']
         unique_pks_tog.to_csv(new_loc, index=False)
-
-        return ()
+        return
 
 def summarize_data_2(mainDF):
     """ summarize data from after all analysis has been done
@@ -2117,20 +2078,7 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
 
     first_buffg = firstgrp.copy()
     first_buff = first_buffg.copy().drop(columns=['geometry'])
-    # first_buff['geometry2'] = first_buff.loc[:,'geometry'].buffer(30)
-
-    # first_buff['geometry2'] = first_buff.apply(lambda x: x.geometry.buffer(0.0001*3),axis =1)
-
     first_buff['geometry'] = first_buffg.apply(lambda x: x.geometry.buffer(0.00001 * buffer), axis=1)
-    # first_buff['geometry'] = first_buffg.apply(lambda x: x.geometry.buffer(0.0001*3),axis =1)
-
-    # first_buff = first_buff.drop(columns = ['geometry'])
-    # first_buff['geometry'] = first_buff.loc[:,'geometry2']
-    # first_buff = first_buff.drop(columns = ['geometry2'])
-
-    # first_buff = first_buff.to_crs(epsg=32610)
-    # first_buff.plot()
-
     firstgrp = first_buff.copy()
 
     sec_geo = [Point(lon, lat) for lon, lat in zip(secondgroup['pk_LON'], secondgroup['pk_LAT'])]
@@ -2140,11 +2088,6 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
     sec_buff = sec_buffg.copy().drop(columns=['geometry'])
     sec_buff['geometry'] = sec_buffg.apply(lambda x: x.geometry.buffer(0.00001 * buffer), axis=1)
     secgrp = sec_buff.copy()
-
-    ### GATHER THE INDIVIDUAL PEAKS, WITH THEIR LOCATIONS
-    # first_pks = firstgrp.loc[:,['min_read','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates()
-    # sec_pks = secondgrp.loc[:,['PEAK_NUM','pk_LAT','pk_LON','pk_maxCH4_AB']].drop_duplicates()
-    # tot_pks = pd.concat([first_pks,sec_pks])
 
     ## choosing the unique OPs from each group
     first_pks = firstgrp.loc[:, ['OP_NUM', 'min_read', 'pk_LAT', 'pk_LON', 'pk_maxCH4_AB']].drop_duplicates()
@@ -2160,7 +2103,6 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
         ['min_read', 'geometry', 'recombine', 'verified', 'pass']].copy()
 
     gdf_bind_pks = pd.concat([first_dis, sec_dis]).loc[:, ['min_read', 'geometry', 'recombine']]
-    # gdf_tog = pd.concat([firstgrp.drop(['pk_LAT', 'pk_LON','pk_maxCH4_AB'], axis=1),secondgrp.drop(['pk_LAT', 'pk_LON','pk_maxCH4_AB'], axis=1)]).copy()
     gdf_tog = pd.concat([firstgroup.drop(['pk_LAT', 'pk_LON', 'pk_maxCH4_AB'], axis=1),
                          secondgroup.drop(['pk_LAT', 'pk_LON', 'pk_maxCH4_AB'], axis=1)]).copy()
     gdf_tog2 = pd.concat([firstgroup, secondgroup]).copy()
@@ -2175,10 +2117,6 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
         for index, row in data_temp.iterrows():
             data_temp1 = data_temp.loc[data_temp.min_read != row.min_read,]
             data_temp1 = data_temp1.to_crs(epsg=32610)
-
-            # woo = data_temp1
-            # what = row
-
             # check if intersection occured
             overlaps = data_temp1[data_temp1.geometry.overlaps(row.geometry)]['min_read'].tolist()
             if len(overlaps) > 0:
@@ -2218,8 +2156,6 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
                     opList = str_list(opList)
                 return (opList)
 
-            # over['bothcombine'] = over.apply(lambda x: sorted(str_list(x.recombine_1)+ str_list(x.recombine_2)),axis=1)
-
             over['bothcombine'] = over.apply(lambda x: sorted(check_lst(x.recombine_1) + check_lst(x.recombine_2)),
                                              axis=1)
 
@@ -2242,7 +2178,6 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
             toChangecombined = pd.merge(toChange, newtog, on=['min_read']).drop(
                 columns=['geometry', 'numtimes', 'verified', 'recombine'])
             toChangecombined = toChangecombined.rename(columns={'min_read': 'prev_read', 'bothcombine': 'recombine'})
-            # toChangecombined['numtimes'] = toChangecombined.apply(lambda x: len(x.recombine),axis = 1)
             toChangecombined['numtimes'] = toChangecombined.apply(lambda x: count_times(x.recombine, xCar), axis=1)
 
             toChangecombined['verified'] = toChangecombined.apply(lambda x: x.numtimes > 1, axis=1)
@@ -2252,7 +2187,6 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
             if 'prev_read' in toNotChange.columns:
                 toNotChange = toNotChange.drop(columns=['prev_read'])
                 toNotChange['prev_read'] = toNotChange.min_read
-                # toNotChange.loc[:,'prev_read'] = gdf_tog2[~gdf_tog2['min_read'].isin(minreads)].min_read
             elif 'prev_read' not in toNotChange.columns:
                 toNotChange.loc[:, 'prev_read'] = gdf_tog2[~gdf_tog2['min_read'].isin(minreads)].min_read
 
@@ -2266,4 +2200,3 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
         if 'prev_read' not in newCombined.columns:
             newCombined.loc[:, 'prev_read'] = gdf_tog2.loc[:, 'min_read']
     return (newCombined)
-    # return(gdf_tot_pks)
