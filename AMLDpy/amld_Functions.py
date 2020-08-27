@@ -6,6 +6,12 @@ Created on Tue Jul 28 10:51:28 2020
 relevant functions to run the AMLD algorithm
 """
 
+
+def check_lst(opList):
+    if isinstance(opList, str):
+        opList = str_list(opList)
+    return (opList)
+
 def unique(my_list):
     """ Condense a list and return only its unique entries
     input:
@@ -176,6 +182,12 @@ def make_GPD(df, lat, lon, cps='epsg:4326'):
     gdf = gpd.GeoDataFrame(df, crs=cps, geometry=make_GEO(df, lat, lon))
     return (gdf)
 
+
+def calc_velocity(timediff, distance):
+    if timediff == 0:
+        return (0)
+    elif timediff != 0:
+        return (distance / timediff)
 
 
 def summarize_dat(totalData):
@@ -482,11 +494,6 @@ def process_raw_data_eng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initi
 
         print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t {xCntObs} \t {xCntGoodValues} \t {gZIP}")
 
-        def calc_velocity(timediff, distance):
-            if timediff == 0:
-                return (0)
-            elif timediff != 0:
-                return (distance / timediff)
 
         import numpy as np
         radians = False
@@ -525,22 +532,15 @@ def process_raw_data_eng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initi
             ['QUADRANT', 'secnan', 'prev_LAT', 'next_LAT', 'prev_LONG', 'next_LONG', 'prev_TIME', 'next_TIME',
              'distance', 'timediff', 'uncor_theta', 'CH4'], axis=1)
         wind_df3['CH4'] = wind_df3.loc[:, 'shift_CH4']
-        wind_df3 = wind_df3.drop(['shift_CH4'], axis=1)
-        wind_df3 = wind_df3.loc[:,
-                   {'DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
+        wind_df3 = wind_df3.drop(['shift_CH4'], axis=1).loc[:,
+                   ['DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
                     'TRSSI',
                     'PRESS_MBAR', 'INLET', 'TEMPC', 'CH4', 'H20', 'C2H6', 'R', 'C2C1', 'BATTV', 'POWMV', 'CURRMA',
                     'SOCPER',
-                    'LAT', 'LONG', 'bearing', 'U_cor', 'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4'}]
-        wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(), :]
-        wind_df7 = add_odometer(wind_df4, 'LAT', 'LONG')
-        wind_df4 = wind_df7.copy()
+                    'LAT', 'LONG', 'bearing', 'U_cor', 'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4']]
+        wind_df4 = add_odometer(wind_df3.loc[wind_df3.totalWind.notnull(), :], 'LAT', 'LONG')
         wind_df5 = wind_df4.loc[wind_df4.VELOCITY > xMinCarSpeed, :]
-        wind_df6 = wind_df5.loc[wind_df5.VELOCITY < xMaxCarSpeed, :]
-
-        del (wind_df4)
-
-        wind_df4 = wind_df6.copy().drop_duplicates()
+        wind_df4 = wind_df5.loc[wind_df5.VELOCITY < xMaxCarSpeed, :].copy().drop_duplicates()
         if bFirst:
             wind_df4.to_csv(fnOut, index=False)
         elif not bFirst:
@@ -550,6 +550,7 @@ def process_raw_data_eng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initi
         return True
     except ValueError:
         return False
+
 def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45',
                    minSpeed='2'):
     """ input a raw .txt file with data (not engineering file)
@@ -562,18 +563,14 @@ def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTi
     """
     import pandas as pd
     from datetime import datetime
-    import os
-    import gzip
-    # import csv
+    import os,gzip,csv,sys
+    from numpy import pi
+    import numpy as np
+    radians = False
+
     try:
         xMaxCarSpeed = float(maxSpeed) / 2.23694  # CONVERTED TO M/S (default is 45mph)
         xMinCarSpeed = float(minSpeed) / 2.23694  # CONVERTED TO M/S (default is 2mph)
-
-        ########################################################################
-        #### WE DON'T HAVE AN RSSI INPUT
-        ### (SO THIS IS A PLACEHOLDER FOR SOME SORT OF QA/QC VARIABLE)
-        ##  xMinRSSI = 50  #if RSSI is below this we don't like it
-        ##################################################################
 
         # reading in the data with specific headers
         #          0     1    2    3       4           5    6       7        8        9          10                 11              12           13            14      15      16      17        18         19         20         21         22         23        24   25  26       27           28       29           30       31       32       33  34        35   36   37  38   39       40       41   42       43   44   45   46   47   48   49   50   51     52     53     54
@@ -582,8 +579,7 @@ def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTi
         infoHeader = "FILENAME\n"
         # somehow gZIP is indicating if  it is the first file name (I think if it is 0 then it is the first file)
         if gZIP == 0:
-            f = gzip.open(xDir + "/" + xFilename,
-                          'r')  # if in python 3, change this to "r" or just "b" can't remember but something about a bit not a string
+            f = gzip.open(xDir + "/" + xFilename, 'r')
         else:
             f = open(xDir + "/" + xFilename, 'r')
 
@@ -607,9 +603,6 @@ def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTi
         firstdate = datetime(int(dtime[6:10]), int(dtime[0:2]), int(dtime[3:5]), int(dtime[11:13]), int(dtime[14:16]),
                              int(dtime[17:19]), int(float(dtime[19:23]) * 1000000))
         firsttime = firstdate.strftime('%s.%f')
-
-        # firsttime = int(float(open(xDir + xFilename).readlines().pop(1).split(',')[37][:-4]))
-
         fnOutTemp = xOut + xCar + "_" + xdat + "temp_dat.csv"  #
 
         if bFirst:
@@ -631,7 +624,6 @@ def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTi
         xCntObs = -1
         xCntGoodValues = 0
         for row in f:
-            # print(row)
             bGood = True
             if xCntObs < 0:
                 bGood = False
@@ -648,32 +640,6 @@ def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTi
                                  int(dtime[14:16]), int(dtime[17:19]), int(float(dtime[19:23]) * 1000000))
                 seconds = fdate.strftime('%s.%f')
 
-                # change this once we have QA/QC stuff
-
-                #                # if RSSI of bottome sensor is below 50
-                #                if float(lstS[28]) < xMinRSSI:
-                #                    fLog.write("RSSI (Bottom) value less than 50: "+ str(lstS[28]) + "\n")
-                #                    continue
-                #                # Car Speed
-                #                if float(lstS[12]) > xMaxCarSpeed:
-                #                    fLog.write("Car speed of " + str(float(lstS[12])) + " exceeds max threshold of: " + str(xMaxCarSpeed) + "\n")
-                #                    continue
-                #                if float(lstS[12]) < xMinCarSpeed:
-                #                    fLog.write("Car speed of " + str(float(lstS[12])) + " less than min threshold of: " + str(xMinCarSpeed) + "\n")
-                #                    continue
-
-                # For some reason it is producing its longitude in positive number while USA is located at negative longitude
-                # thats why we do -1 * float(lstS[7])
-
-                # fix this when we have stuffs
-
-                #                s1 = str(lstS[1])+","+str(lstS[2])+","+str(lstS[3])+","+str(lstS[4])+","+str(lstS[6])+","
-                #                s1 += str(-1 * float(lstS[7]))+","+str(lstS[12])+","+str(lstS[14])+","+str(lstS[15])+","+str(lstS[16])+","+str(lstS[25])+","
-                #                s1 += str(lstS[28])+","+str(lstS[38])+","+str(lstS[41])+"\n"
-
-                ## choosing what to write in the .csv
-
-                import sys
                 if sys.platform.startswith('win'):
                     csvWrite = str(dateob.strftime('%Y-%m-%d')) + ',' + str(dateob.strftime('%H:%M:%S')) + ',' + str(
                         int(pd.to_numeric(dateob.strftime('%S.%f')))) + ',' + str(
@@ -710,25 +676,9 @@ def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTi
         fLog.close()
         infOut.close()
 
-        # xDate = dateob.strftime("%Y%m%d")
-
-        # newfnOut = xOutDir + xCar + "_" + xDate + "_dat.csv"       #set CSV output for raw data
-        # newfnLog = xOutDir + xCar + "_" + xDate + "_log.csv"
-
-        # print(xCar + "\t" + xdat + "\t" + fnOut[-22:] + "\t" + str(xCntObs) + "\t" + str(xCntGoodValues) + "\t" + str(
-        #    gZIP))
-
         print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t {xCntObs} \t {xCntGoodValues} \t  {gZIP}")
-        from numpy import pi
-        import numpy as np
-        def calc_velocity(timediff, distance):
-            if timediff == 0:
-                return (0)
-            elif timediff != 0:
-                return (distance / timediff)
 
         wind_df = pd.read_csv(fnOutTemp)
-        radians = False
         wind_df['QUADRANT'] = wind_df.apply(lambda row: get_quadrant(row['U'], row['V']), axis=1)
         wind_df['secnan'] = wind_df.apply(lambda row: row['SECONDS'] + row['NANOSECONDS'] * 1e-9,
                                           axis=1)  # + row['NANOSECONDS']*1e-9,axis=1)
@@ -764,9 +714,7 @@ def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTi
             ['QUADRANT', 'secnan', 'prev_LAT', 'next_LAT', 'prev_LONG', 'next_LONG', 'prev_TIME', 'next_TIME',
              'timediff', 'uncor_theta', 'CH4'], axis=1)
         wind_df3['CH4'] = wind_df3.loc[:, 'shift_CH4']
-        wind_df3 = wind_df3.drop(['shift_CH4'], axis=1)
-
-        wind_df3 = wind_df3.loc[:,
+        wind_df3 = wind_df3.drop(['shift_CH4'], axis=1).loc[:,
                    ['DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
                     'TRSSI',
                     'PRESS_MBAR', 'INLET', 'TEMPC', 'CH4', 'H20', 'C2H6', 'R', 'C2C1', 'BATTV', 'POWMV', 'CURRMA',
@@ -774,18 +722,9 @@ def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTi
                     'LAT', 'LONG', 'bearing', 'U_cor', 'horz_length', 'adj_theta', 'totalWind', 'phi', 'raw_CH4',
                     'distance']]
         wind_df3['odometer'] = wind_df3.loc[:, 'distance'].cumsum()
-        # wind_df4 = wind_df3.loc[wind_df3.totalWind.notnull(),:]
-
         wind_df4 = wind_df3.copy()
-
-        # wind_df7 = add_odometer(wind_df4,'LAT','LONG')
-
-        # wind_df4 = wind_df7.copy()
         wind_df5 = wind_df4.loc[wind_df4.VELOCITY > xMinCarSpeed, :]
-        wind_df6 = wind_df5.loc[wind_df5.VELOCITY < xMaxCarSpeed, :]
-
-        del (wind_df4)
-        wind_df4 = wind_df6.copy().drop_duplicates()
+        wind_df4 = wind_df5.loc[wind_df5.VELOCITY < xMaxCarSpeed, :].copy().drop_duplicates()
         wind_df5 = wind_df4.loc[wind_df4.CH4.notnull(), :]
         wind_df4 = wind_df5.copy()
         if bFirst:
@@ -797,6 +736,15 @@ def process_raw_data(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTi
         return True
     except ValueError:
         return False
+
+def nanthing(thing):
+    import math
+    if (math.isnan(thing) == True):
+        return (0)
+    else:
+        return (thing)
+
+
 def process_raw_data_aeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initialTimeBack, shift, maxSpeed='45',
                         minSpeed='2'):
     """ input a raw .txt file with data (from aeris data file)
@@ -918,12 +866,6 @@ def process_raw_data_aeris(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, ini
         #    gZIP))
         print(f"{xCar} \t {xdat} \t {fnOut[-(17 + len(xCar)):]} \t  {xCntObs} \t {xCntGoodValues} \t {gZIP}")
 
-        def calc_velocity(timediff, distance):
-            if timediff == 0:
-                return (0)
-            elif timediff != 0:
-                return (distance / timediff)
-
         wind_df = pd.read_csv(fnOutTemp)
         wind_df_not_null = wind_df.loc[wind_df['LAT'].notnull(),].reset_index(drop=True)
         del (wind_df)
@@ -1015,16 +957,8 @@ def add_odometer(df, lat, lon):
     df_use['distance2'] = df_use.apply(lambda row: haversine(row['prev_LAT'], row['prev_LON'], row[(lat)], row[(lon)]),
                                        axis=1)
     df_use = df_use.reset_index(drop=True)
-
-    def nanthing(thing):
-        if (math.isnan(thing) == True):
-            return (0)
-        else:
-            return (thing)
-
     df_use.loc[:, 'distance'] = df_use.apply(lambda x: nanthing(x.distance2), axis=1)
     df_use['prev_dist'] = df_use.loc[:, 'distance'].shift(periods=1)
-    # df_use['od'] = df
     df_use['odometer'] = df_use['distance'].cumsum()
     df_use['prevod'] = df_use.loc[:, 'odometer'].shift(periods=1)
     df_use['dif'] = df_use.apply(lambda x: x.odometer - x.prevod, axis=1)
@@ -2043,10 +1977,7 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
     import geopandas as gpd
     from shapely.geometry import Point
 
-    def str_list(x):
-        x = ast.literal_eval(x)
-        x = [n.strip() for n in x]
-        return (x)
+
 
     buffer = float(buffer)
     seclist = secondgroup.columns
@@ -2139,10 +2070,7 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
             over = over.loc[over.same == True, :].drop(columns=['same'])
             over = over.copy().drop_duplicates('sorted').reset_index(drop=True)
 
-            def check_lst(opList):
-                if isinstance(opList, str):
-                    opList = str_list(opList)
-                return (opList)
+
 
             over['bothcombine'] = over.apply(lambda x: sorted(check_lst(x.recombine_1) + check_lst(x.recombine_2)),
                                              axis=1)
@@ -2188,3 +2116,60 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
         if 'prev_read' not in newCombined.columns:
             newCombined.loc[:, 'prev_read'] = gdf_tog2.loc[:, 'min_read']
     return (newCombined)
+
+def save_results(mainInfo,mainThing,final_info_loc,final_main_csv_loc,shp_file_loc,op_shp_file_loc,all_op_csv_loc):
+    mainInfo.drop_duplicates().reset_index(drop=True).FILENAME.to_csv(final_info_loc)
+    mainThing.reset_index(drop=True).to_csv(final_main_csv_loc)
+
+    combined = summarize_data_2(
+        mainThing)  ## finds locations and mean log ch4 for each peak (either verified or non yet)
+
+    ## combined so only with the same overall peak
+    uniquePk = combined.loc[:, ['min_read']].drop_duplicates()
+    uniqueList = combined.loc[uniquePk.index, ['min_read', 'recombine']]
+    uniqueOther = combined.loc[:, ['min_read', 'overallLON', 'overallLAT', 'mnlogCH4',
+                                   'verified', 'numtimes', 'minDist', 'maxDist']].drop_duplicates()
+    allTog = pd.merge(make_GPD(uniqueOther, 'overallLAT', 'overallLON'), uniqueList, on=['min_read'])
+    allTog['em'] = allTog['mnlogCH4'].swifter.apply(lambda y: estimate_emissions(y))
+    allTog['threshold'] = allTog['em'].swifter.apply(lambda x: threshold)
+
+    ##### SPLITTING IF THE PEAKS WERE VERIFIED OR NOT
+    verTog = allTog.loc[allTog.numtimes != 1, :]
+
+    if verTog.size > 0:
+        verTog.drop(columns=['recombine']).to_file(shp_file_loc, driver="GeoJSON")
+        print(f'I found {len(verTog.min_read.unique())} verified peaks')
+        vpNew = len(verTog.min_read.unique())
+    if verTog.size == 0:
+        print("Sorry, no verified peaks were found.")
+        vpNew = 0
+    if allTog.size > 0:
+        allTog.drop(columns=['recombine']).to_file(op_shp_file_loc, driver="GeoJSON")
+        allTog.to_csv(all_op_csv_loc)
+
+    if allTog.size == 0:
+        print("Sorry, no observed peaks were found in the given data")
+    return
+
+
+def print_results(addingFiles,to_filter,threshold,baseline_percentile,back_obs_num,min_car_speed,max_car_speed,final_results_dir,
+                  start,mainThing):
+    import time
+    if not addingFiles:
+        print(
+            f"I processed {len(to_filter)} days of driving. I analysed the data using a threshold of {100 + float(threshold) * 100}% for an elevated reading, \n \
+        where the threshold was calculated using the {baseline_percentile}th percentile over {back_obs_num} observations. \n \
+        I filtered the speed of the car to be between {min_car_speed}mph and {max_car_speed}mph.\n \
+        I created 3 summary files located here:{final_results_dir}.\n \
+        The processing took {round((time.time() - start) / 60, 3)} minutes. \n \
+        I found {len(mainThing.min_read.unique())} observed peaks.")
+
+    elif addingFiles:
+        print(
+            f"I processed an additional {len(to_filter)} days of driving. I analysed the data using a threshold of {100 + float(threshold) * 100}% for an elevated reading, \n \
+        where the threshold was calculated using the {baseline_percentile}th percentile over {back_obs_num} observations. \n \
+        I filtered the speed of the car to be between {min_car_speed}mph and {max_car_speed}mph.\n \
+        I created 3 summary files located here:{final_results_dir}.\n \
+        The processing took {round((time.time() - start) / 60, 3)} minutes. \n \
+        I found {len(mainThing.min_read.unique()) - curOP} additional observed peaks, and {vpNew - curVP} VPs.")
+    return

@@ -460,3 +460,55 @@ def weightedLoc(df,lat,lon,by,val2avg):
     toreturn = toreturn.rename(columns = {'overall_LON':str(lon),'overall_LAT':str(lat)})
 
     return(toreturn)
+
+#### adding saving stuff
+
+mainInfo.drop_duplicates().reset_index(drop=True).FILENAME.to_csv(final_info_loc)
+mainThing.reset_index(drop=True).to_csv(final_main_csv_loc)
+
+combined = summarize_data_2(mainThing) ## finds locations and mean log ch4 for each peak (either verified or non yet)
+
+## combined so only with the same overall peak
+uniquePk = combined.loc[:,['min_read']].drop_duplicates()
+uniqueList = combined.loc[uniquePk.index,['min_read','recombine']]
+uniqueOther = combined.loc[:,['min_read','overallLON','overallLAT','mnlogCH4',
+                             'verified','numtimes','minDist','maxDist']].drop_duplicates()
+allTog = pd.merge(make_GPD(uniqueOther,'overallLAT','overallLON'),uniqueList,on = ['min_read'])
+allTog['em'] = allTog['mnlogCH4'].swifter.apply(lambda y: estimate_emissions(y))
+allTog['threshold'] = allTog['em'].swifter.apply(lambda x: threshold)
+
+
+##### SPLITTING IF THE PEAKS WERE VERIFIED OR NOT
+verTog = allTog.loc[allTog.numtimes!= 1,:]
+
+if verTog.size > 0:
+    verTog.drop(columns=['recombine']).to_file(shp_file_loc, driver="GeoJSON")
+    print(f'I found {len(verTog.min_read.unique())} verified peaks')
+    vpNew = len(verTog.min_read.unique())
+if verTog.size ==0:
+    print("Sorry, no verified peaks were found.")
+    vpNew = 0
+if allTog.size> 0:
+    allTog.drop(columns=['recombine']).to_file(op_shp_file_loc, driver="GeoJSON")
+    allTog.to_csv(all_op_csv_loc)
+
+if allTog.size == 0:
+    print("Sorry, no observed peaks were found in the given data")
+
+
+if not addingFiles:
+    print(f"I processed {len(to_filter)} days of driving. I analysed the data using a threshold of {100 + float(threshold)*100}% for an elevated reading, \n \
+    where the threshold was calculated using the {baseline_percentile}th percentile over {back_obs_num} observations. \n \
+    I filtered the speed of the car to be between {min_car_speed}mph and {max_car_speed}mph.\n \
+    I created 3 summary files located here:{final_results_dir}.\n \
+    The processing took {round((time.time()-start)/60,3)} minutes. \n \
+    I found {len(mainThing.min_read.unique())} observed peaks.")
+
+elif addingFiles:
+    print(f"I processed an additional {len(to_filter)} days of driving. I analysed the data using a threshold of {100 + float(threshold) * 100}% for an elevated reading, \n \
+    where the threshold was calculated using the {baseline_percentile}th percentile over {back_obs_num} observations. \n \
+    I filtered the speed of the car to be between {min_car_speed}mph and {max_car_speed}mph.\n \
+    I created 3 summary files located here:{final_results_dir}.\n \
+    The processing took {round((time.time() - start) / 60, 3)} minutes. \n \
+    I found {len(mainThing.min_read.unique()) - curOP} additional observed peaks, and {vpNew - curVP} VPs.")
+
