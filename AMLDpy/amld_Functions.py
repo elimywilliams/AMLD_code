@@ -2118,6 +2118,7 @@ def pass_combine(firstgroup, secondgroup, xCar, buffer='30'):
     return (newCombined)
 
 def save_results(mainInfo,mainThing,final_info_loc,final_main_csv_loc,shp_file_loc,op_shp_file_loc,all_op_csv_loc):
+    import pandas as pd
     mainInfo.drop_duplicates().reset_index(drop=True).FILENAME.to_csv(final_info_loc)
     mainThing.reset_index(drop=True).to_csv(final_main_csv_loc)
 
