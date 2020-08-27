@@ -320,17 +320,13 @@ def process_raw_data_eng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initi
 
         # gZIP is indicating if it is a ZIP file (I don't think I've written this in)
         if gZIP == 0:
-            f = gzip.open(xDir + "/" + xFilename,
-                          'r')  # if in python 3, change this to "r" or just "b" can't remember but something about a bit not a string
+            f = gzip.open(xDir + "/" + xFilename,'r')
         else:
-            f = open(xDir + "/" + xFilename, 'r')
+            #f = open(xDir + "/" + xFilename, 'r')
             f = open(xDir + xFilename, 'r')
 
         ### FIGURING OUT DATE FROM FILENAME (WILL NEED TO CHANGE THIS IF DIFFERENT FILENAME)
         xdat = str('20') + xFilename[11:17]
-
-        # fnOut = xOutDir + xCar + "_" + xDate.replace("-", "") + "_dat.csv"       #set CSV output for raw data
-        # fnLog = xOutDir + xCar + "_" + xDate.replace("-", "") + "_log.csv"       #output for logfile
 
         fnOut = xOut + xCar + "_" + xdat + "_dat.csv"  # set CSV output for raw data
         fnLog = xOut + xCar + "_" + xdat + "_log.csv"  # output for logfile
@@ -530,7 +526,6 @@ def process_raw_data_eng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initi
              'distance', 'timediff', 'uncor_theta', 'CH4'], axis=1)
         wind_df3['CH4'] = wind_df3.loc[:, 'shift_CH4']
         wind_df3 = wind_df3.drop(['shift_CH4'], axis=1)
-
         wind_df3 = wind_df3.loc[:,
                    {'DATE', 'TIME', 'SECONDS', 'NANOSECONDS', 'VELOCITY', 'U', 'V', 'W', 'BCH4', 'BRSSI', 'TCH4',
                     'TRSSI',
@@ -545,14 +540,7 @@ def process_raw_data_eng(xCar, xDate, xDir, xFilename, bFirst, gZIP, xOut, initi
 
         del (wind_df4)
 
-        # wind_df7 = add_odometer(wind_df6,'LAT','LONG')
         wind_df4 = wind_df6.copy().drop_duplicates()
-        # del(wind_df7)
-
-        # firstTime = wind_df3.SECONDS.min() + 60 *(initialTimeBack)
-        # wind_df4 = wind_df3.loc[wind_df3.SECONDS > firstTime,:]
-        # wind_df3.to_csv(fnOutTemp,index=False)
-
         if bFirst:
             wind_df4.to_csv(fnOut, index=False)
         elif not bFirst:

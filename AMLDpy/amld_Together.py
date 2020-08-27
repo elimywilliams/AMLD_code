@@ -13,20 +13,20 @@ function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_code/AMLDpy'
 
 
 ## Folder with .txt Data
-raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/fireData/driving_fire"
+raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/shortDat"
 
 ## Folder to put results in (will make subfolders later)
-results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/fireData/driving_fire/"
+results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/shortDat/"
 
-car_id = 'CSULi' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
+car_id = 'SC_Car' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.05'  #What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 time_thresh = '5.0'  ## How many minutes to include in background calculation (minutes)
 initial_time_ignore = '0' ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
 min_elevated = '1' # minimum number of elevated readings required for an observed peak
-shift = 0  ## Lag time for CH4 to reach sensor (in seconds)
+shift = -4  ## Lag time for CH4 to reach sensor (in seconds)
 engineering = False #is this an engineering file
-aeris = True # is this from the aeris instrument
-CSU = True
+aeris = False # is this from the aeris instrument
+CSU = False
 time_push = 0 #not sure what this is
 back_obs_num = '1020' ### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
 max_car_speed = '45' #maximum car speed to allow (mph)
