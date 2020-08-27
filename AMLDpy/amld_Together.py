@@ -71,7 +71,7 @@ from amld_Functions import unique,unIfInt,\
                             count_times,identify_peaks,filter_peaks,\
                             pass_combine,summarize_data_2,add_odometer,\
                             process_raw_data,process_raw_data_aeris,\
-                            identify_peaks_CSU,weighted_loc
+                            identify_peaks_CSU,weighted_loc,nameFiles
 
 import rtree, pygeos,os, sys, datetime, time, math, numpy, csv, gzip,shutil,ast,swifter
 from math import radians, sin, cos, sqrt, asin

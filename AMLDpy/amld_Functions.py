@@ -1092,6 +1092,28 @@ def count_times(opList, xCar):
         return (numtimes)
 
 
+def nameFiles(outDir, processedFileLoc, xCar, xDate, SC):
+    if SC:
+        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".csv"
+        fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".shp"
+        fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".log"
+        pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate + "_info.csv"
+        jsonOut = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".json"
+        infOut = processedFileLoc + xCar + "_" + xDate + "_info.csv"
+
+    elif not SC:
+        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".csv"
+        fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".shp"
+        fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".log"
+        pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + "_info.csv"
+        jsonOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".json"
+        infOut = processedFileLoc + xCar + "_" + xDate.replace("-", "") + "_info.csv"
+
+    filenames = {"fnOut": fnOut, 'fnShape': fnShape, 'fnLog': fnLog,
+                 'pkLog': pkLog, 'jsonOut': jsonOut, 'infOut': infOut}
+    return (filenames)
+
+
 def identify_peaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engineering, threshold='.1',
                   xTimeThreshold='5.0', minElevated='2', xB='102', basePerc='50'):
     """ input a processed data file, and finds the locations of the elevated readings (observed peaks)
@@ -1127,33 +1149,32 @@ def identify_peaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engin
         xDistThreshold = 160.0  # find the maximum CH4 reading of observations within street segments of this grouping distance in meters
         xSDF = 4  # multiplier times standard deviation for floating baseline added to mean
 
-        xB = int(xB); xTimeThreshold = float(xTimeThreshold)
+        xB = int(xB)
+        xTimeThreshold = float(xTimeThreshold)
         fn = xDir + xFilename  # set raw text file to read in
-
-        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
-                                                                    "") + ".csv"  # set CSV format output for observed peaks for a given car, day, city
+        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".csv"
         fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".shp"
-        fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
-                                                                    "") + ".log"  # set CSV output for observed peaks for a given car, day, city
-        pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
-                                                                    "") + "_info.csv"  # set CSV output for observed peaks for a given car, day, city
-
-        jsonOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
-                                                                      "") + ".json"  # set CSV format output for observed peaks for a given car, day, city
-
+        fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".log"
+        pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + "_info.csv"
+        jsonOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".json"
         infOut = processedFileLoc + xCar + "_" + xDate.replace("-", "") + "_info.csv"
 
         ### TEST THING
         fn = xDir + xFilename  # set raw text file to read in
+        filenames = nameFiles(outDir,processedFileLoc,xCar,xDate,True)
+        fnOut = filenames['fnOut']
+        fnShape = filenames['fnShape']
+        fnLog = filenames['fnLog']
+        pkLog = filenames['pkLog']
+        jsonOut = filenames['jsonOut']
+        infOut = filenames['infOut']
 
-        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".csv"  # set CSV format output for observed peaks for a given car, day, city
-        fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".shp"
-        fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".log"  # set CSV output for observed peaks for a given car, day, city
-        pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate + "_info.csv"  # set CSV output for observed peaks for a given car, day, city
-
-        jsonOut = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".json"  # set CSV format output for observed peaks for a given car, day, city
-
-        infOut = processedFileLoc + xCar + "_" + xDate + "_info.csv"
+        #fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".csv"
+        #fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".shp"
+        #fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".log"
+        #pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate + "_info.csv"
+        #jsonOut = outDir + "Peaks" + "_" + xCar + "_" + xDate + ".json"
+        #infOut = processedFileLoc + xCar + "_" + xDate + "_info.csv"
 
         print(f"{outDir}Peaks_{xCar}_{xDate}_info.csv")
         fLog = open(fnLog, 'w')
@@ -1337,7 +1358,6 @@ def identify_peaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engin
                 lambda x: max(x.ODOMETER) - min(x.ODOMETER))
             pkDistDf.columns = ['OP_NUM', 'OP_DISTANCE']
             openFile = pd.merge(openFile.copy(), pkDistDf)
-
             tempCount = openFile.groupby('OP_NUM', as_index=False).OP_EPOCHSTART.count().rename(
                 columns={'OP_EPOCHSTART': 'Frequency'})
             tempCount = tempCount.loc[tempCount.Frequency >= minElevated, :]
@@ -1361,7 +1381,7 @@ def identify_peaks(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, Engin
                 # geometry is the point of the lat/lon
                 # gdf_buff = gpd.GeoDataFrame(datFram, crs=crs, geometry=geometry_temp)
 
-                ## BUFFER AROUND EACH 'OP_NUM' OF 30 M
+                ## BUFFER AROUND EACH 'OP_NUM' WITH BUFFER DISTANCE
                 gdf_buff = gpd.GeoDataFrame(fileWt, crs=crs, geometry=geometry_temp)
                 # gdf_buff = makeGPD(datFram,'LON','LAT')
                 gdf_buff = gdf_buff.to_crs(epsg=32610)
@@ -1389,20 +1409,23 @@ def identify_peaks_CSU(xCar, xDate, xDir, xFilename, outDir, processedFileLoc, t
         xTimeThreshold = float(xTimeThreshold)
 
         fn = xDir + "/" + xFilename  # set raw text file to read in
-        fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
-                                                                    "") + ".csv"  # set CSV format output for observed peaks for a given car, day, city
-        fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".shp"
-        fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
-                                                                    "") + ".log"  # set CSV output for observed peaks for a given car, day, city
-        pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
-                                                                    "") + "_info.csv"  # set CSV output for observed peaks for a given car, day, city
 
-        jsonOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-",
-                                                                      "") + ".json"  # set CSV format output for observed peaks for a given car, day, city
+        filenames = nameFiles(outDir,processedFileLoc,xCar,xDate,False)
+        fnOut = filenames['fnOut']
+        fnShape = filenames['fnShape']
+        fnLog = filenames['fnLog']
+        pkLog = filenames['pkLog']
+        jsonOut = filenames['jsonOut']
+        infOut = filenames['infOut']
 
-        infOut = processedFileLoc + xCar + "_" + xDate.replace("-", "") + "_info.csv"
+        #fnOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + ".csv"
+        #fnShape = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".shp"
+        #fnLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".log"
+        #pkLog = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-","") + "_info.csv"
+        #jsonOut = outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + ".json"
+        #infOut = processedFileLoc + xCar + "_" + xDate.replace("-", "") + "_info.csv"
+
         print(str(outDir + "Peaks" + "_" + xCar + "_" + xDate.replace("-", "") + "_info.csv"))
-
         fLog = open(fnLog, 'w')
         shutil.copy(infOut, pkLog)
 
