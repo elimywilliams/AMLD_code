@@ -13,12 +13,12 @@ function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_code/AMLDpy'
 
 
 ## Folder with .txt Data
-raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/shortDat"
+raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/data"
 
 ## Folder to put results in (will make subfolders later)
-results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/shortDat/"
+results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/data/"
 
-car_id = 'SC_Car' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
+car_id = 'SCCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.05'  #What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 time_thresh = '5.0'  ## How many minutes to include in background calculation (minutes)
 initial_time_ignore = '0' ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
@@ -27,8 +27,9 @@ shift = -4  ## Lag time for CH4 to reach sensor (in seconds)
 engineering = False #is this an engineering file
 aeris = False # is this from the aeris instrument
 CSU = False
+agg = False
 time_push = 0 #not sure what this is
-back_obs_num = '1020' ### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
+back_obs_num = '102' ### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
 max_car_speed = '45' #maximum car speed to allow (mph)
 min_car_speed = '2' # minimum car speed to allow (mph)
 baseline_percentile = '50' #what percentile to use as a backgorund calculation
@@ -99,17 +100,23 @@ for x in foldList:
             
 ### MOVING RAW FILES TO THE RAW DATA FILE FOLDER
 for file in os.listdir(raw_data_loc):
-    if file.endswith(".txt"):
+    if file.endswith(".txt") and not agg:
         shutil.move(raw_data_loc+'/' + file,raw_data_dir)
+    elif file.endswith('.csv') and agg:
+        shutil.move(raw_data_loc+'/' + file,raw_data_dir)
+
 ########################################################################################
 
 ##### THIS PORTION OF THE CODE ALLOWS US TO ITERATIVELY ADD IN MORE DATA
 #        PUT THE NEW TEXT FILES INTO THE OVERALL FOLDER AND IT WILL DO THE REST
-raw_txts = pd.DataFrame(os.listdir(raw_data_dir)).loc[pd.DataFrame(os.listdir(raw_data_dir))[0].str.endswith('.txt')]
+if not agg:
+    raw_txts = pd.DataFrame(os.listdir(raw_data_dir)).loc[pd.DataFrame(os.listdir(raw_data_dir))[0].str.endswith('.txt')]
+elif agg:
+    raw_txts = pd.DataFrame(os.listdir(raw_data_dir)).loc[pd.DataFrame(os.listdir(raw_data_dir))[0].str.endswith('.csv')]
 
 ### DON'T ADD NEW FILE WITH PRE-EXISTING DATE [NEED TO WRITE CODE TO DEAL WITH THAT]
 to_analyse, to_identify, to_filter = [[] for _ in range(3)]
-
+fileDates = []
 
 if os.path.exists(final_info_loc):
     analysed = pd.read_csv(final_info_loc)
@@ -123,8 +130,14 @@ elif not os.path.exists(final_info_loc):
     for index,row in raw_txts.reset_index().iterrows():
         text = raw_txts[0].iloc[index]
         to_analyse.append(text)
-        to_identify.append(s1 + '_20' + text[11:17] + '_dat.csv')
-        to_filter.append(s2 + '_20' + text[11:17] + '.csv')
+        if not agg:
+            to_identify.append(s1 + '_20' + text[11:17] + '_dat.csv')
+            to_filter.append(s2 + '_20' + text[11:17] + '.csv')
+        elif agg:
+            firstdate =  datetime.fromtimestamp(pd.read_csv(raw_data_loc + '/RawData/' + text).timestamp[0]).strftime('%Y%m%d')
+            fileDates.append(firstdate)
+            to_identify.append(s1 + '_' +  firstdate + '_dat.csv')
+            to_filter.append(s2 + '_'+ firstdate + '.csv')
 
 ##### START OF THE ALGORITHM
 start = time.time()
@@ -133,18 +146,21 @@ if __name__ == '__main__':
     date_list = []
     x1=""
     count = 0
-    for file in to_analyse:
+    for index,file in enumerate(to_analyse):
         #print (file)
         if file.endswith(".txt"):
-            dateF = file[11:17]
+            if not agg:
+                dateF = file[11:17]
+            elif agg:
+                dateF = fileDates[index]
             if dateF in set(date_list):
                 bFirst = False
-            
             if dateF not in set(date_list):
                 bFirst = True
                 date_list.append(dateF)
             x1 = file[:10]
-            x_date = file[:10]
+            x_date = dateF
+
             if engineering:
                 the_result = process_raw_data_eng(car_id, x_date, raw_data_dir, file, bFirst, 1, processedFileLoc,initial_time_ignore,shift,max_car_speed,min_car_speed)
             elif not engineering:
