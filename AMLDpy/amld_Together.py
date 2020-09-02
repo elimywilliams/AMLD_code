@@ -13,10 +13,10 @@ function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_code/AMLDpy'
 
 
 ## Folder with .txt Data
-raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/data"
+raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/shortDat"
 
 ## Folder to put results in (will make subfolders later)
-results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/data/"
+results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/shortDat/"
 
 car_id = 'SCCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.05'  #What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
@@ -73,9 +73,10 @@ from amld_Functions import unique,unIfInt,\
                             pass_combine,summarize_data_2,add_odometer,\
                             process_raw_data,process_raw_data_aeris,\
                             identify_peaks_CSU,weighted_loc,nameFiles,calc_velocity,\
-                            check_lst,nanthing,print_results,save_results
+                            check_lst,nanthing,print_results,save_results,dt_to_epoch
 
-import rtree, pygeos,os, sys, datetime, time, math, numpy, csv, gzip,shutil,ast,swifter
+
+import rtree,os, sys, datetime, time, math, numpy, csv, gzip,shutil,ast,swifter
 from math import radians, sin, cos, sqrt, asin
 import numpy as np
 from numpy import log
@@ -84,7 +85,7 @@ import pandas as pd
 from shapely.geometry import Point
 import matplotlib.pyplot as plt
 from datetime import datetime
-
+# import pygeos
 
 #### CREATING NECESSARY FOLDERS
 addingFiles = False
