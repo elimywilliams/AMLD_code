@@ -18,6 +18,11 @@ raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/shortDat
 ## Folder to put results in (will make subfolders later)
 results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/shortDat/"
 
+function_file_Loc = 'C:/Users/ewilliams/Documents/GitHub/AMLD_code/AMLDpy/amld_Functions.py'
+raw_data_loc = 'C:/Users/ewilliams/Documents/amld_dat'
+results_folder_loc = 'C:/Users/ewilliams/Documents/amld_dat/'
+
+
 car_id = 'SCCar' #CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.05'  #What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 time_thresh = '5.0'  ## How many minutes to include in background calculation (minutes)
