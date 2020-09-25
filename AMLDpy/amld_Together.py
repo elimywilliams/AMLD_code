@@ -10,28 +10,29 @@ Created on Tuesday July 28
 ## WHERE THE amld_Functions.py file is located
 function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_code/AMLDpy'
+function_file_Loc = '/Users/emilywilliams/Library/Application Support/JetBrains/PyCharmCE2020.2/scratches/'
 
 ## Folder with .txt Data
-raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/truss_6pc_204_q1_shift_2"
+raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/truss_6pc_102_med_shift_2_removeR"
 
 ## Folder to put results in (will make subfolders later)
-results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/truss_6pc_204_q1_shift_2/"
+results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/truss_6pc_102_med_shift_2_removeR/"
 
-car_id = 'Truss'  # CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
+car_id = 'TRUSS'  # CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.06'  # What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 time_thresh = '5.0'  ## How many minutes to include in background calculation (minutes)
 initial_time_ignore = '0'  ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
 min_elevated = '1'  # minimum number of elevated readings required for an observed peak
 shift = -2 ## Lag time for CH4 to reach sensor (in seconds)
 engineering = False  # is this an engineering file
-aeris = True  # is this from the aeris instrument
+aeris = True  # is this from the aeris instrument (trussville car)
 CSU = False
 agg = False
 time_push = 0  # not sure what this is
-back_obs_num = '204'  ### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
+back_obs_num = '102'  ### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
 max_car_speed = '45'  # maximum car speed to allow (mph)
 min_car_speed = '2'  # minimum car speed to allow (mph)
-baseline_percentile = '25'  # what percentile to use as a backgorund calculation
+baseline_percentile = '50'  # what percentile to use as a backgorund calculation
 buffer_distance = '30'  # distance of buffer (m) to use
 
 ###############################################################################
@@ -64,7 +65,7 @@ s3 = "Filtered" + str()
 import sys
 
 sys.path.insert(0, function_file_Loc)  # FINDING FUNCTIONS FOLDER TO IMPORT FROM
-from amld_Functions import unique, unIfInt, \
+from amld_Functions2 import unique, unIfInt, \
     intersect, verPk, estimate_emissions, \
     haversine, wt_time_Locs, sum_values, make_GEO, \
     make_GPD, summarize_dat, get_quadrant, calc_theta, \
@@ -73,7 +74,7 @@ from amld_Functions import unique, unIfInt, \
     pass_combine, summarize_data_2, add_odometer, \
     process_raw_data, process_raw_data_aeris, \
     identify_peaks_CSU, weighted_loc, nameFiles, calc_velocity, \
-    check_lst, nanthing, print_results, save_results, dt_to_epoch
+    check_lst, nanthing, print_results, save_results, dt_to_epoch,minread_to_date
 
 import rtree, os, sys, datetime, time, math, numpy, csv, gzip, shutil, ast, swifter
 from math import radians, sin, cos, sqrt, asin
@@ -143,6 +144,7 @@ elif not os.path.exists(final_info_loc):
             fileDates.append(firstdate)
             to_identify.append(s1 + '_' + firstdate + '_dat.csv')
             to_filter.append(s2 + '_' + firstdate + '.csv')
+to_identify_unique = list(np.unique(np.array(to_identify)))
 
 ##### START OF THE ALGORITHM
 start = time.time()
@@ -165,7 +167,7 @@ if __name__ == '__main__':
                 date_list.append(dateF)
             x1 = file[:10]
             x_date = dateF
-
+            print(file)
             if engineering:
                 the_result = process_raw_data_eng(car_id, x_date, raw_data_dir, file, bFirst, 1, processedFileLoc,
                                                   initial_time_ignore, shift, max_car_speed, min_car_speed)
@@ -180,7 +182,7 @@ if __name__ == '__main__':
             count = count + 1
 
 if __name__ == '__main__':
-    for file in to_identify:
+    for index,file in enumerate(to_identify_unique):
         if file.startswith(s1) and file.endswith("dat.csv"):
             x_date = file[len(car_id) + 1:len(car_id) + 9]
             if CSU:
@@ -249,6 +251,6 @@ elif os.path.exists(final_main_csv_loc):
     mainThing = mainThing.copy().reset_index(drop = True)
     mainThing['numtimes']  = mainThing.apply(lambda x: count_times(x.recombine,car_id),axis=1)
 
-save_results(mainInfo,mainThing,final_info_loc,final_main_csv_loc,shp_file_loc,op_shp_file_loc,all_op_csv_loc,threshold)
+save_results(mainInfo,mainThing,final_info_loc,final_main_csv_loc,shp_file_loc,op_shp_file_loc,all_op_csv_loc,threshold,car_id)
 print_results(addingFiles,to_filter,threshold,baseline_percentile,back_obs_num,min_car_speed,max_car_speed,final_results_dir,
                   start,mainThing)

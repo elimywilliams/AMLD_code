@@ -20,21 +20,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="844887e3-c461-427f-8d6c-bc5591a21f18" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/SummaryInfoTrussville.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/aerisIndicationsLocs.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/checkShift.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/comparisonAERIS.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dataExplore.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/techIndicationsLocs.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testFirst.json/testFirst.cpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testFirst.json/testFirst.dbf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testFirst.json/testFirst.prj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testFirst.json/testFirst.shp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testFirst.json/testFirst.shx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/AMLDpy.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/AMLDpy.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testbuff.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testgroup.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/amld_Functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/amld_Functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/amld_Together.py" beforeDir="false" afterPath="$PROJECT_DIR$/amld_Together.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
