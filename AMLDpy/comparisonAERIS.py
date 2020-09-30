@@ -1,15 +1,21 @@
 import pandas as pd
 import geopandas as gpd
+from shapely.geometry import Point
 
 ### first thing
 relpolys = gpd.read_file('/Users/emilywilliams/Documents/GitHub/Trussville/rel_poly_1983.shp')
 techInds = gpd.read_file('/Users/emilywilliams/Documents/GitHub/Trussville/techIndications.shp')
-aerisInds = gpd.read_file('/Users/emilywilliams/Documents/GitHub/Trussville/aeris_win.shp')
+aerisInds = gpd.read_file('/Users/emilywilliams/Documents/GitHub/Trussville/aeris678lks.shp')
 
 totPolys = relpolys.geometry.unary_union
 techInds['win'] = techInds.within(totPolys)
 techIndsWin = techInds.loc[techInds.win == True,:].reset_index()
 
+aerisInds['within'] = aerisInds.within(totPolys)
+aerisIndsWin = aerisInds.loc[aerisInds['within'] == True,:].reset_index()
+del(aerisInds)
+aerisInds = aerisIndsWin.copy()
+del(aerisIndsWin)
 #aerisInds = aerisInds.to_crs(epsg=26730)
 ### add buffer
 buffdist = 100
@@ -40,7 +46,7 @@ filesLoc = '/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data'
 toCheck = os.listdir(filesLoc)
 toCheck2 = []
 for index,name in enumerate(toCheck):
-    if name.startswith('truss_') and 'shift' in name: # and '6pc_102_med_shift_0' not in name:
+    if name.startswith('truss_') and 'shift' and 'remove' in name: # and '6pc_102_med_shift_0' not in name:
         toCheck2.append([name])
 
 for index,name in enumerate(toCheck2):
@@ -49,11 +55,20 @@ for index,name in enumerate(toCheck2):
     tbaselineobs = float(namesplit[2])
     tbackgroundperc = str(namesplit[3])
     tshift = int(namesplit[5])
+    tRmin = str(namesplit[6][7:])
+    if 'n1' in tRmin:
+        tRmin = -1
+    elif 'n1' not in tRmin:
+        tRmin = int(tRmin)
+    tminElevated = int(namesplit[7][0])
     temp_df = gpd.read_file(filesLoc + '/' + str(name[0]) + '/FinalShpFiles/OP_Final.json')
     temp_df.loc[:,'baseline_obs'] = temp_df.apply(lambda x: tbaselineobs,axis = 1)
     temp_df.loc[:,'baseline_perc'] = temp_df.apply(lambda x: tbackgroundperc,axis = 1)
     temp_df.loc[:,'CH4_shift'] = temp_df.apply(lambda x: tshift,axis = 1)
+    temp_df.loc[:,'min_Rval'] = temp_df.apply(lambda x: tRmin,axis = 1)
+    temp_df.loc[:,'min_elevated'] = temp_df.apply(lambda x: tminElevated,axis = 1)
     temp_df.loc[:,'analysis_num'] = temp_df.apply(lambda x: index,axis = 1)
+
     if index == 0:
         final_df = temp_df.copy()
     elif index != 0:
@@ -77,10 +92,12 @@ for index,anum in enumerate(scIndsWin.analysis_num.unique()):
     baseperc = smallDF.baseline_perc[0]
     num_shift = smallDF.CH4_shift[0]
     threshold = smallDF.threshold[0]
+    minR = smallDF.min_Rval[0]
+    minel = smallDF.min_elevated[0]
     ntowa = techwinAeris.shape[0]
     tempData = {'AnalysisNumber': [anum], 'NumberTechObsWinAerisSC':[numtechwin],
                 'NumberSCWinPoly':[numscwin],'BackgroundObsNum':[backobs],
-                'BaselinePercentile':[baseperc],'CH4Shift':[num_shift],
+                'BaselinePercentile':[baseperc],'CH4Shift':[num_shift],'MinR':[minR],'minElevated':[minel],
                 'ElevationThreshold':[threshold],'NumberTechObsWinAeris':[ntowa],
                 'PercSC_tot':[numtechwin/ntowa],"Buffer":[buffdist]}
 

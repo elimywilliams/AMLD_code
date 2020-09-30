@@ -66,7 +66,7 @@ write_csv(aeris_678_lks,'aerisLks678.csv')
 
 
 
-  filter(DateFound <= as.Date('2020-08-31')) %>% 
+filter(DateFound <= as.Date('2020-08-31')) %>% 
   filter(DateFound != as.Date('2020-06-15'))
 
 

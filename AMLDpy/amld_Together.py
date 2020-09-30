@@ -13,17 +13,17 @@ function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_code/AMLDpy'
 function_file_Loc = '/Users/emilywilliams/Library/Application Support/JetBrains/PyCharmCE2020.2/scratches/'
 
 ## Folder with .txt Data
-raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/truss_6pc_102_med_shift_2_removeR"
+raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/truss_6pc_102_med_shift_0_removeR0_1min"
 
 ## Folder to put results in (will make subfolders later)
-results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/truss_6pc_102_med_shift_2_removeR/"
+results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/truss_6pc_102_med_shift_0_removeR0_1min/"
 
 car_id = 'TRUSS'  # CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.06'  # What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 time_thresh = '5.0'  ## How many minutes to include in background calculation (minutes)
 initial_time_ignore = '0'  ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
-min_elevated = '1'  # minimum number of elevated readings required for an observed peak
-shift = -2 ## Lag time for CH4 to reach sensor (in seconds)
+min_elevated = '2'  # minimum number of elevated readings required for an observed peak
+shift = 0 ## Lag time for CH4 to reach sensor (in seconds)
 engineering = False  # is this an engineering file
 aeris = True  # is this from the aeris instrument (trussville car)
 CSU = False
@@ -31,10 +31,10 @@ agg = False
 time_push = 0  # not sure what this is
 back_obs_num = '102'  ### NUMBER OF OBSERVATIONS TO INCLUDE IN THE BACKGROUND
 max_car_speed = '45'  # maximum car speed to allow (mph)
-min_car_speed = '2'  # minimum car speed to allow (mph)
+min_car_speed = '1'  # minimum car speed to allow (mph)
 baseline_percentile = '50'  # what percentile to use as a backgorund calculation
 buffer_distance = '30'  # distance of buffer (m) to use
-
+r_min = '0'
 ###############################################################################
 ###### DON'T CHANGE ANYTHING BELOW THIS (UNLESS YOU CAN FIX IT) ###############
 ###############################################################################
@@ -181,6 +181,7 @@ if __name__ == '__main__':
             print(file)
             count = count + 1
 
+# identify the peaks
 if __name__ == '__main__':
     for index,file in enumerate(to_identify_unique):
         if file.startswith(s1) and file.endswith("dat.csv"):
@@ -188,12 +189,14 @@ if __name__ == '__main__':
             if CSU:
                 the_result = identify_peaks_CSU(car_id, x_date, processedFileLoc, file, observed_peaks_dir,
                                                 processedFileLoc,
-                                                threshold, time_thresh, min_elevated, back_obs_num, baseline_percentile)
+                                                threshold, r_min, time_thresh, min_elevated,
+                                                back_obs_num, baseline_percentile)
             elif not CSU:
                 the_result = identify_peaks(car_id, x_date, processedFileLoc, file, observed_peaks_dir,
-                                            processedFileLoc, engineering, threshold, time_thresh, min_elevated,
+                                            processedFileLoc, engineering, threshold,r_min,time_thresh, min_elevated,
                                             back_obs_num, baseline_percentile)
 
+# filter the peaks
 if __name__ == '__main__':
     index = 0
     numproc = 0
@@ -203,6 +206,7 @@ if __name__ == '__main__':
             csv_loc = observed_peaks_dir + file[:-4] + '_info.csv'
             non_empty = False
             if pd.read_csv(file_loc).size != 0:
+                print(file)
                 index += 1
                 non_empty = True
                 x_date = file[len(car_id) + 7: len(car_id) + 15]
@@ -218,6 +222,7 @@ if not os.path.exists(final_main_csv_loc):
             toCombineList.append(file)
     index = 1
     for file in toCombineList:
+        print(file)
         if index == 1:
             loc = filtered_observed_peaks_dir + file
             mainInfo = pd.read_csv(filtered_observed_peaks_dir + file[:-4] + '_info.csv')
