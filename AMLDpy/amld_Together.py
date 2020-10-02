@@ -11,21 +11,21 @@ Created on Tuesday July 28
 function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_CODE/AMLDpy/'
 function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_code/AMLDpy'
 function_file_Loc = '/Users/emilywilliams/Library/Application Support/JetBrains/PyCharmCE2020.2/scratches/'
-
+function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_code/AMLDpy/'
 ## Folder with .txt Data
-raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/truss_6pc_102_med_shift_0_removeR0_1min"
+raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/may_fc_drives"
 
 ## Folder to put results in (will make subfolders later)
-results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/truss_6pc_102_med_shift_0_removeR0_1min/"
+results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/may_fc_drives/"
 
-car_id = 'TRUSS'  # CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
+car_id = 'SoCr'  # CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.06'  # What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 time_thresh = '5.0'  ## How many minutes to include in background calculation (minutes)
 initial_time_ignore = '0'  ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
 min_elevated = '2'  # minimum number of elevated readings required for an observed peak
-shift = 0 ## Lag time for CH4 to reach sensor (in seconds)
+shift = -1 ## Lag time for CH4 to reach sensor (in seconds)
 engineering = False  # is this an engineering file
-aeris = True  # is this from the aeris instrument (trussville car)
+aeris = False  # is this from the aeris instrument (trussville car)
 CSU = False
 agg = False
 time_push = 0  # not sure what this is
@@ -65,7 +65,7 @@ s3 = "Filtered" + str()
 import sys
 
 sys.path.insert(0, function_file_Loc)  # FINDING FUNCTIONS FOLDER TO IMPORT FROM
-from amld_Functions2 import unique, unIfInt, \
+from amld_Functions3 import unique, unIfInt, \
     intersect, verPk, estimate_emissions, \
     haversine, wt_time_Locs, sum_values, make_GEO, \
     make_GPD, summarize_dat, get_quadrant, calc_theta, \
@@ -238,6 +238,7 @@ if not os.path.exists(final_main_csv_loc):
         print(file)
     mainThing = mainThing.copy().reset_index(drop=True)
     mainThing['numtimes'] = mainThing.apply(lambda x: count_times(x.recombine, car_id), axis=1)
+    mainThing['verified'] = mainThing.apply(lambda x: True if x.numtimes >1 else False,axis=1)
 
 elif os.path.exists(final_main_csv_loc):
     addingFiles = True
@@ -255,6 +256,7 @@ elif os.path.exists(final_main_csv_loc):
             print(file)
     mainThing = mainThing.copy().reset_index(drop = True)
     mainThing['numtimes']  = mainThing.apply(lambda x: count_times(x.recombine,car_id),axis=1)
+    mainThing['verified'] = mainThing.apply(lambda x: True if x.numtimes >1 else False,axis=1)
 
 save_results(mainInfo,mainThing,final_info_loc,final_main_csv_loc,shp_file_loc,op_shp_file_loc,all_op_csv_loc,threshold,car_id)
 print_results(addingFiles,to_filter,threshold,baseline_percentile,back_obs_num,min_car_speed,max_car_speed,final_results_dir,

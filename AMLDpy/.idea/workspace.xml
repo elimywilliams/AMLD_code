@@ -20,14 +20,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="844887e3-c461-427f-8d6c-bc5591a21f18" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/testBreak.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/amld_Functions3.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/newComb.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SummaryInfoTrussville.csv" beforeDir="false" afterPath="$PROJECT_DIR$/SummaryInfoTrussville.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/aerisIndicationsLocs.csv" beforeDir="false" afterPath="$PROJECT_DIR$/aerisIndicationsLocs.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/amld_Together.py" beforeDir="false" afterPath="$PROJECT_DIR$/amld_Together.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/comparisonAERIS.py" beforeDir="false" afterPath="$PROJECT_DIR$/comparisonAERIS.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/techIndicationsLocs.csv" beforeDir="false" afterPath="$PROJECT_DIR$/techIndicationsLocs.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../R_files/compare_backgrounds.R" beforeDir="false" afterPath="$PROJECT_DIR$/../R_files/compare_backgrounds.R" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,6 +55,11 @@
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="Python" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunManager" selected="Python.testup">
     <configuration name="amld_Functions" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
@@ -215,12 +216,19 @@
     </state>
     <state x="1754" y="-220" key="SettingsEditor/0.0.1440.900/1440.-265.1680.1050@1440.-265.1680.1050" timestamp="1599148459791" />
     <state x="262" y="61" key="SettingsEditor/0.23.1401.877@0.23.1401.877" timestamp="1597242776856" />
-    <state x="415" y="218" width="670" height="566" key="search.everywhere.popup" timestamp="1601056940531">
-      <screen x="0" y="23" width="1380" height="877" />
+    <state x="0" y="0" width="543" height="900" key="dock-window-1" timestamp="1601654569906">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="0" y="0" width="612" height="900" key="dock-window-1/0.0.1440.900/1440.-265.1680.1050@0.0.1440.900" timestamp="1601653335957" />
+    <state x="0" y="0" width="543" height="900" key="dock-window-1/0.0.1440.900@0.0.1440.900" timestamp="1601654569906" />
+    <state x="29" y="23" width="1318" height="727" key="dock-window-1/0.23.1399.877/1440.-265.1680.1050@1440.-265.1680.1050" timestamp="1601650326317" />
+    <state x="0" y="0" width="734" height="900" key="dock-window-1/0.23.1399.877@0.23.1399.877" timestamp="1601654376894" />
+    <state x="433" y="200" width="689" height="580" key="search.everywhere.popup" timestamp="1601492785690">
+      <screen x="0" y="0" width="1440" height="900" />
     </state>
     <state x="-1175" y="-77" width="670" height="676" key="search.everywhere.popup/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1597073702693" />
     <state x="1945" y="-32" width="804" height="677" key="search.everywhere.popup/0.0.1440.900/1440.-265.1680.1050@1440.-265.1680.1050" timestamp="1600195167927" />
-    <state x="433" y="200" width="689" height="580" key="search.everywhere.popup/0.0.1440.900@0.0.1440.900" timestamp="1598543532746" />
+    <state x="433" y="200" width="689" height="580" key="search.everywhere.popup/0.0.1440.900@0.0.1440.900" timestamp="1601492785690" />
     <state x="415" y="218" width="670" height="566" key="search.everywhere.popup/0.23.1380.877@0.23.1380.877" timestamp="1601056940531" />
     <state x="420" y="218" width="670" height="566" key="search.everywhere.popup/0.23.1398.877@0.23.1398.877" timestamp="1598031189152" />
     <state x="421" y="218" width="670" height="565" key="search.everywhere.popup/0.23.1401.877@0.23.1401.877" timestamp="1597272939408" />
