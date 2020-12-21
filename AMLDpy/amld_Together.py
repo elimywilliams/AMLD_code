@@ -13,12 +13,12 @@ function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_code/AMLDpy'
 function_file_Loc = '/Users/emilywilliams/Library/Application Support/JetBrains/PyCharmCE2020.2/scratches/'
 function_file_Loc = '/Users/emilywilliams/Documents/GitHub/AMLD_code/AMLDpy/'
 ## Folder with .txt Data
-raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/may_fc_drives"
+raw_data_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/aggregator_test"
 
 ## Folder to put results in (will make subfolders later)
-results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/may_fc_drives/"
+results_folder_loc = "/Users/emilywilliams/Documents/GitHub/AMLD_Driving_Data/aggregator_test/"
 
-car_id = 'SoCr'  # CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
+car_id = 'SoAg'  # CAR NAME TO APPEAR IN FILENAMES OBSERVED PEAK NAMES
 threshold = '0.06'  # What Proportion above Baseline to flag as elevated (i.e. 0.1 = 10% higher)
 time_thresh = '5.0'  ## How many minutes to include in background calculation (minutes)
 initial_time_ignore = '0'  ## How many minutes to skip at the beginning of the dataset (i.e. if Collin is at his house)
@@ -257,6 +257,8 @@ elif os.path.exists(final_main_csv_loc):
     mainThing = mainThing.copy().reset_index(drop = True)
     mainThing['numtimes']  = mainThing.apply(lambda x: count_times(x.recombine,car_id),axis=1)
     mainThing['verified'] = mainThing.apply(lambda x: True if x.numtimes >1 else False,axis=1)
+    mainThing['OB_CH4_ENH'] = mainThing.apply(lambda x: x.OB_CH4 -x.OB_CH4_BASELINE,axis = 1)
+    mainThing['OB_C2H6_ENH'] = mainThing.apply(lambda x: x.OB_C2H6 -x.OB_C2H6_BASELINE,axis = 1)
 
 save_results(mainInfo,mainThing,final_info_loc,final_main_csv_loc,shp_file_loc,op_shp_file_loc,all_op_csv_loc,threshold,car_id)
 print_results(addingFiles,to_filter,threshold,baseline_percentile,back_obs_num,min_car_speed,max_car_speed,final_results_dir,

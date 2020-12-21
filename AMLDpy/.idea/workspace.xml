@@ -20,10 +20,42 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="844887e3-c461-427f-8d6c-bc5591a21f18" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/amld_Functions3.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/newComb.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/rAvailablePackageCache.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/rGraphicsSettings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/rSettings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AMLD_run.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AMLD_server_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/aerisdat.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/carCorrected" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finalLeaks.cpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finalLeaks.dbf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finalLeaks.prj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finalLeaks.shp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finalLeaks.shp.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finalLeaks.shx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finalcombined.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/locAvg.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/locationGrouped.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/runSimulated.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/simulatedCorrected" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testAggregateAnalysis.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testCombine.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testCombine2.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testLocbearpy.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testavg.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testcombinelocwind.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testcombinelocwind_away.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testcombinelocwind_filled.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testcombinelocwind_windlaps.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testlocavg.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testwind_loc.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/together3.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/togethertest.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/windAlgorithm.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/windresultsPlot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/amld_Together.py" beforeDir="false" afterPath="$PROJECT_DIR$/amld_Together.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hi.csv" beforeDir="false" afterPath="$PROJECT_DIR$/hi.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,9 +84,10 @@
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="Python" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="org.jetbrains.r.configuration.RSettingsProjectConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -163,74 +196,33 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="334" y="147" key="#Inspections" timestamp="1597942755560">
-      <screen x="0" y="23" width="1398" height="877" />
+    <state x="1799" y="-134" key="SettingsEditor" timestamp="1606845904818">
+      <screen x="1440" y="-180" width="1920" height="1080" />
     </state>
-    <state x="334" y="147" key="#Inspections/0.23.1398.877@0.23.1398.877" timestamp="1597942755559" />
-    <state x="-1376" y="-123" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1596831828580">
-      <screen x="-1680" y="-310" width="1680" height="1050" />
+    <state x="1799" y="-134" key="SettingsEditor/1440.-180.1920.1080/0.0.1440.900@1440.-180.1920.1080" timestamp="1606845904817" />
+    <state x="100" y="100" width="1240" height="700" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1607014621756">
+      <screen x="0" y="23" width="1440" height="877" />
     </state>
-    <state x="-1376" y="-123" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596831828580" />
-    <state x="726" y="259" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1597069204394">
-      <screen x="0" y="0" width="1440" height="900" />
-    </state>
-    <state x="726" y="259" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1440.900@0.0.1440.900" timestamp="1597069204394" />
-    <state x="311" y="91" key="FileChooserDialogImpl" timestamp="1597242755160">
-      <screen x="0" y="23" width="1401" height="877" />
-    </state>
-    <state x="311" y="91" key="FileChooserDialogImpl/0.23.1401.877@0.23.1401.877" timestamp="1597242755160" />
-    <state width="1380" height="222" key="GridCell.Tab.0.bottom" timestamp="1598368077000">
-      <screen x="0" y="23" width="1398" height="877" />
-    </state>
-    <state width="1659" height="287" key="GridCell.Tab.0.bottom/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596832814451" />
-    <state width="1380" height="222" key="GridCell.Tab.0.bottom/0.23.1398.877@0.23.1398.877" timestamp="1598368077000" />
-    <state width="1380" height="222" key="GridCell.Tab.0.bottom/0.23.1399.877@0.23.1399.877" timestamp="1597435155020" />
-    <state width="1380" height="222" key="GridCell.Tab.0.bottom/0.23.1401.877@0.23.1401.877" timestamp="1597425215756" />
-    <state width="1659" height="287" key="GridCell.Tab.0.bottom/0.23.1440.877/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596834358432" />
-    <state width="1380" height="222" key="GridCell.Tab.0.center" timestamp="1598368076999">
-      <screen x="0" y="23" width="1398" height="877" />
-    </state>
-    <state width="1659" height="287" key="GridCell.Tab.0.center/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596832814449" />
-    <state width="1380" height="222" key="GridCell.Tab.0.center/0.23.1398.877@0.23.1398.877" timestamp="1598368076999" />
-    <state width="1380" height="222" key="GridCell.Tab.0.center/0.23.1399.877@0.23.1399.877" timestamp="1597435155019" />
-    <state width="1380" height="222" key="GridCell.Tab.0.center/0.23.1401.877@0.23.1401.877" timestamp="1597425215755" />
-    <state width="1659" height="287" key="GridCell.Tab.0.center/0.23.1440.877/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596834358430" />
-    <state width="1380" height="222" key="GridCell.Tab.0.left" timestamp="1598368076999">
-      <screen x="0" y="23" width="1398" height="877" />
-    </state>
-    <state width="1659" height="287" key="GridCell.Tab.0.left/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596832814447" />
-    <state width="1380" height="222" key="GridCell.Tab.0.left/0.23.1398.877@0.23.1398.877" timestamp="1598368076999" />
-    <state width="1380" height="222" key="GridCell.Tab.0.left/0.23.1399.877@0.23.1399.877" timestamp="1597435155018" />
-    <state width="1380" height="222" key="GridCell.Tab.0.left/0.23.1401.877@0.23.1401.877" timestamp="1597425215755" />
-    <state width="1659" height="287" key="GridCell.Tab.0.left/0.23.1440.877/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596834358427" />
-    <state width="1380" height="222" key="GridCell.Tab.0.right" timestamp="1598368076999">
-      <screen x="0" y="23" width="1398" height="877" />
-    </state>
-    <state width="1659" height="287" key="GridCell.Tab.0.right/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596832814450" />
-    <state width="1380" height="222" key="GridCell.Tab.0.right/0.23.1398.877@0.23.1398.877" timestamp="1598368076999" />
-    <state width="1380" height="222" key="GridCell.Tab.0.right/0.23.1399.877@0.23.1399.877" timestamp="1597435155020" />
-    <state width="1380" height="222" key="GridCell.Tab.0.right/0.23.1401.877@0.23.1401.877" timestamp="1597425215756" />
-    <state width="1659" height="287" key="GridCell.Tab.0.right/0.23.1440.877/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1596834358431" />
-    <state x="1754" y="-220" key="SettingsEditor" timestamp="1599148459791">
-      <screen x="1440" y="-265" width="1680" height="1050" />
-    </state>
-    <state x="1754" y="-220" key="SettingsEditor/0.0.1440.900/1440.-265.1680.1050@1440.-265.1680.1050" timestamp="1599148459791" />
-    <state x="262" y="61" key="SettingsEditor/0.23.1401.877@0.23.1401.877" timestamp="1597242776856" />
-    <state x="0" y="0" width="543" height="900" key="dock-window-1" timestamp="1601654569906">
-      <screen x="0" y="0" width="1440" height="900" />
+    <state x="100" y="100" width="1240" height="700" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1440.900/1440.-265.1680.1050@0.0.1440.900" timestamp="1607011653112" />
+    <state x="100" y="100" width="1240" height="700" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.23.1440.877/1440.-242.1639.1027@0.23.1440.877" timestamp="1606966553799" />
+    <state x="100" y="100" width="1240" height="700" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.23.1440.877/1440.-265.1641.1050@0.23.1440.877" timestamp="1607014621756" />
+    <state x="0" y="0" width="1440" height="900" key="dock-window-1" timestamp="1602514108893">
+      <screen x="0" y="23" width="1399" height="877" />
     </state>
     <state x="0" y="0" width="612" height="900" key="dock-window-1/0.0.1440.900/1440.-265.1680.1050@0.0.1440.900" timestamp="1601653335957" />
     <state x="0" y="0" width="543" height="900" key="dock-window-1/0.0.1440.900@0.0.1440.900" timestamp="1601654569906" />
     <state x="29" y="23" width="1318" height="727" key="dock-window-1/0.23.1399.877/1440.-265.1680.1050@1440.-265.1680.1050" timestamp="1601650326317" />
-    <state x="0" y="0" width="734" height="900" key="dock-window-1/0.23.1399.877@0.23.1399.877" timestamp="1601654376894" />
-    <state x="433" y="200" width="689" height="580" key="search.everywhere.popup" timestamp="1601492785690">
+    <state x="0" y="0" width="1440" height="900" key="dock-window-1/0.23.1399.877@0.23.1399.877" timestamp="1602514108893" />
+    <state x="0" y="0" width="1440" height="900" key="dock-window-1/0.23.1402.877@0.23.1402.877" timestamp="1601766129921" />
+    <state x="0" y="0" width="1440" height="900" key="dock-window-1/0.23.1404.877@0.23.1404.877" timestamp="1601920717060" />
+    <state x="0" y="0" width="1440" height="900" key="dock-window-1/0.23.1440.877/1440.-242.1639.1027@0.23.1440.877" timestamp="1602174358273" />
+    <state x="433" y="200" width="689" height="581" key="search.everywhere.popup" timestamp="1607977154097">
       <screen x="0" y="0" width="1440" height="900" />
     </state>
-    <state x="-1175" y="-77" width="670" height="676" key="search.everywhere.popup/0.0.1440.900/-1680.-310.1680.1050@-1680.-310.1680.1050" timestamp="1597073702693" />
+    <state x="433" y="200" width="689" height="581" key="search.everywhere.popup/0.0.1440.900/1440.-265.1680.1050@0.0.1440.900" timestamp="1607977154097" />
     <state x="1945" y="-32" width="804" height="677" key="search.everywhere.popup/0.0.1440.900/1440.-265.1680.1050@1440.-265.1680.1050" timestamp="1600195167927" />
-    <state x="433" y="200" width="689" height="580" key="search.everywhere.popup/0.0.1440.900@0.0.1440.900" timestamp="1601492785690" />
+    <state x="433" y="200" width="689" height="580" key="search.everywhere.popup/0.0.1440.900@0.0.1440.900" timestamp="1602695308393" />
     <state x="415" y="218" width="670" height="566" key="search.everywhere.popup/0.23.1380.877@0.23.1380.877" timestamp="1601056940531" />
-    <state x="420" y="218" width="670" height="566" key="search.everywhere.popup/0.23.1398.877@0.23.1398.877" timestamp="1598031189152" />
-    <state x="421" y="218" width="670" height="565" key="search.everywhere.popup/0.23.1401.877@0.23.1401.877" timestamp="1597272939408" />
+    <state x="433" y="218" width="689" height="566" key="search.everywhere.popup/0.23.1440.877/1440.-242.1639.1027@0.23.1440.877" timestamp="1605301348850" />
   </component>
 </project>
